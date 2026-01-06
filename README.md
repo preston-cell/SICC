@@ -35,8 +35,8 @@ Estate planning affects nearly every adult, yet the process remains intimidating
 |------|------|------------------|
 | [Preston Dinh] | [Role] | [Key responsibilities] |
 | [Ezekiel Dube-Garrett] | [Role] | [Key responsibilities] |
-| [Keegan Harrison] | [Role] | [Key responsibilities] |
-| [Colton Pozniak] | [Chud] | [Key responsibilities] |
+| [Keegan Harrison] | [worthless] | [Key responsibilities] |
+| [Colton Pozniak] | [Role] | [Key responsibilities] |
 
 ---
 
