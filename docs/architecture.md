@@ -229,21 +229,56 @@ Service
 
 **Document Types Supported:**
 ```
-├── Wills
-│   ├── Simple Will
-│   ├── Pour-over Will
-│   └── Holographic Will (text extraction only)
-├── Trusts
+├── Core Incapacity Documents
+│   ├── Durable Power of Attorney (financial)
+│   ├── Limited/Special Power of Attorney
+│   ├── Springing Power of Attorney
+│   ├── Healthcare Power of Attorney
+│   ├── Advance Healthcare Directive/Living Will
+│   ├── HIPAA Authorization
+│   ├── Mental Health Treatment Declaration
+│   ├── Anatomical Gift/Organ Donation Authorization
+│   ├── POLST/MOLST
+│   └── Supported Decision-Making Agreement
+├── Core Death & Transfer Documents
+│   ├── Last Will and Testament
+│   ├── Pour-Over Will
+│   ├── Codicil
 │   ├── Revocable Living Trust
+│   ├── Trust Restatement
+│   ├── Trust Amendment
+│   ├── Testamentary Trust
 │   ├── Irrevocable Trust
-│   └── Trust Amendments
-├── Powers of Attorney
-│   ├── Durable POA (Financial)
-│   └── Limited POA
-└── Healthcare
-    ├── Healthcare Proxy
-    ├── Living Will
-    └── HIPAA Authorization
+│   ├── Letter of Instruction
+│   └── Memorandum of Personal Property
+├── Trust Sub-Types
+│   ├── Asset Protection/Tax (Grantor, IDGT, SLAT, QPRT, Dynasty, DAPT)
+│   ├── Benefit-Specific (SNT, Spendthrift, Education, Minor's, Incentive)
+│   └── Charitable (CRT, CLT, Private Foundation, DAF Agreement)
+├── Asset-Specific Transfer Instruments
+│   ├── Beneficiary Designation Forms
+│   ├── TOD Deeds, POD Accounts, TOD Securities
+│   └── Joint Tenancy/Tenancy by Entirety Deeds
+├── Business Documents
+│   ├── Buy-Sell Agreement
+│   ├── Operating Agreement (LLC)
+│   ├── Shareholder/Partnership Agreement
+│   └── Business Succession Documents
+├── Family & Relationship Documents
+│   ├── Prenuptial/Postnuptial Agreements
+│   ├── Guardianship Nomination
+│   └── UTMA/UGMA Documents
+├── Tax Documents
+│   ├── Gift Tax Returns (Form 709)
+│   ├── Estate Tax Returns (Form 706)
+│   └── GST Allocation Elections
+├── Digital Assets
+│   ├── Digital Asset Authorization (RUFADAA-compliant)
+│   ├── Cryptocurrency Custody Instructions
+│   └── Online Account Access Memorandum
+└── Death-Care Documents
+    ├── Funeral Instructions
+    └── Disposition of Remains Authorization
 ```
 
 ### 2. Gap Analysis Engine
@@ -317,11 +352,11 @@ GAP_CATEGORIES = {
 - JSON Schema for rule definitions
 - Version tracking for law changes
 
-**Sample Rule Structure:**
+**Sample Rule Structure (Massachusetts):**
 
 ```json
 {
-  "state": "CA",
+  "state": "MA",
   "document_type": "will",
   "version": "2024.1",
   "effective_date": "2024-01-01",
@@ -332,17 +367,19 @@ GAP_CATEGORIES = {
         "requirements": [
           "Must be 18 or older",
           "Must sign in presence of testator",
+          "Must sign within reasonable time after witnessing",
           "Should not be beneficiaries (recommended)"
         ]
       },
       "notarization": {
         "required": false,
         "self_proving_affidavit": true,
-        "benefit": "Simplifies probate"
+        "benefit": "Simplifies probate under MGL c. 192"
       },
       "testator_signature": {
         "required": true,
-        "location": "End of will"
+        "location": "End of will",
+        "note": "Must be signed by testator or by another at testator's direction"
       }
     },
     "content": {
@@ -353,11 +390,135 @@ GAP_CATEGORIES = {
   },
   "common_issues": [
     {
-      "id": "ca_holographic",
-      "description": "Holographic wills valid in CA but risky",
-      "check": "No witness signatures + handwritten"
+      "id": "ma_no_holographic",
+      "description": "Massachusetts does NOT recognize holographic (handwritten) wills",
+      "check": "No witness signatures + handwritten = INVALID"
+    },
+    {
+      "id": "ma_elective_share",
+      "description": "Surviving spouse entitled to elective share under MGL c. 191",
+      "check": "Spouse disinherited or underprovided"
     }
   ]
+}
+```
+
+### 3.5 Decision Tree Engine
+
+**Purpose:** Guide users through "Do I Need This?" assessment
+
+**Decision Tree Structure:**
+
+```python
+DECISION_TREE = {
+    "phase_1_incapacity": {
+        "questions": [
+            {
+                "id": "has_financial_poa",
+                "text": "Do you have a financial Power of Attorney?",
+                "if_no": {"recommend": ["durable_poa"]}
+            },
+            {
+                "id": "has_healthcare_proxy",
+                "text": "Do you have a Healthcare Proxy?",
+                "if_no": {"recommend": ["healthcare_poa"]}
+            },
+            {
+                "id": "has_advance_directive",
+                "text": "Do you have an Advance Directive/Living Will?",
+                "if_no": {"recommend": ["advance_directive"]}
+            },
+            {
+                "id": "has_hipaa",
+                "text": "Do you have HIPAA Authorization?",
+                "if_no": {"recommend": ["hipaa_authorization"]}
+            }
+        ]
+    },
+    "phase_2_death_transfer": {
+        "questions": [
+            {
+                "id": "wants_probate_avoidance",
+                "text": "Do you want to avoid probate?",
+                "if_yes": {"recommend": ["revocable_trust"]}
+            },
+            {
+                "id": "multistate_real_estate",
+                "text": "Do you own real estate in multiple states?",
+                "if_yes": {"recommend": ["revocable_trust"], "reason": "Avoid ancillary probate"}
+            },
+            {
+                "id": "has_minor_children",
+                "text": "Do you have minor children?",
+                "if_yes": {"recommend": ["guardianship_nomination", "minors_trust"]}
+            }
+        ]
+    },
+    "phase_3_beneficiary_risk": {
+        "questions": [
+            {
+                "id": "disabled_beneficiary",
+                "text": "Are any beneficiaries disabled?",
+                "if_yes": {"recommend": ["special_needs_trust"]}
+            },
+            {
+                "id": "blended_family",
+                "text": "Do you have a blended family?",
+                "if_yes": {"recommend": ["qtip_trust", "separate_trusts"]}
+            },
+            {
+                "id": "irresponsible_beneficiary",
+                "text": "Are any beneficiaries financially irresponsible?",
+                "if_yes": {"recommend": ["spendthrift_trust", "incentive_trust"]}
+            }
+        ]
+    },
+    "phase_4_tax_planning": {
+        "threshold_trigger": 13610000,  # 2024 exemption
+        "questions": [
+            {
+                "id": "near_exemption",
+                "text": "Is net worth approaching estate tax exemption?",
+                "if_yes": {"recommend": ["irrevocable_trusts", "grats", "slats"]}
+            },
+            {
+                "id": "has_life_insurance",
+                "text": "Do you have significant life insurance?",
+                "if_yes_and_high_net_worth": {"recommend": ["ilit"]}
+            }
+        ]
+    }
+}
+```
+
+### 3.6 Wealth-Based Recommendation Engine
+
+**Purpose:** Recommend documents based on asset level
+
+```python
+WEALTH_RECOMMENDATIONS = {
+    "0_25k": ["healthcare_poa", "living_will", "hipaa"],
+    "25k_100k": ["simple_will", "durable_poa", "beneficiary_designations"],
+    "100k_250k": ["revocable_trust", "pour_over_will", "pod_tod"],
+    "250k_500k": ["funded_trust", "successor_trustee_provisions", "digital_assets"],
+    "500k_1m": ["distribution_controls", "spendthrift_clauses", "minors_trusts"],
+    "1m_2m": ["lifetime_beneficiary_trusts", "separate_trustee_guardian", "incentive_trusts"],
+    "2m_5m": ["irrevocable_trusts", "slat", "dynasty_planning", "disclaimer_trusts"],
+    "5m_10m": ["grats", "idgts", "ilit", "valuation_discounts"],
+    "10m_25m": ["dynasty_with_gst", "family_governance", "private_trust_company"],
+    "25m_50m": ["layered_structures", "professional_trustees", "trust_protector", "family_constitution"]
+}
+
+NON_ASSET_OVERRIDES = {
+    "minor_children": ["guardianship", "minors_trusts"],
+    "business_owner": ["buy_sell", "succession_planning"],
+    "disabled_beneficiary": ["special_needs_trust"],
+    "blended_family": ["trusts_not_wills", "qtip_provisions"],
+    "high_conflict_family": ["no_contest_clause", "independent_trustee"],
+    "high_liability_profession": ["asset_protection_trusts"],
+    "multistate_real_estate": ["trusts_avoid_ancillary"],
+    "cryptocurrency": ["digital_asset_provisions"],
+    "charitable_intent": ["charitable_trusts", "foundation_planning"]
 }
 ```
 

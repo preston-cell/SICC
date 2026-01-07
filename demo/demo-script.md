@@ -97,6 +97,9 @@
 
 > "Robert's overall risk score is 68 out of 100 — meaning there are some significant issues to address. Let's look at what we found."
 
+**Key Insight to Mention:**
+> "Remember: there is no single estate plan — there is a document ecosystem. What we're looking for is not just missing documents, but conflicts between documents."
+
 ---
 
 **Section: Critical Issues**
@@ -165,7 +168,7 @@
 > "No — and that's an important distinction. EstateAI is a document analysis and education tool. We identify potential gaps and explain what we found in plain English. We're not providing legal advice or telling you what to do. For that, you should consult with an attorney — and we make it easy to connect with one."
 
 **Q: What states do you support?**
-> "We're launching with California — the largest HNW market with complex trust laws. We'll be adding Texas, Florida, and New York shortly, which together represent about 44% of our target market."
+> "We're launching with Massachusetts — a state with strong legal infrastructure and concentrated HNW population. We'll be adding New York, California, and Florida shortly as we expand to cover the largest HNW markets."
 
 **Q: How is this different from just asking ChatGPT to review my documents?**
 > "Three key differences. First, we have a purpose-built rules engine with state-specific legal requirements — something a general-purpose AI doesn't have. Second, we have a structured gap taxonomy based on what estate planning attorneys actually look for. Third, security — we're built for handling sensitive legal documents with encryption, access controls, and compliance measures. You shouldn't be uploading your trust to a general chatbot."

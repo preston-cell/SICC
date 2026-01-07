@@ -345,10 +345,10 @@ Validate the approach for encoding and applying state-specific legal requirement
 
 ### Test States
 
-1. **California** (MVP state) — Complex trust laws, community property
-2. **Texas** — Different execution requirements, community property
-3. **Florida** — Stricter rules, no state income tax implications
-4. **New York** — Different formalities, EPTL requirements
+1. **Massachusetts** (MVP state) — Uniform Probate Code adopted, strong legal infrastructure
+2. **New York** — Different formalities, EPTL requirements
+3. **California** — Complex trust laws, community property
+4. **Florida** — Stricter rules, retiree concentration
 
 ### Rules to Encode
 
@@ -407,22 +407,22 @@ class StateWillRules(BaseModel):
     version: str
     effective_date: str
 
-# California rules
-CA_WILL_RULES = StateWillRules(
-    state="CA",
+# Massachusetts rules (MVP state)
+MA_WILL_RULES = StateWillRules(
+    state="MA",
     min_testator_age=18,
     execution=ExecutionRequirements(
         witnesses=WitnessRequirement(
             count=2,
             min_age=18,
-            cannot_be_beneficiary=False,  # Recommended but not required
+            cannot_be_beneficiary=False,  # Recommended but not required in MA
             must_sign_in_presence=True
         ),
         notarization_required=False,
-        self_proving_available=True
+        self_proving_available=True  # MGL c. 192
     ),
-    holographic_valid=True,
-    required_clauses=["revocation", "signature"],
+    holographic_valid=False,  # MA does NOT recognize holographic wills
+    required_clauses=["revocation", "signature", "attestation"],
     version="2024.1",
     effective_date="2024-01-01"
 )
@@ -658,7 +658,7 @@ def generate_report(analysis_results, user_info):
 {
   "client": {
     "name": "Robert and Susan Chen",
-    "state": "CA",
+    "state": "MA",
     "net_worth_range": "$5M-$10M"
   },
   "documents": [

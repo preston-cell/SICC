@@ -1,5 +1,43 @@
 # EstateAI: Research Notes
 
+## Key Insights to Embed
+
+### Core Philosophy
+
+1. **"There is no single estate plan — there is a document ecosystem"**
+   - Estate planning involves multiple interconnected documents
+   - Each document serves a specific purpose
+   - Documents must work together cohesively
+
+2. **Outcome Priority Order**
+   Outcomes are governed by (in this order):
+   1. Asset title
+   2. Beneficiary forms
+   3. Trust instruments
+   4. Contracts
+   5. Wills
+   6. State default law
+
+3. **"Most estate failures occur not because documents are missing, but because they conflict"**
+   - Will vs. trust inconsistencies
+   - Beneficiary designations vs. will provisions
+   - POA vs. trust provisions
+   - Joint ownership vs. will directions
+
+4. **Estate Planning Risk Progression (Step-Function)**
+   - **Incapacity risk** → POA, Healthcare Proxy
+   - **Probate inefficiency** → Trusts, TOD designations
+   - **Behavioral risk** → Spendthrift provisions, trustee selection
+   - **Tax risk** → Tax planning trusts, exemption planning
+   - **Governance risk** → Family governance, professional trustees
+
+5. **"If the state default result is unacceptable, a document is required"**
+   - State intestacy laws govern without a will
+   - State POA rules apply without a document
+   - If default outcomes don't match wishes, action needed
+
+---
+
 ## High-Net-Worth ($2M–$50M) Behavioral Research
 
 ### HNW Estate Planning Behavior Patterns
@@ -47,6 +85,70 @@
 
 ---
 
+## Document Ecosystem Framework
+
+### Understanding the Document Hierarchy
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    ESTATE DOCUMENT ECOSYSTEM                     │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  PRIORITY 1: Asset Title                                        │
+│  ─────────────────────                                          │
+│  How assets are titled controls disposition regardless          │
+│  of what other documents say                                    │
+│  • Joint tenancy → Passes to survivor automatically             │
+│  • Community property → Governed by state law                   │
+│  • Trust-owned → Governed by trust terms                        │
+│                                                                 │
+│  PRIORITY 2: Beneficiary Designations                           │
+│  ────────────────────────────────────                           │
+│  Direct transfer documents override wills                       │
+│  • Retirement account beneficiaries                             │
+│  • Life insurance beneficiaries                                 │
+│  • POD/TOD designations                                         │
+│                                                                 │
+│  PRIORITY 3: Trust Instruments                                  │
+│  ──────────────────────────                                     │
+│  Control assets titled to the trust                             │
+│  • Revocable living trusts                                      │
+│  • Irrevocable trusts                                           │
+│  • Trust amendments                                             │
+│                                                                 │
+│  PRIORITY 4: Contracts                                          │
+│  ─────────────────────                                          │
+│  May override other documents                                   │
+│  • Buy-sell agreements                                          │
+│  • Prenuptial agreements                                        │
+│  • Partnership agreements                                       │
+│                                                                 │
+│  PRIORITY 5: Wills                                              │
+│  ────────────────                                               │
+│  Control probate assets only                                    │
+│  • Last will and testament                                      │
+│  • Pour-over will                                               │
+│                                                                 │
+│  PRIORITY 6: State Default Law                                  │
+│  ────────────────────────────                                   │
+│  Applies when no document controls                              │
+│  • Intestacy succession                                         │
+│  • Default agent selection                                      │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Common Conflict Patterns
+
+| Conflict Type | Example | Impact |
+|---------------|---------|--------|
+| **Beneficiary vs. Will** | IRA names ex-spouse; will leaves to children | Ex-spouse gets IRA |
+| **Title vs. Trust** | House titled individually; trust says goes to charity | House goes through probate to will beneficiaries |
+| **Contract vs. Will** | Buy-sell mandates sale to partner; will leaves to spouse | Partner gets business |
+| **Joint vs. Will** | Joint account with child; will divides equally | Joint owner gets account |
+
+---
+
 ## Legal Research
 
 ### Unauthorized Practice of Law (UPL) Considerations
@@ -72,10 +174,10 @@
 
 | State | UPL Risk Level | Key Requirements |
 |-------|----------------|------------------|
-| California | Low-Medium | LDA registration may be required for document prep; analysis likely exempt |
-| Texas | Low | Generally permissive; clear disclaimers recommended |
-| Florida | Medium | More restrictive; careful positioning required |
+| Massachusetts | Low-Medium | Clear disclaimers; no specific legal advice |
 | New York | Medium | Active bar; strong disclaimers needed |
+| California | Low-Medium | LDA registration may be required for document prep; analysis likely exempt |
+| Florida | Medium | More restrictive; careful positioning required |
 
 #### Mitigation Strategies
 
@@ -98,6 +200,174 @@
    - Terms of service clearly state limitations
    - User confirms understanding before analysis
    - No attorney-client relationship formed
+
+---
+
+## Gap Taxonomy Research
+
+### Common Gaps in HNW Estate Plans
+
+Based on estate planning attorney interviews and industry research:
+
+#### Critical Gaps (Immediate Risk)
+
+1. **Deceased/Incapacitated Fiduciaries**
+   - Named executor/trustee has died or is incapacitated
+   - No successor or successor also unavailable
+   - Frequency: ~15% of plans 10+ years old
+
+2. **Improper Execution**
+   - Missing signatures
+   - Insufficient witnesses
+   - Notary issues for self-proving affidavit
+   - Frequency: ~5% (often in DIY documents)
+
+3. **Unfunded Trust**
+   - Trust exists but assets not titled to trust
+   - Results in probate despite trust
+   - Frequency: ~25% of trust-based plans
+
+#### High Priority Gaps
+
+4. **Outdated Beneficiary Designations**
+   - Ex-spouse still named on retirement accounts
+   - Deceased beneficiary not updated
+   - Beneficiary designation conflicts with will/trust
+   - Frequency: ~30%
+
+5. **Missing Incapacity Planning**
+   - No POA or healthcare proxy
+   - Outdated healthcare directives
+   - No HIPAA authorization
+   - Frequency: ~20%
+
+6. **Missing Digital Asset Provisions**
+   - No provision for digital accounts
+   - No password/access instructions
+   - No cryptocurrency provisions
+   - Frequency: ~60% of plans 5+ years old
+
+#### Medium Priority Gaps
+
+7. **Missing Contingent Beneficiaries**
+   - No backup if primary beneficiary predeceases
+   - No provisions for next generation
+   - Frequency: ~25%
+
+8. **State Law Changes**
+   - Plan drafted under old law
+   - Tax provisions no longer applicable
+   - Execution requirements changed
+   - Frequency: Variable by state
+
+9. **Asset Changes Not Reflected**
+   - New properties not addressed
+   - Business interests not covered
+   - Investment account changes
+   - Frequency: ~40%
+
+#### Advisory Items
+
+10. **Tax Optimization Opportunities**
+    - Estate tax exemption changes
+    - State inheritance tax considerations
+    - Charitable giving structures
+    - Frequency: ~50%
+
+11. **Family Governance**
+    - No family meeting provisions
+    - No trustee succession plan
+    - No dispute resolution mechanism
+    - Frequency: ~70%
+
+---
+
+## Decision Tree Research
+
+### "Do I Need This?" Logic Framework
+
+#### Phase 1: Incapacity Planning Assessment
+
+```
+START: Incapacity Risk Analysis
+│
+├─ Q: Do you have a financial POA?
+│  ├─ No → RECOMMEND: Durable Power of Attorney
+│  └─ Yes → Check: Is it current? Is agent available?
+│
+├─ Q: Do you have a healthcare proxy?
+│  ├─ No → RECOMMEND: Healthcare Power of Attorney
+│  └─ Yes → Check: Does it reflect current wishes?
+│
+├─ Q: Do you have an advance directive?
+│  ├─ No → RECOMMEND: Living Will / Advance Directive
+│  └─ Yes → Check: Is it state-compliant?
+│
+└─ Q: Do you have HIPAA authorization?
+   ├─ No → RECOMMEND: HIPAA Authorization
+   └─ Yes → Proceed to Phase 2
+```
+
+#### Phase 2: Death/Transfer Planning Assessment
+
+```
+PHASE 2: Death/Transfer Planning
+│
+├─ Q: Do you want to avoid probate?
+│  ├─ Yes → RECOMMEND: Revocable Living Trust
+│  └─ No → Simple will may suffice
+│
+├─ Q: Do you own real estate in multiple states?
+│  ├─ Yes → RECOMMEND: Trust (avoid ancillary probate)
+│  └─ No → Continue analysis
+│
+├─ Q: Do you have minor children?
+│  ├─ Yes → RECOMMEND: Guardianship nomination, Minor's trusts
+│  └─ No → Continue analysis
+│
+└─ Q: Is your will/trust current?
+   ├─ No → RECOMMEND: Update or create new documents
+   └─ Yes → Proceed to Phase 3
+```
+
+#### Phase 3: Beneficiary Risk Analysis
+
+```
+PHASE 3: Beneficiary Protection
+│
+├─ Q: Are any beneficiaries minors?
+│  └─ Yes → RECOMMEND: Minor's trusts, UTMA accounts
+│
+├─ Q: Are any beneficiaries disabled?
+│  └─ Yes → RECOMMEND: Special Needs Trust
+│
+├─ Q: Are any beneficiaries financially irresponsible?
+│  └─ Yes → RECOMMEND: Spendthrift trust, Incentive trust
+│
+├─ Q: Do you have a blended family?
+│  └─ Yes → RECOMMEND: QTIP trust, Separate trusts
+│
+└─ Q: Is there family conflict potential?
+   └─ Yes → RECOMMEND: No-contest clause, Independent trustee
+```
+
+#### Phase 4: Tax Planning Assessment
+
+```
+PHASE 4: Tax Threshold Analysis
+│
+├─ Q: Net worth approaching estate tax exemption ($13.61M in 2024)?
+│  └─ Yes → RECOMMEND: Irrevocable trusts, GRATs, SLATs
+│
+├─ Q: Do you have significant appreciated assets?
+│  └─ Yes → RECOMMEND: CRTs, stepped-up basis planning
+│
+├─ Q: Do you have life insurance policies?
+│  └─ Yes + High net worth → RECOMMEND: ILIT
+│
+└─ Q: Do you want to leave assets to charity?
+   └─ Yes → RECOMMEND: CRT, CLT, Private foundation, DAF
+```
 
 ---
 
@@ -243,85 +513,6 @@ Typical HNW estate plan includes:
 
 ---
 
-## Gap Taxonomy Research
-
-### Common Gaps in HNW Estate Plans
-
-Based on estate planning attorney interviews and industry research:
-
-#### Critical Gaps (Immediate Risk)
-
-1. **Deceased/Incapacitated Fiduciaries**
-   - Named executor/trustee has died or is incapacitated
-   - No successor or successor also unavailable
-   - Frequency: ~15% of plans 10+ years old
-
-2. **Improper Execution**
-   - Missing signatures
-   - Insufficient witnesses
-   - Notary issues for self-proving affidavit
-   - Frequency: ~5% (often in DIY documents)
-
-3. **Unfunded Trust**
-   - Trust exists but assets not titled to trust
-   - Results in probate despite trust
-   - Frequency: ~25% of trust-based plans
-
-#### High Priority Gaps
-
-4. **Outdated Beneficiary Designations**
-   - Ex-spouse still named on retirement accounts
-   - Deceased beneficiary not updated
-   - Beneficiary designation conflicts with will/trust
-   - Frequency: ~30%
-
-5. **Missing Incapacity Planning**
-   - No POA or healthcare proxy
-   - Outdated healthcare directives
-   - No HIPAA authorization
-   - Frequency: ~20%
-
-6. **Missing Digital Asset Provisions**
-   - No provision for digital accounts
-   - No password/access instructions
-   - No cryptocurrency provisions
-   - Frequency: ~60% of plans 5+ years old
-
-#### Medium Priority Gaps
-
-7. **Missing Contingent Beneficiaries**
-   - No backup if primary beneficiary predeceases
-   - No provisions for next generation
-   - Frequency: ~25%
-
-8. **State Law Changes**
-   - Plan drafted under old law
-   - Tax provisions no longer applicable
-   - Execution requirements changed
-   - Frequency: Variable by state
-
-9. **Asset Changes Not Reflected**
-   - New properties not addressed
-   - Business interests not covered
-   - Investment account changes
-   - Frequency: ~40%
-
-#### Advisory Items
-
-10. **Tax Optimization Opportunities**
-    - Estate tax exemption changes
-    - State inheritance tax considerations
-    - Charitable giving structures
-    - Frequency: ~50%
-
-11. **Family Governance**
-    - No family meeting provisions
-    - No trustee succession plan
-    - No dispute resolution mechanism
-    - Frequency: ~70%
-
----
-
 ## User Research
 
 ### HNW User Interviews (Informal, N=15)
@@ -389,7 +580,8 @@ Based on user research and market analysis:
 ## References
 
 ### Legal Sources
-- California Business & Professions Code §6400-6415
+- Massachusetts General Laws Chapter 190B (Uniform Probate Code)
+- Massachusetts General Laws Chapter 201B (Health Care Proxies)
 - ABA Model Rules of Professional Conduct
 - State bar UPL guidance documents
 - Unauthorized Practice of Law Committee opinions
@@ -416,7 +608,7 @@ Based on user research and market analysis:
 ## Open Questions
 
 ### Legal
-- [ ] Detailed UPL analysis for California positioning
+- [ ] Detailed UPL analysis for Massachusetts positioning
 - [ ] Required disclaimers review by legal counsel
 - [ ] E&O insurance requirements for analysis platform
 - [ ] State bar notification requirements (if any)
