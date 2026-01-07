@@ -1,23 +1,25 @@
-# EstateAI: Conversational Estate Planning Platform
+# EstateAI: Conversational AI-based Estate Planning Platform
 
 ## Opportunity Summary
 
 Estate planning affects nearly every adult, yet the process remains intimidating, expensive, and inaccessible. Traditional options force a choice between:
 - **Expensive attorneys** ($1,000-$5,000+ for basic documents)
+- **Recurring subscriptions** that mean users pay ridiculous monthly fees for access every 2-3 years
 - **Rigid form-filling tools** that lack personalization and state-specific accuracy
 - **DIY templates** that often produce legally inadequate documents
 
 **EstateAI** bridges this gap with an AI-guided conversational system that:
 - Feels like talking to a knowledgeable professional
-- Adapts questions based on user responses (no rigid forms)
-- Produces state-specific, legally compliant documents
+- Poses thought-provoking hypotheticals to users and optional attorney referral/review
+- Compares the gap between what clients 'want' to happen and what their legal documents dictate
+- Minimizes assets subject to tax and probate based on state and federal statutes
+- Adapts questions based on user responses
 - Offers unique "import-and-improve" capability for existing documents
-- Provides transparent explanations and optional attorney review
 
 ### The Problem We Solve
-- 67% of Americans lack basic estate planning documents
-- Existing digital tools have <5% completion rates due to complexity
-- State-specific requirements create significant compliance risk
+- 69% of Americans lack basic estate planning documents like a will
+- Barely 10% of US adults have a trust
+- State-specific requirements and cumbersome documents create significant compliance risk
 - Existing documents become outdated but full rewrites are expensive
 
 ### Our Differentiation
@@ -26,6 +28,7 @@ Estate planning affects nearly every adult, yet the process remains intimidating
 3. **State-Specific Rules Engine** - LLM + jurisdictional logic for compliance
 4. **Transparent Control** - Before/after comparisons, plain-English explanations
 5. **Flexible Pricing** - Pay only for what you need (full docs or amendments)
+6. **Multi-directional tool** - our tool can be used both by typical individuals and estate agents looking to improve their efficiency
 
 ---
 
@@ -35,7 +38,7 @@ Estate planning affects nearly every adult, yet the process remains intimidating
 |------|------|------------------|
 | [Preston Dinh] | [Role] | [Key responsibilities] |
 | [Ezekiel Dube-Garrett] | [Role] | [Key responsibilities] |
-| [Keegan Harrison] | [worthless] | [Key responsibilities] |
+| [Keegan Harrison] | [Role] | [Key responsibilities] |
 | [Colton Pozniak] | [Role] | [Key responsibilities] |
 
 ---
