@@ -4,6 +4,9 @@
 
 EstateAI is an AI-powered estate plan analysis platform targeting high-net-worth individuals with $2M–$50M in assets. Our primary value proposition is **gap analysis**—helping users identify faults, risks, and missing provisions in their existing wills and trusts, delivering professional-grade insights at a fraction of traditional legal costs.
 
+**Mission Statement:**
+Our company empowers individuals to fully understand, optimize, and confidently manage their estate plans by providing highly personalized, intelligent document analysis. We transform complex wills, trusts, and estate documents into clear, actionable insights that highlight potential gaps, inconsistencies, or outdated provisions.
+
 This segment represents a strategic sweet spot: complex enough to require sophisticated analysis, but underserved by traditional legal services that are either too basic (DIY tools) or too expensive (white-glove law firms).
 
 ---
@@ -27,11 +30,17 @@ This segment represents a strategic sweet spot: complex enough to require sophis
 | **Family offices** | Only economical above $50M–$100M |
 | **Financial advisors** | Not qualified to provide legal document analysis |
 
-**The "Drift" Problem:**
-- Estate plans are living documents that should evolve with life circumstances
-- Most plans are created once and never reviewed
-- Hidden gaps create risk: unintended disinheritance, tax inefficiency, probate exposure
-- Clients don't know what they don't know
+**Key Insight: "There is no single estate plan — there is a document ecosystem"**
+
+Outcomes are governed by (in priority order):
+1. Asset title
+2. Beneficiary forms
+3. Trust instruments
+4. Contracts
+5. Wills
+6. State default law
+
+**"Most estate failures occur not because documents are missing, but because they conflict"**
 
 ---
 
@@ -40,6 +49,14 @@ This segment represents a strategic sweet spot: complex enough to require sophis
 ### Core Value Proposition
 
 **"Professional-grade estate plan analysis, powered by AI, at a fraction of traditional legal costs."**
+
+### Key Features
+
+- **Advanced document parsing and targeted gap analysis**
+- **Scenario-based hypothetical questions** reflecting real-life situations
+- **Tax minimization and probate avoidance recommendations**
+- **Comprehensive summaries** with bullet points showing asset/trust/fund distribution
+- **Iterative plan adjustment capabilities**
 
 ### Primary Capability: Gap Analysis
 
@@ -87,6 +104,289 @@ Our platform analyzes existing estate planning documents to identify:
 
 ---
 
+## Supported Document Types
+
+### Core Incapacity Documents
+
+| Document | Purpose |
+|----------|---------|
+| Durable Power of Attorney (financial) | Authorizes agent to handle financial matters |
+| Limited/Special Power of Attorney | Grants specific, limited powers |
+| Springing Power of Attorney | Takes effect upon incapacity |
+| Healthcare Power of Attorney | Authorizes medical decisions |
+| Advance Healthcare Directive/Living Will | Documents end-of-life wishes |
+| HIPAA Authorization | Allows access to medical information |
+| Mental Health Treatment Declaration | Specifies psychiatric care preferences |
+| Anatomical Gift/Organ Donation Authorization | Documents donation wishes |
+| POLST/MOLST | Physician orders for life-sustaining treatment |
+| Supported Decision-Making Agreement | Alternative to guardianship |
+
+### Core Death & Transfer Documents
+
+| Document | Purpose |
+|----------|---------|
+| Last Will and Testament | Primary testamentary document |
+| Pour-Over Will | Transfers assets to trust at death |
+| Codicil | Amends existing will |
+| Revocable Living Trust | Avoids probate, provides management |
+| Trust Restatement | Comprehensively revises trust |
+| Trust Amendment | Modifies specific trust provisions |
+| Testamentary Trust | Created by will at death |
+| Irrevocable Trust | Permanent transfer for asset protection/tax |
+| Letter of Instruction | Non-binding guidance to fiduciaries |
+| Memorandum of Personal Property | Distributes tangible personal property |
+
+### Trust Sub-Types
+
+#### Asset Protection/Tax Trusts
+
+| Trust Type | Purpose |
+|------------|---------|
+| Grantor Trust | Income taxed to grantor |
+| Non-Grantor Trust | Separate tax entity |
+| IDGT (Intentionally Defective Grantor Trust) | Asset freeze + income tax benefits |
+| SLAT (Spousal Lifetime Access Trust) | Gift to spouse with creditor protection |
+| QPRT (Qualified Personal Residence Trust) | Transfers home at reduced gift tax |
+| Dynasty Trust | Multi-generational GST planning |
+| DAPT (Domestic Asset Protection Trust) | Self-settled creditor protection |
+| Offshore Asset Protection Trust | International creditor protection |
+
+#### Benefit-Specific Trusts
+
+| Trust Type | Purpose |
+|------------|---------|
+| Special Needs Trust (first-party) | For disabled person's own assets |
+| Special Needs Trust (third-party) | For disabled beneficiary |
+| Supplemental Needs Trust | Supplements government benefits |
+| Spendthrift Trust | Protects beneficiary from creditors |
+| Education Trust | Funds education expenses |
+| Minor's Trust | Holds assets for children |
+| Incentive Trust | Conditions distributions on behavior |
+
+#### Charitable Trusts
+
+| Trust Type | Purpose |
+|------------|---------|
+| Charitable Remainder Trust (CRT) | Income now, charity later |
+| Charitable Lead Trust (CLT) | Charity now, heirs later |
+| Private Foundation | Family-controlled charitable entity |
+| Donor-Advised Fund Agreement | Flexible charitable giving vehicle |
+
+### Asset-Specific Transfer Instruments
+
+| Document | Purpose |
+|----------|---------|
+| Beneficiary Designation Forms | Direct transfer of accounts |
+| TOD Deeds | Transfer on death for real estate |
+| POD Account Designations | Payable on death for bank accounts |
+| TOD Securities Registrations | Transfer on death for investments |
+| Vehicle TOD Title Forms | Transfer on death for vehicles |
+| Community Property Agreements | Characterizes property as community |
+| Joint Tenancy Deeds | Creates survivorship ownership |
+| Tenancy by the Entirety Deeds | Married couples' protected ownership |
+
+### Business Documents
+
+| Document | Purpose |
+|----------|---------|
+| Buy-Sell Agreement | Governs business ownership transfers |
+| Operating Agreement (LLC) | LLC governance and succession |
+| Shareholder Agreement | Corporation ownership terms |
+| Partnership Agreement | Partnership governance |
+| Corporate Bylaws | Corporate governance rules |
+| Professional Practice Succession Agreement | Professional practice transfer |
+| Key-Person Insurance Agreement | Funds buyout on key person death |
+| Business Valuation Agreement | Establishes valuation method |
+| Management Succession Letter | Informal succession guidance |
+| Assignment of Membership Interest | Transfers LLC ownership |
+
+### Family & Relationship Documents
+
+| Document | Purpose |
+|----------|---------|
+| Prenuptial Agreement | Pre-marriage property agreement |
+| Postnuptial Agreement | During-marriage property agreement |
+| Marital Property Agreement | Characterizes marital property |
+| Cohabitation Agreement | Unmarried partners' agreement |
+| Separation Agreement | Divorce property division |
+| Divorce Decree | Court-ordered divorce terms |
+| Adoption Decrees | Establishes legal parentage |
+| Guardianship Nomination | Names guardian for minor children |
+| Standby Guardianship Designation | Emergency guardian appointment |
+| UTMA/UGMA | Custodial accounts for minors |
+
+### Tax Documents
+
+| Document | Purpose |
+|----------|---------|
+| Gift Tax Returns (Form 709) | Reports taxable gifts |
+| Estate Tax Returns (Form 706) | Estate tax filing |
+| GST Allocation Elections | Generation-skipping tax planning |
+| Qualified Disclaimer | Rejects inheritance for tax planning |
+| Portability Election Filing | Transfers unused estate tax exemption |
+
+### Digital Assets
+
+| Document | Purpose |
+|----------|---------|
+| Digital Asset Authorization (RUFADAA-compliant) | Authorizes fiduciary access to digital assets |
+| Cryptocurrency Custody Instructions | Documents crypto access |
+| Private Key Access Instructions | Secure key storage instructions |
+| Online Account Access Memorandum | Lists accounts and access |
+| IP Assignments | Transfers intellectual property |
+| Domain Name Transfer Instructions | Website/domain transfers |
+
+### Death-Care Documents
+
+| Document | Purpose |
+|----------|---------|
+| Funeral Instructions | Documents funeral preferences |
+| Disposition of Remains Authorization | Authorizes disposition |
+| Burial/Cremation Authorization | Specific disposition choice |
+| Cemetery Deed | Burial plot ownership |
+| Pre-Need Funeral Contract | Pre-paid funeral arrangements |
+
+---
+
+## Wealth-Based Document Recommendations
+
+The platform recommends documents based on asset levels:
+
+### $0–$25K
+- Healthcare Power of Attorney
+- Living Will / Advance Directive
+- HIPAA Authorization
+
+### $25K–$100K
+Add to above:
+- Simple Will
+- Durable Financial Power of Attorney
+- Beneficiary designations on all accounts
+
+### $100K–$250K
+Add to above:
+- Revocable Living Trust
+- Pour-over Will
+- POD/TOD designations on accounts
+
+### $250K–$500K
+- Fully funded Revocable Trust
+- Detailed successor trustee provisions
+- Digital asset authorization
+- Comprehensive beneficiary audit
+
+### $500K–$1M
+Add to above:
+- Trust distribution controls
+- Spendthrift clauses
+- Children's trusts / Minor's trusts
+
+### $1M–$2M
+Add to above:
+- Lifetime beneficiary trusts
+- Separate trustee vs. guardian designations
+- Incentive trust provisions
+
+### $2M–$5M
+Add to above:
+- Irrevocable trusts for asset protection
+- SLAT (Spousal Lifetime Access Trust)
+- Dynasty trust planning
+- Disclaimer trust provisions
+
+### $5M–$10M
+Add to above:
+- Estate tax minimization trusts
+- GRATs / IDGTs
+- ILIT (Irrevocable Life Insurance Trust)
+- Valuation discount structures
+
+### $10M–$25M
+Add to above:
+- Dynasty trusts with GST allocation
+- Family governance documents
+- Private trust company consideration
+- Family limited partnerships
+
+### $25M–$50M
+Add to above:
+- Layered trust structures
+- Independent professional trustees
+- Trust protector provisions
+- Family constitution / governance charter
+
+---
+
+## Non-Asset Override Conditions
+
+**Always recommend regardless of asset level:**
+
+| Condition | Required Documents |
+|-----------|-------------------|
+| Minor children | Guardianship nomination, Minor's trusts |
+| Business ownership | Buy-sell agreement, Succession planning |
+| Disabled beneficiaries | Special Needs Trust |
+| Blended families | Trusts (not just wills), QTIP provisions |
+| High-conflict families | No-contest clauses, Independent trustees |
+| High liability professions | Asset protection trusts, Umbrella coverage |
+| Real estate in multiple states | Trusts (avoid ancillary probate) |
+| Cryptocurrency holdings | Digital asset provisions |
+| Charitable intentions | Charitable trusts, Foundation planning |
+
+---
+
+## Decision Tree Logic: "Do I Need This?"
+
+### Step 1: Incapacity Risk Questions
+- What happens if you can't make financial decisions?
+- What happens if you can't make medical decisions?
+- → POA recommendations (Financial + Healthcare)
+
+### Step 2: Death/Transfer Preferences
+- Who should receive your assets?
+- Who should manage distribution?
+- → Will/Trust recommendations
+
+### Step 3: Probate Avoidance Desires
+- Do you want to avoid probate?
+- Do you own real estate in multiple states?
+- → Trust recommendations
+
+### Step 4: Asset Coordination Needs
+- Are your beneficiary designations current?
+- Do your designations match your estate plan?
+- → Beneficiary designation review
+
+### Step 5: Beneficiary Risk Analysis
+- Are any beneficiaries minors?
+- Are any beneficiaries disabled?
+- Are any beneficiaries financially irresponsible?
+- → Protection trust recommendations
+
+### Step 6: Family Structure Complexity
+- Blended family?
+- Multiple marriages?
+- Estranged family members?
+- → Appropriate trust structures
+
+### Step 7: Tax Threshold Triggers
+- Net worth approaching estate tax exemption?
+- Significant appreciated assets?
+- → Tax planning documents
+
+### Step 8: Business Ownership
+- Own a business?
+- Have business partners?
+- → Succession planning documents
+
+### Step 9: Special Conditions
+- High liability profession?
+- Charitable intentions?
+- Digital assets?
+- → Override recommendations
+
+---
+
 ## Target Customer
 
 ### Primary Persona: "Affluent Andrew"
@@ -124,41 +424,6 @@ Our platform analyzes existing estate planning documents to identify:
   - Business is largest asset but poorly integrated into estate plan
   - Buy-sell agreement may conflict with estate documents
   - Key person concerns
-
----
-
-## Why $2M–$50M Is the Optimal Segment
-
-### Below $2M: Simple Needs
-
-Individuals with <$2M typically have straightforward estates:
-- Primary residence (passes via deed or TOD)
-- Retirement accounts (pass via beneficiary designation)
-- Basic will covers residual
-
-**DIY tools work adequately. Our solution is overbuilt for their needs.**
-
-### Above $50M: Ultra-High-Net-Worth (UHNW) Complexity
-
-Individuals with >$50M typically require:
-- Dynasty trusts
-- Multi-generational planning
-- Family office infrastructure
-- Multi-jurisdiction tax optimization
-- Ongoing legal and financial teams
-
-**They demand white-glove human services and are willing to pay for them. AI is a supplement, not a solution.**
-
-### $2M–$50M: The Underserved Sweet Spot
-
-| Factor | Why It Favors AI Solution |
-|--------|---------------------------|
-| **Complexity** | Real trust/estate structure complexity that DIY can't handle |
-| **Cost sensitivity** | Not willing to pay $15K+ for comprehensive legal review |
-| **Existing plans** | Already have documents—need analysis, not creation |
-| **Time constraints** | Busy professionals who value efficiency |
-| **Tech comfort** | Generally comfortable with digital tools |
-| **Scale** | ~8–10 million US households in this range |
 
 ---
 
@@ -206,38 +471,11 @@ Individuals with >$50M typically require:
 
 ---
 
-## Competitive Landscape
-
-### Direct Competitors
-
-| Competitor | Offering | Weakness | Our Advantage |
-|------------|----------|----------|---------------|
-| **Trust & Will** | Document creation | No gap analysis for existing docs | Analysis-first approach |
-| **LegalZoom** | Document creation + attorney access | Generic; not HNW-focused | HNW complexity handling |
-| **Wealth.com** | Estate planning platform | Expensive; advisor-focused | Direct-to-consumer; lower cost |
-| **Traditional attorneys** | Full service | Expensive; time-intensive | Speed, cost, accessibility |
-
-### Indirect Competitors
-
-- Financial advisors (relationship-based referrals)
-- CPA firms (tax-focused estate advice)
-- Bank trust departments (custody-focused)
-
-### Competitive Moat
-
-1. **Gap Analysis Focus** — No one else leads with analysis of existing documents
-2. **HNW Specialization** — Built for trust complexity, not basic wills
-3. **AI + Rules Engine** — Scalable expertise delivery
-4. **Risk Scoring** — Quantified gap severity that creates urgency
-5. **Network Effects** — More documents analyzed → better pattern recognition
-
----
-
 ## Go-to-Market Strategy
 
 ### Phase 1: MVP Launch
 
-- **Geography:** California (largest HNW population, complex trust laws)
+- **Geography:** Massachusetts (initial focus, planned expansion to other states)
 - **Product:** Full estate package gap analysis
 - **Channel:** Direct (SEO, content marketing, targeted digital ads)
 - **Pricing:** $399 introductory, $599 standard
@@ -249,7 +487,7 @@ Individuals with >$50M typically require:
 
 ### Phase 2: Expansion
 
-- **Geography:** Add Texas, Florida, New York (large HNW populations)
+- **Geography:** Add New York, California, Florida (large HNW populations)
 - **Product:** Add monitoring subscription, attorney referral
 - **Channel:** Add financial advisor partnerships
 - **Pricing:** Tiered based on complexity
@@ -295,42 +533,12 @@ Individuals with >$50M typically require:
 
 ---
 
-## Team Needs
-
-### Core Team (MVP)
-
-- **Technical Lead** — Full-stack + AI/ML experience; document processing expertise
-- **Product Lead** — UX focus; experience with legal tech or fintech
-- **Legal Advisor** — Estate planning attorney (part-time/advisory); state bar expertise
-
-### Growth Team (Post-MVP)
-
-- Additional engineers (frontend, ML)
-- Marketing/Growth lead (content + paid acquisition)
-- Customer success (onboarding, support)
-- Legal/compliance (multi-state expansion)
-- Business development (advisor partnerships)
-
----
-
-## Timeline
-
-| Phase | Duration | Key Milestones |
-|-------|----------|----------------|
-| Research & Design | 2 weeks | Legal research, gap taxonomy, UX flows |
-| MVP Development | 8–10 weeks | Core analysis engine, CA rules, report generation |
-| Private Beta | 4 weeks | 50 users, feedback iteration |
-| Public Launch | Week 14–16 | California launch, marketing ramp |
-| Expansion | Ongoing | Additional states, features, channels |
-
----
-
 ## Appendix
 
 ### Legal Considerations
 
 - **UPL Mitigation:** Position as document analysis and education; clear disclaimers that output is not legal advice; recommend attorney consultation for all action items
-- **State Registration:** May require Legal Document Assistant registration in California
+- **State Registration:** May require Legal Document Assistant registration in some states
 - **Privacy:** Handle sensitive PII with SOC 2 compliance; encryption at rest and in transit
 - **Liability:** Clear terms of service; errors and omissions insurance
 

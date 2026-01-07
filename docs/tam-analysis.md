@@ -8,6 +8,18 @@ The $2M–$50M high-net-worth (HNW) segment represents a strategically attractiv
 
 ---
 
+## Market Data Summary
+
+| Metric | Value | Source |
+|--------|-------|--------|
+| US households with $2M+ net worth | 10% of all households | Federal Reserve |
+| Top 1% threshold | ~$730,000+ annual income, $11M+ net worth | IRS / Federal Reserve |
+| Estate planning services market (2024) | ~$297M | Industry Reports |
+| Projected market (2032) | ~$503M | Industry Reports |
+| Market CAGR | ~6.7% | Industry Reports |
+
+---
+
 ## Market Sizing Framework
 
 ### Target Segment Definition
@@ -18,6 +30,8 @@ This segment is selected because:
 - **Below $2M:** Needs are simple; beneficiary designations + basic will suffice
 - **Above $50M:** Ultra-high complexity; requires white-glove human services
 - **$2M–$50M:** "Goldilocks zone" — complex enough for AI value, underserved by current market
+
+**Key Insight:** "There is no single estate plan — there is a document ecosystem"
 
 ---
 
@@ -45,6 +59,7 @@ This segment is selected because:
 | **Households in $2M–$50M range** | ~8.3 million |
 | **Combined net worth** | ~$54 trillion |
 | **Average household net worth** | ~$6.5 million |
+| **% of US households** | ~10% have $2M+ net worth |
 
 ---
 
@@ -176,6 +191,10 @@ Realistic market capture projections:
    - Blended families more common
    - Multi-state living arrangements
 
+5. **Estate Planning Market Growth**
+   - ~$297M (2024) → ~$503M (2032)
+   - ~6.7% CAGR indicates sustained demand
+
 ### Market Headwinds
 
 1. **Trust Barriers**
@@ -219,29 +238,47 @@ No current player focuses specifically on:
 
 | State | HNW Households | % of US Total | Priority |
 |-------|----------------|---------------|----------|
-| California | 1.4M | 17% | 1 (MVP) |
-| Texas | 850K | 10% | 2 |
-| New York | 750K | 9% | 3 |
+| **Massachusetts** | **280K** | **3%** | **1 (MVP)** |
+| New York | 750K | 9% | 2 |
+| California | 1.4M | 17% | 3 |
 | Florida | 700K | 8% | 4 |
-| Illinois | 400K | 5% | 5 |
+| Texas | 850K | 10% | 5 |
 | New Jersey | 350K | 4% | 6 |
-| Pennsylvania | 300K | 4% | 7 |
-| Massachusetts | 280K | 3% | 8 |
-| Virginia | 250K | 3% | 9 |
-| Washington | 230K | 3% | 10 |
+| Connecticut | 200K | 2% | 7 |
+| Illinois | 400K | 5% | 8 |
+| Pennsylvania | 300K | 4% | 9 |
+| Virginia | 250K | 3% | 10 |
 
-**Top 4 states = 44% of target market**
-
-### California Deep Dive (MVP State)
+### Massachusetts Deep Dive (MVP State)
 
 | Metric | Value |
 |--------|-------|
-| HNW households ($2M–$50M) | 1.4 million |
-| Estimated with existing estate plans | 1.0 million |
-| Estimated digitally comfortable | 850,000 |
-| Estimated in-market annually | 170,000 (20%) |
-| Year 1 target (0.5% capture) | 850 households |
-| Year 1 revenue target | $425,000 |
+| HNW households ($2M–$50M) | 280,000 |
+| Estimated with existing estate plans | 196,000 (70%) |
+| Estimated digitally comfortable | 157,000 (80%) |
+| Estimated in-market annually | 31,000 (20%) |
+| Year 1 target (2.5% capture) | 775 households |
+| Year 1 revenue target | $387,500 |
+
+### Why Massachusetts First?
+
+1. **Concentrated HNW population** — High density of target customers
+2. **Strong legal infrastructure** — Well-developed estate planning bar
+3. **Tech-forward demographics** — High digital adoption rates
+4. **No state income tax on retirement** — Attracts retirees with complex planning needs
+5. **Boston metro** — Major financial services hub
+6. **Academic institutions** — Harvard, MIT create innovation-friendly environment
+
+### Phase 2 Expansion Strategy
+
+After establishing Massachusetts presence:
+
+| Phase | States | Combined HNW Households | Rationale |
+|-------|--------|------------------------|-----------|
+| Phase 2a | New York | 750K | Adjacent, large market |
+| Phase 2b | California | 1.4M | Largest HNW population |
+| Phase 2c | Florida | 700K | Retiree concentration |
+| Phase 3 | TX, NJ, CT, IL | 1.8M | Additional large markets |
 
 ---
 
@@ -310,6 +347,7 @@ No current player focuses specifically on:
 5. IBISWorld Estate Planning Industry Report
 6. US Census Bureau (state demographics)
 7. Spectrem Group Affluent Market Research
+8. IRS Statistics of Income
 
 ---
 

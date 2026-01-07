@@ -1,5 +1,11 @@
 # EstateAI: AI-Powered Estate Plan Gap Analysis for High-Net-Worth Individuals
 
+## Mission Statement
+
+Our company empowers individuals to fully understand, optimize, and confidently manage their estate plans by providing highly personalized, intelligent document analysis. We transform complex wills, trusts, and estate documents into clear, actionable insights that highlight potential gaps, inconsistencies, or outdated provisions.
+
+---
+
 ## Opportunity Summary
 
 High-net-worth individuals with $2M–$50M in assets represent a critically underserved segment in estate planning. They face a frustrating dilemma:
@@ -18,6 +24,20 @@ High-net-worth individuals with $2M–$50M in assets represent a critically unde
 | **$2M–$50M** | Complex enough for trusts, multiple assets, beneficiary issues—but underserved by traditional legal services | **Ideal** |
 | **>$50M** | Ultra-high complexity—family offices, dynasty trusts, multi-jurisdiction planning. Requires human experts | Partial |
 
+### Market Data
+
+- 10% of American households have net worth of at least $2 million
+- Top 1% in U.S. = ~$730,000+ annual income and $11M+ net worth
+- Estate planning services market: ~$297M (2024) growing to ~$503M by 2032 (~6.7% CAGR)
+
+### Key Insights
+
+1. **"There is no single estate plan — there is a document ecosystem"**
+2. **Outcomes are governed by priority order:** Asset title → Beneficiary forms → Trust instruments → Contracts → Wills → State default law
+3. **"Most estate failures occur not because documents are missing, but because they conflict"**
+4. **Estate planning is step-function based:** Incapacity risk → Probate inefficiency → Behavioral risk → Tax risk → Governance risk
+5. **"If the state default result is unacceptable, a document is required"**
+
 ### The Problem We Solve
 
 - **Existing estate plans have hidden gaps** — Outdated beneficiaries, missing provisions, state law changes
@@ -33,6 +53,14 @@ High-net-worth individuals with $2M–$50M in assets represent a critically unde
 4. **Actionable recommendations** — Prioritized fixes with plain-English explanations
 5. **Attorney handoff (optional)** — Connect to vetted estate planning attorneys for complex fixes
 
+### Key Features
+
+- **Advanced document parsing and targeted gap analysis**
+- **Scenario-based hypothetical questions** reflecting real-life situations
+- **Tax minimization and probate avoidance recommendations**
+- **Comprehensive summaries** with bullet points showing asset/trust/fund distribution
+- **Iterative plan adjustment capabilities**
+
 ### Our Differentiation
 
 1. **Gap Analysis First** — Primary value is reviewing existing plans, not just creating new ones
@@ -40,6 +68,14 @@ High-net-worth individuals with $2M–$50M in assets represent a critically unde
 3. **State-Specific Rules Engine** — LLM + jurisdictional logic for compliance validation
 4. **Risk Scoring** — Quantified gap severity with dollar-value-at-risk estimates
 5. **Transparent Pricing** — Flat fees for analysis; pay only for what you need
+
+### Value Propositions
+
+- Transform complex documents into clear, actionable insights
+- Surface gaps and risks automatically
+- Provide professional-grade insight without premium lawyer costs
+- Bridge the trust gap with stepped approach: insights → recommendations → lawyer referral when needed
+- Offer compelling ROI for the underserved $2M-$50M segment
 
 ---
 
@@ -61,10 +97,12 @@ High-net-worth individuals with $2M–$50M in assets represent a critically unde
 **In Scope:**
 - [ ] Document upload and parsing (PDF/DOCX wills and trusts)
 - [ ] AI-powered element extraction (beneficiaries, executors, trustees, assets)
-- [ ] Gap analysis engine with state-specific rules (California first)
+- [ ] Gap analysis engine with state-specific rules (Massachusetts first)
 - [ ] Risk scoring and prioritized recommendations
 - [ ] Plain-English gap report generation
 - [ ] User dashboard for document management
+- [ ] Wealth-based document recommendations
+- [ ] Decision tree for document needs assessment
 
 **Out of Scope for MVP:**
 - Document generation/editing
@@ -82,13 +120,32 @@ High-net-worth individuals with $2M–$50M in assets represent a critically unde
 5. User receives prioritized gap report with recommendations
 6. User can download report or connect to attorney for fixes
 
-### Target Documents (MVP)
+### Target Document Types (MVP)
 
+**Core Incapacity Documents:**
+- Durable Power of Attorney (financial)
+- Healthcare Power of Attorney
+- Advance Healthcare Directive/Living Will
+- HIPAA Authorization
+
+**Core Death & Transfer Documents:**
 - Last Will and Testament
 - Revocable Living Trust
-- Pour-over Will
-- Durable Power of Attorney
-- Healthcare Proxy / Advance Directive
+- Pour-Over Will
+- Trust Amendments
+
+**Initial Focus:** Massachusetts state rules and requirements
+
+---
+
+## Week 1 Deliverables
+
+- [x] Repository initialized with standard folder structure
+- [x] README with: Opportunity Summary, Team Members, MVP Scope, Tooling Plan
+- [x] Opportunity Refinement Brief (docs/business-plan.md)
+- [x] Initial TAM model (docs/tam-analysis.md)
+- [x] Architecture Sketch (docs/architecture.md)
+- [ ] Feasibility spike code (mvp/feasibility-spike.md)
 
 ---
 

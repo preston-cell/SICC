@@ -46,6 +46,11 @@
 3. **Report** — Prioritized findings with plain-English explanations
 4. **Connect** — Optional attorney referral for fixes
 
+**Key Insights:**
+- "There is no single estate plan — there is a document ecosystem"
+- "Most estate failures occur not because documents are missing, but because they conflict"
+- "If the state default result is unacceptable, a document is required"
+
 **Value:** Know exactly what needs fixing before engaging a lawyer
 
 ---
@@ -123,13 +128,13 @@
 
 ### Slide 10: Go-to-Market
 
-**Phase 1: California Launch**
+**Phase 1: Massachusetts Launch**
 - Direct digital acquisition (SEO, Google Ads, LinkedIn)
 - Content marketing (estate planning guides, checklists)
 - Target: 750 customers, $375K revenue
 
 **Phase 2: Expansion**
-- Add TX, FL, NY (44% of target market)
+- Add NY, CA, FL (large HNW populations)
 - Financial advisor partnerships
 - Target: 15,000 customers, $7.5M revenue
 
@@ -160,15 +165,16 @@
 ### Slide 12: Traction / Roadmap
 
 **Current Status:**
-- [ ] Architecture designed
+- [x] Architecture designed
+- [x] Initial documentation complete
 - [ ] Feasibility spikes in progress
-- [ ] California rules research complete
+- [ ] Massachusetts rules research
 
 **Milestones:**
 - Month 1–2: MVP development
 - Month 3: Private beta (50 users)
-- Month 4: California launch
-- Month 6: Second state expansion
+- Month 4: Massachusetts launch
+- Month 6: New York expansion
 
 ---
 

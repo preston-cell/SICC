@@ -43,7 +43,7 @@ Use this persona for investor/partner demos:
 |-----------|-------|
 | Name | Robert Chen |
 | Age | 52 |
-| State | California |
+| State | Massachusetts |
 | Net Worth | $8.2 million |
 | Occupation | VP of Engineering, Tech Company |
 | Family | Married (Susan), 2 children (ages 19, 16) |
@@ -63,7 +63,7 @@ Use for demos emphasizing blended family complexity:
 |-----------|-------|
 | Name | Sandra Martinez |
 | Age | 58 |
-| State | California |
+| State | Massachusetts |
 | Net Worth | $12 million |
 | Occupation | Business Owner (sold company) |
 | Family | Remarried, 2 children from first marriage, 1 stepchild |
