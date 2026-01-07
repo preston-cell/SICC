@@ -1,31 +1,45 @@
-# EstateAI: Conversational Estate Planning Platform
+# EstateAI: AI-Powered Estate Plan Gap Analysis for High-Net-Worth Individuals
 
 ## Opportunity Summary
 
-Estate planning affects nearly every adult, yet the process remains intimidating, expensive, and inaccessible. Traditional options force a choice between:
-- **Expensive attorneys** ($1,000-$5,000+ for basic documents)
-- **Rigid form-filling tools** that lack personalization and state-specific accuracy
-- **DIY templates** that often produce legally inadequate documents
+High-net-worth individuals with $2M–$50M in assets represent a critically underserved segment in estate planning. They face a frustrating dilemma:
 
-**EstateAI** bridges this gap with an AI-guided conversational system that:
-- Feels like talking to a knowledgeable professional
-- Adapts questions based on user responses (no rigid forms)
-- Produces state-specific, legally compliant documents
-- Offers unique "import-and-improve" capability for existing documents
-- Provides transparent explanations and optional attorney review
+- **Too complex for DIY tools** — Multiple asset types, trusts, and beneficiary structures require professional-grade analysis
+- **Not complex enough for white-glove services** — $15,000–$50,000+ legal fees are hard to justify
+- **Existing plans go stale** — Life changes create gaps, but full rewrites are expensive and unnecessary
+
+**EstateAI** is an AI-powered platform that analyzes existing wills and trusts to identify gaps, risks, and optimization opportunities—delivering professional-grade insights at a fraction of traditional costs.
+
+### Why $2M–$50M?
+
+| Segment | Typical Behavior | Fit for AI |
+|---------|------------------|------------|
+| **<$2M** | Basic needs—beneficiary designations on retirement accounts and home deed often suffice | Limited |
+| **$2M–$50M** | Complex enough for trusts, multiple assets, beneficiary issues—but underserved by traditional legal services | **Ideal** |
+| **>$50M** | Ultra-high complexity—family offices, dynasty trusts, multi-jurisdiction planning. Requires human experts | Partial |
 
 ### The Problem We Solve
-- 67% of Americans lack basic estate planning documents
-- Existing digital tools have <5% completion rates due to complexity
-- State-specific requirements create significant compliance risk
-- Existing documents become outdated but full rewrites are expensive
+
+- **Existing estate plans have hidden gaps** — Outdated beneficiaries, missing provisions, state law changes
+- **Review is expensive** — Attorneys charge $300–$600/hour for document review
+- **No visibility into risk** — Clients don't know what they don't know
+- **Life changes create drift** — Marriage, divorce, new children, asset changes invalidate original plans
+
+### Our Solution: AI-Powered Gap Analysis
+
+1. **Upload existing documents** — Wills, trusts, POAs, beneficiary designations
+2. **AI extracts and analyzes** — Key provisions, beneficiaries, asset coverage, execution requirements
+3. **Gap report generated** — Missing provisions, outdated elements, state compliance issues
+4. **Actionable recommendations** — Prioritized fixes with plain-English explanations
+5. **Attorney handoff (optional)** — Connect to vetted estate planning attorneys for complex fixes
 
 ### Our Differentiation
-1. **Conversational AI Interface** - Natural dialogue, not forms
-2. **Import & Improve** - Analyze existing documents, recommend targeted updates
-3. **State-Specific Rules Engine** - LLM + jurisdictional logic for compliance
-4. **Transparent Control** - Before/after comparisons, plain-English explanations
-5. **Flexible Pricing** - Pay only for what you need (full docs or amendments)
+
+1. **Gap Analysis First** — Primary value is reviewing existing plans, not just creating new ones
+2. **HNW-Focused Complexity** — Built for multi-asset, trust-based estate structures
+3. **State-Specific Rules Engine** — LLM + jurisdictional logic for compliance validation
+4. **Risk Scoring** — Quantified gap severity with dollar-value-at-risk estimates
+5. **Transparent Pricing** — Flat fees for analysis; pay only for what you need
 
 ---
 
@@ -45,34 +59,36 @@ Estate planning affects nearly every adult, yet the process remains intimidating
 ### Phase 1: Core Functionality (MVP)
 
 **In Scope:**
-- [ ] Single state support (California - largest market)
-- [ ] Simple Will generation via conversational interface
-- [ ] Basic document import (PDF/DOCX text extraction)
-- [ ] Gap analysis for imported documents
-- [ ] Document preview and download (PDF)
-- [ ] Execution guidance (witness/notary requirements)
+- [ ] Document upload and parsing (PDF/DOCX wills and trusts)
+- [ ] AI-powered element extraction (beneficiaries, executors, trustees, assets)
+- [ ] Gap analysis engine with state-specific rules (California first)
+- [ ] Risk scoring and prioritized recommendations
+- [ ] Plain-English gap report generation
+- [ ] User dashboard for document management
 
 **Out of Scope for MVP:**
-- Multi-state support
-- Trusts, POA, Healthcare Proxy (Phase 2)
-- Integrated notary services
-- Attorney review network
-- Amendment/codicil generation
+- Document generation/editing
+- Multi-state support (Phase 2)
+- Attorney marketplace integration
+- Trust funding analysis
 - Mobile apps
 
 ### User Journey (MVP)
-1. User selects state (CA) and document type (Simple Will)
-2. Conversational AI asks adaptive questions
-3. System generates structured data from responses
-4. Document assembled with state-specific clauses
-5. User previews, edits if needed, downloads
-6. Execution checklist provided
 
-### Import Flow (MVP)
-1. User uploads existing will (PDF/DOCX)
-2. System extracts text, parses key elements
-3. Gap analysis displayed with recommendations
-4. User can proceed to update or start fresh
+1. User creates account, confirms net worth range ($2M–$50M)
+2. User uploads existing estate planning documents
+3. AI extracts document structure and key elements
+4. System runs gap analysis against state rules and best practices
+5. User receives prioritized gap report with recommendations
+6. User can download report or connect to attorney for fixes
+
+### Target Documents (MVP)
+
+- Last Will and Testament
+- Revocable Living Trust
+- Pour-over Will
+- Durable Power of Attorney
+- Healthcare Proxy / Advance Directive
 
 ---
 
@@ -81,41 +97,33 @@ Estate planning affects nearly every adult, yet the process remains intimidating
 ### AI/LLM Stack
 | Component | Tool | Rationale |
 |-----------|------|-----------|
-| Primary LLM | Claude API (Sonnet/Opus) | Superior reasoning, safety, long context |
-| Embeddings | Voyage AI / OpenAI | Document similarity, search |
-| Orchestration | LangGraph or custom | Conversation state management |
+| Primary LLM | Claude API (Sonnet/Opus) | Superior reasoning, long context for full documents |
+| Embeddings | Voyage AI / OpenAI | Document similarity, clause matching |
+| Orchestration | LangGraph or custom | Multi-step analysis workflows |
 
 ### Backend
 | Component | Tool | Rationale |
 |-----------|------|-----------|
 | Framework | FastAPI (Python) | Async, type hints, OpenAPI docs |
-| Database | PostgreSQL + pgvector | Relational + vector search |
-| Document Generation | python-docx, WeasyPrint | DOCX and PDF output |
+| Database | PostgreSQL + pgvector | Relational + vector search for clause matching |
 | Document Parsing | PyMuPDF, python-docx, Unstructured.io | Multi-format extraction |
+| Report Generation | WeasyPrint, Jinja2 | Professional PDF reports |
 
 ### Frontend
 | Component | Tool | Rationale |
 |-----------|------|-----------|
 | Framework | Next.js 14 (App Router) | React, SSR, API routes |
-| UI Components | shadcn/ui + Tailwind | Accessible, customizable |
+| UI Components | shadcn/ui + Tailwind | Professional, accessible design |
 | State Management | Zustand or React Context | Lightweight, simple |
-| Chat Interface | Custom or Vercel AI SDK | Streaming responses |
+| Document Viewer | react-pdf | In-browser document preview |
 
 ### Infrastructure
 | Component | Tool | Rationale |
 |-----------|------|-----------|
 | Hosting | Vercel (FE) + Railway/Render (BE) | Simple deployment, scaling |
-| Auth | Clerk or NextAuth | Quick setup, secure |
-| Storage | S3-compatible (R2/S3) | Document storage |
+| Auth | Clerk or NextAuth | Secure authentication |
+| Storage | S3-compatible (R2/S3) | Encrypted document storage |
 | Monitoring | Sentry + PostHog | Errors + analytics |
-
-### Development
-| Component | Tool | Rationale |
-|-----------|------|-----------|
-| Version Control | GitHub | Standard, CI/CD integration |
-| CI/CD | GitHub Actions | Automated testing, deployment |
-| Testing | Pytest (BE), Vitest (FE) | Fast, modern |
-| Documentation | MkDocs or Docusaurus | Technical docs |
 
 ---
 

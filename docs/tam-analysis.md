@@ -2,224 +2,290 @@
 
 ## Executive Summary
 
-The estate planning market represents a significant opportunity with strong tailwinds from demographic shifts, increasing digital adoption, and widespread underservice. Our analysis indicates a **$15B+ TAM** with a **$2-3B serviceable market** for digital-first solutions.
+The $2M–$50M high-net-worth (HNW) segment represents a strategically attractive market for AI-powered estate plan gap analysis. This document quantifies the opportunity and validates the segment selection through rigorous market sizing.
+
+**Key Finding:** The US HNW estate plan review market represents a **$2–4 billion TAM** with a **$400–800 million serviceable market** for digital-first gap analysis solutions.
 
 ---
 
 ## Market Sizing Framework
 
-### Top-Down Analysis
+### Target Segment Definition
 
-#### US Adult Population
-- Total US adults (18+): ~260 million
-- Adults who could benefit from estate planning: ~210 million (excluding those with nothing to bequeath)
+**Primary Target:** US households with net worth between $2 million and $50 million
 
-#### Current State
-- Adults with any estate plan: ~33% (~70 million)
-- Adults without estate plan: ~67% (~140 million)
-- Adults with outdated plans (5+ years): ~40% of those with plans (~28 million)
-
-#### Market Segments
-
-| Segment | Population | Avg. Spend | Market Size |
-|---------|------------|------------|-------------|
-| No plan, should have one | 140M | $300 | $42B |
-| Outdated plan, needs update | 28M | $200 | $5.6B |
-| Current plan, maintenance | 42M | $100/yr | $4.2B/yr |
-| **Total Potential** | | | **$51.8B** |
+This segment is selected because:
+- **Below $2M:** Needs are simple; beneficiary designations + basic will suffice
+- **Above $50M:** Ultra-high complexity; requires white-glove human services
+- **$2M–$50M:** "Goldilocks zone" — complex enough for AI value, underserved by current market
 
 ---
 
-### Bottom-Up Analysis
+## US Wealth Distribution Analysis
 
-#### Target Addressable Households
+### Household Wealth Distribution
 
-**Primary Target: Middle Market**
-- Household income: $75K-$250K
-- Net worth: $100K-$2M
-- US households in range: ~45 million
+| Net Worth Range | US Households | % of Total | Cumulative Wealth |
+|-----------------|---------------|------------|-------------------|
+| <$100K | ~60 million | 46% | $3T |
+| $100K–$500K | ~35 million | 27% | $10T |
+| $500K–$1M | ~15 million | 12% | $11T |
+| $1M–$2M | ~8 million | 6% | $12T |
+| **$2M–$5M** | **~5 million** | **4%** | **$16T** |
+| **$5M–$10M** | **~1.8 million** | **1.4%** | **$13T** |
+| **$10M–$50M** | **~1.5 million** | **1.2%** | **$25T** |
+| $50M+ | ~250,000 | 0.2% | $20T+ |
 
-**Willingness to Pay (Survey Data):**
-- Would pay $100-$200 for simple will: 62%
-- Would pay $200-$400 for comprehensive plan: 38%
-- Would pay $50-$150 for document update: 71%
+**Source:** Federal Reserve Survey of Consumer Finances, 2022; Wealth-X Reports
 
-**Digital Adoption:**
-- Comfortable with online legal services: 55%
-- Would use AI-assisted legal tools: 42%
+### Target Segment Summary
 
-#### Serviceable Market Calculation
+| Metric | Value |
+|--------|-------|
+| **Households in $2M–$50M range** | ~8.3 million |
+| **Combined net worth** | ~$54 trillion |
+| **Average household net worth** | ~$6.5 million |
+
+---
+
+## Market Sizing: Top-Down Analysis
+
+### Total Addressable Market (TAM)
+
+**Assumption:** All US households with $2M–$50M net worth could benefit from professional estate plan review.
 
 | Factor | Value |
 |--------|-------|
-| Target households | 45M |
-| Digital-comfortable | 55% = 24.75M |
-| Would consider AI tools | 42% = 10.4M |
-| Active in next 5 years | 40% = 4.16M |
-| **Annual serviceable market** | ~830K households |
-| **Average transaction value** | $200 |
-| **Serviceable Available Market** | **$166M/year** |
+| Target households | 8.3 million |
+| Households with existing estate plans | ~70% = 5.8 million |
+| Average willingness to pay for analysis | $500 |
+| **Total Addressable Market** | **$2.9 billion** |
+
+### Extended TAM (Including Plan Creation)
+
+Some households in this segment lack comprehensive estate plans:
+
+| Sub-segment | Households | Opportunity |
+|-------------|------------|-------------|
+| Have comprehensive plan, need review | 5.8M | $2.9B (analysis) |
+| Have basic plan, need upgrade | 1.5M | $750M (analysis + creation) |
+| No plan, need everything | 1.0M | $600M (full service) |
+| **Extended TAM** | | **$4.25B** |
 
 ---
 
-## Market Segments Deep Dive
+## Market Sizing: Bottom-Up Analysis
 
-### Segment 1: First-Time Planners
+### Serviceable Available Market (SAM)
 
-**Size:** 140 million adults without plans
+Not all households in the target segment will use a digital AI solution:
 
-**Characteristics:**
-- Trigger events: marriage, children, home purchase, parent's death
-- Price sensitive, time constrained
-- Often procrastinate due to complexity
+| Filter | Households | Calculation |
+|--------|------------|-------------|
+| Target segment | 8.3M | Starting point |
+| Have existing estate plan | 5.8M | 70% |
+| Digitally comfortable | 4.6M | 80% |
+| Aware of need for review | 3.0M | 65% |
+| Would consider AI tool | 1.5M | 50% |
+| **Serviceable Available Market** | **1.5M households** | |
 
-**Annual market entry:**
-- Marriages: 2.1M/year
-- First-time parents: 3.6M/year
-- First-time homebuyers: 5.5M/year
-- Estimated new estate planning need: 5-7M households/year
+**SAM Revenue Calculation:**
+- 1.5M households × $500 average = **$750 million/year**
 
-**Price tolerance:** $100-$300
+### Serviceable Obtainable Market (SOM)
 
-### Segment 2: Update & Refresh
+Realistic market capture projections:
 
-**Size:** 28+ million with outdated plans
-
-**Characteristics:**
-- Already understand estate planning value
-- Specific update needs
-- Higher conversion potential
-
-**Update triggers (annual):**
-- Divorces: 750K
-- Remarriages: 1M
-- Executor/guardian deaths: 500K
-- Significant asset changes: 2M+
-- Estimated annual update market: 4-5M households
-
-**Price tolerance:** $50-$200 for targeted updates
-
-### Segment 3: Comprehensive Planning
-
-**Size:** High-net-worth and complex situations
-
-**Characteristics:**
-- Net worth $2M+
-- Business owners, blended families
-- Trust and tax planning needs
-- May need attorney involvement
-
-**Size:** ~5M households
-
-**Price tolerance:** $500-$2,000+
+| Timeframe | Market Share | Households | Revenue |
+|-----------|--------------|------------|---------|
+| Year 1 | 0.05% | 750 | $375K |
+| Year 2 | 0.3% | 4,500 | $2.25M |
+| Year 3 | 1.0% | 15,000 | $7.5M |
+| Year 5 | 3.0% | 45,000 | $22.5M |
 
 ---
 
-## Competitive Market Share
+## Segment Deep Dive: $2M–$50M Breakdown
 
-### Current Market Leaders (Estimated 2024)
+### Sub-Segment Analysis
 
-| Company | Est. Revenue | Market Share | Positioning |
-|---------|--------------|--------------|-------------|
-| LegalZoom | $700M total (est. $100M estate) | 30% of online | Full-service legal |
-| Trust & Will | $30-50M | 10% | Modern estate focus |
-| Rocket Lawyer | $50M total (est. $15M estate) | 5% | Subscription legal |
-| FreeWill | $20-30M | 5% | Nonprofit-funded free |
-| Tomorrow | $5-10M | 2% | Mobile-first |
-| Traditional attorneys | $10B+ | 80% of total | Full market |
-| **Online estate planning total** | **~$200-300M** | **~2-3% of total** | |
+| Net Worth | Households | Typical Complexity | Price Tolerance | Priority |
+|-----------|------------|-------------------|-----------------|----------|
+| $2M–$5M | 5.0M | Moderate: will + simple trust | $300–$500 | High volume |
+| $5M–$10M | 1.8M | High: revocable trust, POA, healthcare | $500–$800 | Core target |
+| $10M–$25M | 1.0M | Very High: multiple trusts, business interests | $800–$1,200 | Premium |
+| $25M–$50M | 0.5M | Complex: near UHNW, sophisticated planning | $1,000–$2,000 | Selective |
 
-### Growth Trajectory
+### Asset Composition by Sub-Segment
 
-**Online Legal Services Growth:**
-- 2019: $10B market
-- 2024: $18B market (estimated)
-- 2029: $35B projected
-- CAGR: ~15%
+| Net Worth | Primary Residence | Investments | Retirement | Business | Other |
+|-----------|-------------------|-------------|------------|----------|-------|
+| $2M–$5M | 35% | 30% | 25% | 5% | 5% |
+| $5M–$10M | 25% | 40% | 20% | 10% | 5% |
+| $10M–$25M | 20% | 45% | 15% | 15% | 5% |
+| $25M–$50M | 15% | 45% | 10% | 20% | 10% |
 
-**Estate Planning Online Penetration:**
-- 2020: <2% of estate plans online
-- 2024: ~5% estimated
-- 2029: 15-20% projected
+---
+
+## Comparison: Why NOT Other Segments?
+
+### Below $2M: Limited Value Proposition
+
+| Factor | Reality |
+|--------|---------|
+| **Asset complexity** | Low — typically 2–3 assets |
+| **Estate planning needs** | Basic — beneficiary designations, simple will |
+| **Existing solutions** | Adequate — LegalZoom, free templates work |
+| **Price sensitivity** | Very high — won't pay $300+ for analysis |
+| **Our value-add** | Minimal — overbuilt for their needs |
+
+**Conclusion:** Market is large but low-value. CAC would exceed LTV.
+
+### Above $50M: Human Services Preferred
+
+| Factor | Reality |
+|--------|---------|
+| **Asset complexity** | Extreme — dynasty trusts, family offices, multi-jurisdiction |
+| **Estate planning needs** | Ongoing — requires dedicated legal team |
+| **Existing solutions** | White-glove law firms, family offices |
+| **Price sensitivity** | Low — willing to pay $50K+ annually |
+| **Our value-add** | Supplementary at best |
+
+**Conclusion:** AI is a tool for their advisors, not a direct service to them.
+
+---
+
+## Market Dynamics
+
+### Growth Drivers
+
+1. **Wealth Transfer Acceleration**
+   - $84 trillion expected to transfer between generations over next 20 years
+   - Creates urgency for estate plan review and updates
+
+2. **Demographic Shift**
+   - Baby Boomers (73M) entering peak estate planning years
+   - HNW population growing 6–8% annually
+
+3. **Digital Adoption**
+   - COVID accelerated acceptance of digital financial services
+   - HNW individuals increasingly comfortable with fintech
+
+4. **Complexity Growth**
+   - More asset types (crypto, digital assets)
+   - Blended families more common
+   - Multi-state living arrangements
+
+### Market Headwinds
+
+1. **Trust Barriers**
+   - Estate planning is high-stakes; AI skepticism exists
+   - Mitigation: Position as "analysis" not "advice"; attorney handoff
+
+2. **Regulatory Uncertainty**
+   - UPL concerns vary by state
+   - Mitigation: Clear disclaimers; legal positioning
+
+3. **Competition**
+   - Established players may add AI features
+   - Mitigation: Speed to market; analysis-first differentiation
+
+---
+
+## Competitive Market Analysis
+
+### Current Market Structure
+
+| Provider Type | Market Size | Avg. Price | Target Segment |
+|---------------|-------------|------------|----------------|
+| Estate planning attorneys | $10B+ | $3,000–$15,000 | All HNW |
+| Trust companies/banks | $2B+ | $5,000–$20,000 | $10M+ |
+| Online legal (LegalZoom) | $300M | $200–$500 | <$2M (basic) |
+| Digital estate (Trust & Will) | $50M | $150–$400 | <$2M |
+| **Gap analysis (EstateAI)** | **~$0** | **$400–$800** | **$2M–$50M** |
+
+### Competitive White Space
+
+No current player focuses specifically on:
+- **Gap analysis** (vs. document creation)
+- **$2M–$50M segment** (vs. mass market or UHNW)
+- **AI-powered trust/will review** (vs. human-only or basic automation)
+
+---
+
+## Geographic Prioritization
+
+### Top States by HNW Population ($2M–$50M)
+
+| State | HNW Households | % of US Total | Priority |
+|-------|----------------|---------------|----------|
+| California | 1.4M | 17% | 1 (MVP) |
+| Texas | 850K | 10% | 2 |
+| New York | 750K | 9% | 3 |
+| Florida | 700K | 8% | 4 |
+| Illinois | 400K | 5% | 5 |
+| New Jersey | 350K | 4% | 6 |
+| Pennsylvania | 300K | 4% | 7 |
+| Massachusetts | 280K | 3% | 8 |
+| Virginia | 250K | 3% | 9 |
+| Washington | 230K | 3% | 10 |
+
+**Top 4 states = 44% of target market**
+
+### California Deep Dive (MVP State)
+
+| Metric | Value |
+|--------|-------|
+| HNW households ($2M–$50M) | 1.4 million |
+| Estimated with existing estate plans | 1.0 million |
+| Estimated digitally comfortable | 850,000 |
+| Estimated in-market annually | 170,000 (20%) |
+| Year 1 target (0.5% capture) | 850 households |
+| Year 1 revenue target | $425,000 |
+
+---
+
+## Unit Economics Validation
+
+### Customer Acquisition Cost (CAC) Estimates
+
+| Channel | Est. CAC | Notes |
+|---------|----------|-------|
+| Google Ads (high-intent) | $80–$150 | Keywords: "estate plan review," "trust audit" |
+| LinkedIn Ads | $100–$200 | Targeting: HNW professionals, business owners |
+| Content/SEO | $30–$60 | Long-term; lower cost, slower ramp |
+| Financial advisor referral | $75–$125 | Partner economics |
+| **Blended target** | **<$100** | |
+
+### Lifetime Value (LTV) Estimates
+
+| Scenario | Initial | Annual Sub | Referral | 5-Year LTV |
+|----------|---------|------------|----------|------------|
+| Conservative | $400 | $0 | $0 | $400 |
+| Base case | $500 | $150/yr × 2 | $100 | $900 |
+| Optimistic | $600 | $200/yr × 3 | $200 | $1,400 |
+
+### LTV:CAC Analysis
+
+| Scenario | LTV | CAC | Ratio |
+|----------|-----|-----|-------|
+| Conservative | $400 | $100 | 4:1 |
+| Base case | $900 | $100 | 9:1 |
+| Optimistic | $1,400 | $100 | 14:1 |
+
+**Conclusion:** Unit economics are attractive across all scenarios.
 
 ---
 
 ## TAM/SAM/SOM Summary
 
-### Total Addressable Market (TAM)
-**$15-20 billion annually**
-- All US estate planning services
-- Includes attorneys, online services, updates
-
-### Serviceable Available Market (SAM)
-**$2-3 billion annually**
-- Online/digital estate planning
-- Middle-market households
-- DIY and assisted models
-
-### Serviceable Obtainable Market (SOM)
-**Year 1: $1-2 million**
-- California only
-- Simple wills + import analysis
-- 5,000-10,000 documents
-
-**Year 3: $10-20 million**
-- Top 10 states
-- Full document suite
-- 50,000-100,000 documents
-
-**Year 5: $50-100 million**
-- National coverage
-- Premium services
-- B2B2C channels
-- 250,000-500,000 documents
-
----
-
-## Market Tailwinds
-
-### 1. Demographic Shifts
-- Baby Boomers: 73M reaching estate planning years
-- Wealth transfer: $84T expected over next 20 years
-- Millennial household formation accelerating
-
-### 2. Technology Adoption
-- COVID accelerated digital legal services adoption
-- AI/LLM capabilities now enable conversational interfaces
-- Remote notarization legalized in most states
-
-### 3. Accessibility Demands
-- Growing expectation for digital-first services
-- Price transparency expectations
-- DIY mentality increasing
-
-### 4. Market Underservice
-- 67% without plans = massive untapped demand
-- Existing solutions have poor completion rates
-- Update/maintenance market largely unaddressed
-
----
-
-## Market Headwinds & Risks
-
-### 1. Regulatory Uncertainty
-- UPL (Unauthorized Practice of Law) varies by state
-- Potential for increased regulation of AI legal tools
-- Bar association resistance
-
-### 2. Trust Barriers
-- Legal documents = high-stakes decisions
-- AI skepticism for important matters
-- Errors could have serious consequences
-
-### 3. Competition
-- Well-funded incumbents (LegalZoom)
-- Low barriers to entry for basic tools
-- Potential for attorney fee compression
-
-### 4. Economic Sensitivity
-- Estate planning often deferred in downturns
-- Discretionary spend for many households
+| Market | Value | Notes |
+|--------|-------|-------|
+| **TAM** | $2.9–4.3B | All HNW ($2M–$50M) estate plan analysis |
+| **SAM** | $750M | Digitally comfortable, aware of need |
+| **SOM (Y1)** | $375K | 750 customers @ $500 |
+| **SOM (Y3)** | $7.5M | 15,000 customers @ $500 |
+| **SOM (Y5)** | $22.5M | 45,000 customers @ $500 |
 
 ---
 
@@ -227,40 +293,34 @@ The estate planning market represents a significant opportunity with strong tail
 
 | Assumption | Base Case | Bear Case | Bull Case |
 |------------|-----------|-----------|-----------|
-| Online penetration growth | 15%/yr | 10%/yr | 25%/yr |
-| Market share capture | 2% Y3 | 0.5% Y3 | 5% Y3 |
-| Average transaction | $175 | $125 | $250 |
-| Import feature adoption | 25% | 10% | 40% |
+| HNW households in segment | 8.3M | 7M | 10M |
+| % with existing plans | 70% | 60% | 80% |
+| Digital comfort | 80% | 65% | 90% |
+| Price point | $500 | $350 | $700 |
+| Y3 market share | 1.0% | 0.3% | 2.0% |
 
 ---
 
 ## Data Sources
 
-1. AARP Estate Planning Survey 2024
-2. Caring.com Wills Survey 2023
-3. IBISWorld Legal Services Reports
-4. CB Insights Legal Tech Analysis
-5. US Census Bureau Demographics
-6. Federal Reserve Survey of Consumer Finances
-7. Company filings and press releases (LegalZoom, etc.)
+1. Federal Reserve Survey of Consumer Finances (2022)
+2. Wealth-X World Ultra Wealth Report
+3. Capgemini World Wealth Report
+4. Cerulli Associates HNW Market Sizing
+5. IBISWorld Estate Planning Industry Report
+6. US Census Bureau (state demographics)
+7. Spectrem Group Affluent Market Research
 
 ---
 
-## Appendix: State-by-State Opportunity
+## Appendix: Wealth Tier Definitions
 
-### Top 10 States by Opportunity
+| Term | Net Worth Range | US Households |
+|------|-----------------|---------------|
+| Mass Affluent | $100K–$1M | ~50M |
+| Affluent | $1M–$5M | ~13M |
+| High Net Worth (HNW) | $5M–$30M | ~3M |
+| Very High Net Worth (VHNW) | $30M–$100M | ~300K |
+| Ultra High Net Worth (UHNW) | $100M+ | ~100K |
 
-| State | Adult Pop. | No Plan % | HH Income Median | Priority |
-|-------|------------|-----------|------------------|----------|
-| California | 31M | 65% | $84K | 1 (MVP) |
-| Texas | 22M | 70% | $67K | 2 |
-| Florida | 18M | 62% | $61K | 3 |
-| New York | 16M | 64% | $75K | 4 |
-| Pennsylvania | 10M | 68% | $68K | 5 |
-| Illinois | 10M | 66% | $72K | 6 |
-| Ohio | 9M | 71% | $62K | 7 |
-| Georgia | 8M | 72% | $65K | 8 |
-| North Carolina | 8M | 69% | $60K | 9 |
-| Michigan | 8M | 70% | $63K | 10 |
-
-*Top 4 states represent ~33% of US population and ~35% of addressable market*
+**Our target spans Affluent through VHNW, with core focus on HNW.**

@@ -2,32 +2,36 @@
 
 ## Executive Summary
 
-EstateAI is an AI-powered conversational estate planning platform that makes creating and updating legal documents as simple as having a conversation. By combining large language models with a jurisdictional rules engine, we deliver state-specific, legally compliant documents at a fraction of traditional costs.
+EstateAI is an AI-powered estate plan analysis platform targeting high-net-worth individuals with $2M–$50M in assets. Our primary value proposition is **gap analysis**—helping users identify faults, risks, and missing provisions in their existing wills and trusts, delivering professional-grade insights at a fraction of traditional legal costs.
+
+This segment represents a strategic sweet spot: complex enough to require sophisticated analysis, but underserved by traditional legal services that are either too basic (DIY tools) or too expensive (white-glove law firms).
 
 ---
 
 ## Problem Statement
 
-### The Estate Planning Gap
+### The High-Net-Worth Estate Planning Gap
 
 **Market Reality:**
-- 67% of American adults lack a will or estate plan
-- Only 32% of parents with minor children have a will
-- Average attorney cost: $1,000-$5,000 for basic estate plan
-- DIY online tools have <5% completion rates
+- Individuals with $2M–$50M in assets have meaningful estate planning complexity
+- They typically have existing plans—but those plans often contain gaps, outdated provisions, or compliance issues
+- Traditional legal review costs $300–$600/hour, making regular check-ups prohibitively expensive
+- Life changes (marriage, divorce, children, asset acquisitions) create "plan drift" over time
 
-**Why People Don't Plan:**
-1. **Cost** - Attorney fees are prohibitive for most households
-2. **Complexity** - Legal jargon and forms are intimidating
-3. **Time** - Multiple meetings, paperwork, back-and-forth
-4. **Inertia** - Easy to postpone "until later"
-5. **Rigidity** - Existing tools don't adapt to individual situations
+**Why Existing Solutions Fall Short:**
 
-**The Existing Document Problem:**
-- Millions of Americans have outdated wills/trusts
-- Life changes (marriage, children, divorce, death, new assets) require updates
-- Full document rewrites are expensive and often unnecessary
-- No affordable way to get targeted, specific updates
+| Solution | Problem for $2M–$50M Segment |
+|----------|------------------------------|
+| **DIY tools** (LegalZoom, etc.) | Too basic; don't handle trusts, multi-asset complexity |
+| **Traditional attorneys** | Expensive ($5,000–$15,000 for comprehensive review); slow; unclear pricing |
+| **Family offices** | Only economical above $50M–$100M |
+| **Financial advisors** | Not qualified to provide legal document analysis |
+
+**The "Drift" Problem:**
+- Estate plans are living documents that should evolve with life circumstances
+- Most plans are created once and never reviewed
+- Hidden gaps create risk: unintended disinheritance, tax inefficiency, probate exposure
+- Clients don't know what they don't know
 
 ---
 
@@ -35,56 +39,126 @@ EstateAI is an AI-powered conversational estate planning platform that makes cre
 
 ### Core Value Proposition
 
-**"Estate planning that feels like talking to a knowledgeable friend, with the precision of a specialist attorney."**
+**"Professional-grade estate plan analysis, powered by AI, at a fraction of traditional legal costs."**
 
-### Key Capabilities
+### Primary Capability: Gap Analysis
 
-#### 1. Conversational Document Creation
-- Natural language interaction (not form-filling)
-- Adaptive questioning based on user responses
-- Plain-English explanations of legal concepts
-- State-specific compliance built-in
+Our platform analyzes existing estate planning documents to identify:
 
-#### 2. Import & Improve (Key Differentiator)
-- Upload existing will or trust
-- AI extracts key elements (executors, guardians, distributions)
-- Gap analysis identifies issues and opportunities
-- Targeted recommendations for updates
-- Pay only for specific changes needed
+1. **Missing Provisions**
+   - No digital asset clause
+   - Missing contingent beneficiaries
+   - Absent incapacity planning
 
-#### 3. Transparent Control
-- Preview documents before finalizing
-- Before/after comparisons for changes
-- Plain-English summaries of legal provisions
-- Full audit trail of decisions
+2. **Outdated Elements**
+   - Deceased or estranged executors/trustees
+   - Pre-divorce beneficiary designations
+   - Old asset references
 
-#### 4. Execution Guidance
-- State-specific signing requirements
-- Witness and notary instructions
-- Checklist for completion
-- Future: integrated remote notary
+3. **State Compliance Issues**
+   - Witness/notary requirements not met
+   - Invalid provisions under current state law
+   - Missing statutory language
+
+4. **Structural Risks**
+   - Unfunded trusts
+   - Probate exposure
+   - Tax inefficiency opportunities
+
+5. **Coordination Gaps**
+   - Beneficiary designation conflicts
+   - Will-trust inconsistencies
+   - POA/healthcare proxy gaps
+
+### How It Works
+
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│                 │    │                 │    │                 │
+│  Upload Docs    │───▶│  AI Analysis    │───▶│  Gap Report     │
+│                 │    │                 │    │                 │
+│  • Will         │    │  • Extraction   │    │  • Findings     │
+│  • Trust        │    │  • Rules check  │    │  • Risk scores  │
+│  • POA          │    │  • Gap detect   │    │  • Actions      │
+│  • Healthcare   │    │  • Scoring      │    │  • Attorney rec │
+│                 │    │                 │    │                 │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+```
 
 ---
 
 ## Target Customer
 
-### Primary Persona: "Responsible Rachel"
-- **Demographics:** 35-55, married, 1-3 children, household income $75K-$200K
-- **Situation:** Knows she needs estate planning, has been procrastinating
-- **Pain Points:** Cost concerns, intimidated by legal process, time-constrained
-- **Trigger Events:** New child, home purchase, parent's death, friend's experience
+### Primary Persona: "Affluent Andrew"
 
-### Secondary Persona: "Update-Needed Ursula"
-- **Demographics:** 45-65, existing estate plan 5+ years old
-- **Situation:** Life has changed since documents created
-- **Pain Points:** Doesn't want to pay for full new plan, unsure what needs updating
-- **Trigger Events:** Divorce, remarriage, executor death, new grandchildren, asset changes
+- **Demographics:** 45–65, married, 2–3 children (some adult), household net worth $5M–$20M
+- **Situation:** Has existing estate plan created 5–10 years ago; suspects it needs updating but dreads the process
+- **Assets:** Primary home ($1–3M), investment portfolio ($2–10M), retirement accounts ($1–5M), possibly rental property or business interest
+- **Pain Points:**
+  - Knows plan is outdated but doesn't know what specifically needs fixing
+  - Doesn't want to pay $10,000+ for a full estate plan overhaul
+  - Previous attorney retired or relationship lapsed
+  - Busy professional with limited time for legal appointments
 
-### Tertiary Persona: "DIY Dan"
-- **Demographics:** 25-40, tech-savvy, cost-conscious
-- **Situation:** Comfortable with technology, skeptical of paying for attorneys
-- **Pain Points:** Wants control, needs guidance, worried about mistakes
-- **Trigger Events:** Marriage, first child, first home
+**Trigger Events:**
+- Recent life change (child's marriage, grandchild, parent's death)
+- Market event prompting portfolio review
+- Friend's estate nightmare story
+- Financial advisor nudging toward review
+
+### Secondary Persona: "Successful Sandra"
+
+- **Demographics:** 50–70, divorced/remarried, blended family, net worth $10M–$40M
+- **Situation:** Complex family dynamics; existing plan may not reflect current wishes
+- **Specific Concerns:**
+  - Ensuring children from first marriage are protected
+  - Current spouse's rights vs. children's inheritance
+  - Business succession (if applicable)
+  - Charitable giving intentions
+
+### Tertiary Persona: "Business Owner Bob"
+
+- **Demographics:** 55–65, business owner, net worth $3M–$15M (heavily concentrated in business)
+- **Situation:** Estate plan focuses on liquid assets; business succession not addressed
+- **Pain Points:**
+  - Business is largest asset but poorly integrated into estate plan
+  - Buy-sell agreement may conflict with estate documents
+  - Key person concerns
+
+---
+
+## Why $2M–$50M Is the Optimal Segment
+
+### Below $2M: Simple Needs
+
+Individuals with <$2M typically have straightforward estates:
+- Primary residence (passes via deed or TOD)
+- Retirement accounts (pass via beneficiary designation)
+- Basic will covers residual
+
+**DIY tools work adequately. Our solution is overbuilt for their needs.**
+
+### Above $50M: Ultra-High-Net-Worth (UHNW) Complexity
+
+Individuals with >$50M typically require:
+- Dynasty trusts
+- Multi-generational planning
+- Family office infrastructure
+- Multi-jurisdiction tax optimization
+- Ongoing legal and financial teams
+
+**They demand white-glove human services and are willing to pay for them. AI is a supplement, not a solution.**
+
+### $2M–$50M: The Underserved Sweet Spot
+
+| Factor | Why It Favors AI Solution |
+|--------|---------------------------|
+| **Complexity** | Real trust/estate structure complexity that DIY can't handle |
+| **Cost sensitivity** | Not willing to pay $15K+ for comprehensive legal review |
+| **Existing plans** | Already have documents—need analysis, not creation |
+| **Time constraints** | Busy professionals who value efficiency |
+| **Tech comfort** | Generally comfortable with digital tools |
+| **Scale** | ~8–10 million US households in this range |
 
 ---
 
@@ -92,35 +166,43 @@ EstateAI is an AI-powered conversational estate planning platform that makes cre
 
 ### Revenue Streams
 
-#### 1. Document Generation (Core)
-| Product | Price Point | Target |
-|---------|-------------|--------|
-| Simple Will | $99-$149 | Primary |
-| Comprehensive Will | $199-$299 | Primary |
-| Revocable Trust Package | $399-$599 | Secondary |
-| POA + Healthcare Proxy | $79-$129 | Add-on |
-| Complete Estate Package | $599-$899 | Premium |
+#### 1. Gap Analysis Reports (Core)
 
-#### 2. Import & Improve (Differentiator)
-| Service | Price Point | Value Prop |
-|---------|-------------|------------|
-| Document Analysis | $49 | Gap report + recommendations |
-| Codicil/Amendment | $79-$149 | Specific update |
-| Trust Restatement | $299-$399 | Comprehensive update |
+| Product | Price | Deliverable |
+|---------|-------|-------------|
+| Single Document Analysis | $149–$249 | Will OR Trust analysis + report |
+| Estate Package Analysis | $399–$599 | Full document suite analysis |
+| Premium Analysis + Consult | $799–$999 | Full analysis + 30-min attorney call |
 
-#### 3. Premium Services (Future)
-| Service | Price Point | Notes |
-|---------|-------------|-------|
-| Attorney Review | $199-$399 | Partner network |
-| Remote Notary | $25-$50 | Integration |
-| Annual Review | $49/year | Subscription |
-| Family Plan | $299/year | Multiple members |
+#### 2. Ongoing Monitoring (Subscription)
+
+| Plan | Price | Features |
+|------|-------|----------|
+| Annual Review | $199/year | Yearly re-analysis, state law updates |
+| Life Event Check | $99/event | Triggered analysis after major changes |
+
+#### 3. Attorney Referral (Future)
+
+| Service | Revenue Model |
+|---------|---------------|
+| Attorney Matching | Referral fee (15–25% of first engagement) |
+| Document Fix Facilitation | Facilitation fee for coordinated updates |
 
 ### Unit Economics (Target)
-- **Average Order Value:** $175
-- **Gross Margin:** 85%+
-- **CAC Target:** <$50
-- **LTV:CAC Ratio:** >5:1
+
+| Metric | Target |
+|--------|--------|
+| Average Order Value | $450 |
+| Gross Margin | 80%+ |
+| Customer Acquisition Cost | <$100 |
+| LTV:CAC Ratio | >5:1 |
+| Conversion (visitor → purchase) | 3–5% |
+
+### Pricing Rationale
+
+- Traditional attorney review: $1,500–$5,000
+- Our comprehensive analysis: $400–$600
+- **Value proposition: 70–80% cost savings for comparable insight**
 
 ---
 
@@ -128,47 +210,56 @@ EstateAI is an AI-powered conversational estate planning platform that makes cre
 
 ### Direct Competitors
 
-| Competitor | Strengths | Weaknesses | Our Advantage |
-|------------|-----------|------------|---------------|
-| LegalZoom | Brand recognition, full service | Expensive, slow, forms-based | Conversational UX, faster |
-| Trust & Will | Modern UX, affordable | Limited customization | Import capability, more adaptive |
-| Rocket Lawyer | Subscription model | Generic templates | State-specific precision |
-| FreeWill | Free basic wills | Limited features, nonprofit focus | Full product suite |
-| Tomorrow | Mobile-first | Basic documents only | Comprehensive, import feature |
+| Competitor | Offering | Weakness | Our Advantage |
+|------------|----------|----------|---------------|
+| **Trust & Will** | Document creation | No gap analysis for existing docs | Analysis-first approach |
+| **LegalZoom** | Document creation + attorney access | Generic; not HNW-focused | HNW complexity handling |
+| **Wealth.com** | Estate planning platform | Expensive; advisor-focused | Direct-to-consumer; lower cost |
+| **Traditional attorneys** | Full service | Expensive; time-intensive | Speed, cost, accessibility |
 
 ### Indirect Competitors
-- Traditional estate planning attorneys
-- Bank trust departments
-- Financial advisor referrals
-- DIY templates (Nolo, etc.)
+
+- Financial advisors (relationship-based referrals)
+- CPA firms (tax-focused estate advice)
+- Bank trust departments (custody-focused)
 
 ### Competitive Moat
-1. **Import & Improve** - No competitor offers this capability
-2. **Conversational AI** - True adaptive dialogue vs. branching forms
-3. **Rules Engine** - LLM + jurisdictional logic for accuracy
-4. **Transparency** - Before/after, plain-English explanations
+
+1. **Gap Analysis Focus** — No one else leads with analysis of existing documents
+2. **HNW Specialization** — Built for trust complexity, not basic wills
+3. **AI + Rules Engine** — Scalable expertise delivery
+4. **Risk Scoring** — Quantified gap severity that creates urgency
+5. **Network Effects** — More documents analyzed → better pattern recognition
 
 ---
 
 ## Go-to-Market Strategy
 
 ### Phase 1: MVP Launch
-- **Geography:** California only (largest state, tech-friendly)
-- **Product:** Simple Will + Import Analysis
-- **Channel:** Direct (SEO, content marketing)
-- **Pricing:** $99 Simple Will, $49 Import Analysis
+
+- **Geography:** California (largest HNW population, complex trust laws)
+- **Product:** Full estate package gap analysis
+- **Channel:** Direct (SEO, content marketing, targeted digital ads)
+- **Pricing:** $399 introductory, $599 standard
+
+**Target Channels:**
+- Google Ads (high-intent keywords: "estate plan review," "trust audit")
+- Content marketing (guides on trust maintenance, estate plan checklists)
+- LinkedIn (targeting HNW professionals, business owners)
 
 ### Phase 2: Expansion
-- **Geography:** Add Texas, Florida, New York (top 4 states = 33% of US)
-- **Product:** Add Trusts, POA, Healthcare Proxy
-- **Channel:** Add partnerships (financial advisors, employers)
-- **Pricing:** Full product suite
+
+- **Geography:** Add Texas, Florida, New York (large HNW populations)
+- **Product:** Add monitoring subscription, attorney referral
+- **Channel:** Add financial advisor partnerships
+- **Pricing:** Tiered based on complexity
 
 ### Phase 3: Scale
+
 - **Geography:** All 50 states
-- **Product:** Attorney network, notary integration, subscriptions
-- **Channel:** B2B2C (employers, benefits platforms)
-- **Pricing:** Premium tiers, enterprise
+- **Product:** Full platform with attorney network, monitoring, document generation
+- **Channel:** B2B2C (financial advisors, RIAs, banks)
+- **Pricing:** Enterprise/white-label options
 
 ---
 
@@ -176,44 +267,49 @@ EstateAI is an AI-powered conversational estate planning platform that makes cre
 
 | Risk | Likelihood | Impact | Mitigation |
 |------|------------|--------|------------|
-| Legal/UPL concerns | Medium | High | Clear disclaimers, attorney review option, state bar research |
-| LLM errors | Medium | High | Rules engine validation, human review option, testing |
-| Competition | High | Medium | Speed to market, import differentiator, UX focus |
-| Customer trust | Medium | Medium | Transparency, guarantees, reviews |
-| Regulatory changes | Low | Medium | Modular architecture, state-specific updates |
+| **UPL (Unauthorized Practice of Law)** | Medium | High | Position as analysis/education, not legal advice; clear disclaimers; attorney referral for action items |
+| **AI accuracy concerns** | Medium | High | Rules engine validation; confidence scoring; human review option |
+| **Trust with sensitive documents** | Medium | Medium | SOC 2 compliance; encryption; clear privacy policy |
+| **Competition from incumbents** | High | Medium | Speed to market; analysis differentiation; HNW focus |
+| **Customer education** | Medium | Medium | Content marketing; clear value demonstration; ROI calculator |
 
 ---
 
 ## Success Metrics
 
 ### MVP Success Criteria
-- [ ] 100 completed wills in first 3 months
-- [ ] >60% completion rate (start to download)
-- [ ] >4.0 average user satisfaction (5-point scale)
-- [ ] <5% refund rate
-- [ ] 25+ imported documents analyzed
+
+- [ ] 200 completed analyses in first 6 months
+- [ ] >70% of users find "actionable insights"
+- [ ] >4.0 average satisfaction score (5-point scale)
+- [ ] <3% refund rate
+- [ ] 20%+ of users connect with attorney referral
 
 ### Growth Metrics (Post-MVP)
-- Monthly Active Users
-- Documents Generated
-- Import-to-Purchase Conversion
+
+- Monthly Analyses Completed
+- Annual Subscription Conversion Rate
+- Attorney Referral Revenue
 - Net Promoter Score
-- Revenue Growth Rate
+- Customer Acquisition Cost by Channel
 
 ---
 
 ## Team Needs
 
 ### Core Team (MVP)
-- **Technical Lead** - Full-stack, AI/ML experience
-- **Product Lead** - UX focus, legal tech or fintech background
-- **Legal Advisor** - Estate planning attorney (part-time/advisory)
+
+- **Technical Lead** — Full-stack + AI/ML experience; document processing expertise
+- **Product Lead** — UX focus; experience with legal tech or fintech
+- **Legal Advisor** — Estate planning attorney (part-time/advisory); state bar expertise
 
 ### Growth Team (Post-MVP)
-- Additional engineers
-- Marketing/Growth lead
-- Customer success
-- Legal compliance
+
+- Additional engineers (frontend, ML)
+- Marketing/Growth lead (content + paid acquisition)
+- Customer success (onboarding, support)
+- Legal/compliance (multi-state expansion)
+- Business development (advisor partnerships)
 
 ---
 
@@ -221,24 +317,41 @@ EstateAI is an AI-powered conversational estate planning platform that makes cre
 
 | Phase | Duration | Key Milestones |
 |-------|----------|----------------|
-| Research & Design | 2 weeks | Architecture, legal research, UX flows |
-| MVP Development | 6-8 weeks | Core product, CA support |
-| Beta Testing | 2-4 weeks | User feedback, iteration |
-| Launch | Week 12 | Public availability |
-| Iteration | Ongoing | Feature expansion, state expansion |
+| Research & Design | 2 weeks | Legal research, gap taxonomy, UX flows |
+| MVP Development | 8–10 weeks | Core analysis engine, CA rules, report generation |
+| Private Beta | 4 weeks | 50 users, feedback iteration |
+| Public Launch | Week 14–16 | California launch, marketing ramp |
+| Expansion | Ongoing | Additional states, features, channels |
 
 ---
 
 ## Appendix
 
 ### Legal Considerations
-- Unauthorized Practice of Law (UPL) research needed per state
-- Clear positioning as document preparation, not legal advice
-- Disclaimers and limitations
-- Attorney review option for complex cases
 
-### Technical Considerations
-- LLM prompt engineering for legal accuracy
-- State-specific rules database design
-- Document parsing accuracy requirements
-- Security and privacy (sensitive personal information)
+- **UPL Mitigation:** Position as document analysis and education; clear disclaimers that output is not legal advice; recommend attorney consultation for all action items
+- **State Registration:** May require Legal Document Assistant registration in California
+- **Privacy:** Handle sensitive PII with SOC 2 compliance; encryption at rest and in transit
+- **Liability:** Clear terms of service; errors and omissions insurance
+
+### Sample Gap Categories
+
+1. **Critical (Immediate Action Required)**
+   - No valid will/trust exists
+   - Named executor/trustee is deceased
+   - Document not properly executed
+
+2. **High Priority**
+   - Outdated beneficiary designations
+   - Missing incapacity planning
+   - Trust unfunded
+
+3. **Medium Priority**
+   - No digital asset provisions
+   - Missing contingent beneficiaries
+   - Outdated asset references
+
+4. **Advisory**
+   - Tax optimization opportunities
+   - Charitable giving structures
+   - Family governance suggestions

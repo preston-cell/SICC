@@ -1,262 +1,440 @@
 # EstateAI: Research Notes
 
+## High-Net-Worth ($2M–$50M) Behavioral Research
+
+### HNW Estate Planning Behavior Patterns
+
+#### Key Findings from Wealth Research
+
+1. **High Plan Ownership, Low Plan Maintenance**
+   - ~70% of HNW households have some form of estate plan
+   - Only ~25% have reviewed their plan in the past 3 years
+   - Average plan age: 7–10 years
+   - Most plans are "set and forget"
+
+2. **Trigger Events Drive Action**
+   - Major life events prompt estate planning activity:
+     - Death of parent/spouse (highest trigger)
+     - Marriage/divorce/remarriage
+     - Birth of child/grandchild
+     - Major asset acquisition (home, business)
+     - Health scare
+   - Market events occasionally trigger reviews
+
+3. **Cost-Benefit Calculation**
+   - HNW individuals understand the need for professional help
+   - BUT: Struggle to justify $5,000–$15,000 for comprehensive review
+   - Often perceive attorney fees as opaque and unpredictable
+   - Want to know "what specifically needs fixing" before engaging
+
+4. **Relationship Dependency**
+   - Many HNW individuals had a trusted attorney relationship
+   - Relationship often lapses (attorney retires, moves, dies)
+   - Starting with a new attorney feels daunting
+   - Creates "orphaned" estate plans
+
+#### HNW Digital Behavior
+
+| Behavior | HNW Adoption |
+|----------|--------------|
+| Online banking | 95%+ |
+| Investment apps | 75%+ |
+| Tax software | 60% |
+| Legal tech (any) | 25–35% |
+| Estate planning tools | <15% |
+
+**Insight:** HNW individuals are digitally comfortable but haven't embraced legal tech for estate planning. Opportunity for a well-positioned solution.
+
+---
+
 ## Legal Research
 
 ### Unauthorized Practice of Law (UPL) Considerations
 
-#### Key Findings
-- Document preparation services are generally permitted if they don't involve legal advice
-- Key distinction: "scrivener" services (filling in blanks) vs. legal advice (recommending strategies)
-- Most states allow non-attorney document preparation with proper disclaimers
-- California Business & Professions Code Section 6400-6401 specifically addresses Legal Document Assistants
+#### Key Distinctions for Gap Analysis Product
 
-#### State-by-State Status (Initial Research)
+1. **Document Preparation vs. Analysis**
+   - Document preparation = creating legal documents (higher UPL risk)
+   - Document analysis = reviewing existing documents for issues (lower UPL risk)
+   - Our focus on analysis positions us more safely
 
-| State | UPL Risk Level | Notes |
-|-------|----------------|-------|
-| California | Low | LDA registration, clear rules |
-| Texas | Low-Medium | Case law supports document prep |
-| Florida | Medium | Stricter interpretation |
-| New York | Medium | Active bar association |
-| Arizona | Low | Allows non-attorney legal services |
+2. **Legal Advice vs. Legal Information**
+   - Legal advice = recommending specific actions for specific situations (UPL)
+   - Legal information = explaining what documents say, identifying gaps (not UPL)
+   - We provide information and education, not advice
+
+3. **Technology Intermediary Doctrine**
+   - Software that assists users in understanding documents ≠ UPL
+   - Key: User makes decisions; tool provides information
+   - Precedent: TurboTax, LegalZoom (in most states)
+
+#### State-Specific Considerations
+
+| State | UPL Risk Level | Key Requirements |
+|-------|----------------|------------------|
+| California | Low-Medium | LDA registration may be required for document prep; analysis likely exempt |
+| Texas | Low | Generally permissive; clear disclaimers recommended |
+| Florida | Medium | More restrictive; careful positioning required |
+| New York | Medium | Active bar; strong disclaimers needed |
 
 #### Mitigation Strategies
-1. Clear disclaimers that service is document preparation, not legal advice
-2. No specific recommendations on legal strategies
-3. Offer attorney review option for complex matters
-4. Register as LDA in California
-5. User acknowledges understanding limitations
 
-### Estate Planning Legal Requirements
+1. **Clear Disclaimers**
+   - "This is not legal advice"
+   - "Results are for informational purposes only"
+   - "Consult an attorney before taking action"
 
-#### Will Requirements by State (Sample)
+2. **Positioning**
+   - "Educational tool" not "legal service"
+   - "Gap identification" not "legal recommendations"
+   - "Analysis report" not "legal opinion"
 
-| State | Min. Age | Witnesses | Notary | Holographic Allowed |
-|-------|----------|-----------|--------|---------------------|
-| California | 18 | 2 | Optional | Yes |
-| Texas | 18 | 2 | Optional (self-proving) | Yes |
-| Florida | 18 | 2 | Required (self-proving) | No |
-| New York | 18 | 2 | Optional | No |
+3. **Attorney Referral Integration**
+   - Recommend attorney consultation for all action items
+   - Build attorney referral network
+   - Creates clear handoff point
 
-#### Trust Requirements
-- Generally fewer formalities than wills
-- Funding requirements vary
-- Pour-over will typically recommended
+4. **User Acknowledgments**
+   - Terms of service clearly state limitations
+   - User confirms understanding before analysis
+   - No attorney-client relationship formed
 
 ---
 
 ## Competitive Research
 
-### LegalZoom Deep Dive
+### Estate Planning for HNW: Competitive Landscape
 
-**Strengths:**
-- Brand recognition (20+ years)
-- Full service offering
-- Physical presence (attorneys in some states)
-- SEO dominance
+#### Trust & Will
 
-**Weaknesses:**
-- High prices ($249+ for basic will)
-- Form-based, not adaptive
-- Slow (days/weeks for delivery)
-- Complaints about upselling
+**Overview:** Leading digital estate planning platform
 
-**User Reviews Analysis:**
-- Common complaints: hidden fees, slow delivery, generic documents
-- Positive: brand trust, peace of mind
-- Average rating: 3.5-4.0 stars
+| Aspect | Details |
+|--------|---------|
+| Target | Mass market (<$1M) |
+| Primary offering | Document creation |
+| Pricing | $159–$599 |
+| Gap analysis | None |
+| HNW features | Limited |
 
-### Trust & Will Deep Dive
+**Weakness for our segment:** Not built for trust complexity; no analysis of existing documents.
 
-**Strengths:**
-- Modern UX
-- Lower prices ($159 for comprehensive)
-- Mobile-friendly
-- Good completion rates
+#### Wealth.com
 
-**Weaknesses:**
-- Limited customization
-- No import capability
-- Limited state coverage initially
-- Less brand recognition
+**Overview:** Enterprise estate planning platform for advisors
 
-**User Reviews Analysis:**
-- Common praise: easy to use, affordable
-- Common complaints: limited customization, generic feel
-- Average rating: 4.0-4.5 stars
+| Aspect | Details |
+|--------|---------|
+| Target | Financial advisors serving HNW/UHNW |
+| Primary offering | Planning platform + collaboration |
+| Pricing | B2B (advisor-paid) |
+| Gap analysis | Manual (advisor-driven) |
+| HNW features | Strong |
 
-### Gaps in Current Market
-1. **No import & improve** - Everyone forces new document creation
-2. **Limited AI use** - Still mostly branching logic forms
-3. **Poor explanations** - Legal jargon not explained
-4. **No before/after** - Changes not visualized
-5. **Binary pricing** - Full price or nothing, no targeted updates
+**Weakness for our segment:** Not direct-to-consumer; expensive; requires advisor relationship.
+
+#### LegalZoom
+
+**Overview:** Market leader in online legal services
+
+| Aspect | Details |
+|--------|---------|
+| Target | Small business + mass market consumers |
+| Primary offering | Document creation + attorney access |
+| Pricing | $89–$249 for wills |
+| Gap analysis | None (attorney review available at premium) |
+| HNW features | None |
+
+**Weakness for our segment:** Basic templates; not equipped for trust complexity; no AI analysis.
+
+#### Traditional Estate Planning Attorneys
+
+| Aspect | Details |
+|--------|---------|
+| Target | All segments |
+| Primary offering | Full-service planning |
+| Pricing | $3,000–$15,000+ |
+| Gap analysis | Manual review included |
+| HNW features | Full capability |
+
+**Weakness for our segment:** Expensive; time-intensive; opaque pricing; relationship-dependent.
+
+### Competitive White Space
+
+No competitor currently offers:
+- **AI-powered gap analysis** as primary product
+- **HNW-specific complexity handling** in a digital tool
+- **Analysis-first** (vs. creation-first) approach
+- **Risk scoring and prioritization** of findings
 
 ---
 
 ## Technology Research
 
-### LLM Capabilities for Legal
+### LLM Capabilities for Estate Plan Analysis
 
-#### Tested Scenarios (Using Claude)
+#### Tested Capabilities (Using Claude)
 
 | Task | Quality | Confidence | Notes |
 |------|---------|------------|-------|
-| Explain legal concepts | Excellent | High | Clear, accurate |
-| Generate will provisions | Good | Medium | Needs validation |
-| Identify document gaps | Good | Medium | Useful starting point |
-| State-specific rules | Variable | Low | Needs rules engine |
-| Legal strategy advice | N/A | N/A | Should not provide |
+| Document parsing | Very Good | High | Extracts structure, names, provisions |
+| Element identification | Very Good | High | Executors, trustees, beneficiaries |
+| Gap detection | Good | Medium | Identifies missing provisions |
+| State rule compliance | Variable | Medium | Needs rules engine support |
+| Risk assessment | Good | Medium | Can explain severity |
+| Plain-English summary | Excellent | High | Clear explanations |
 
 #### Key Technical Findings
-1. LLMs excellent for conversation, explanation, drafting
-2. LLMs unreliable for state-specific statutory requirements
-3. Hybrid approach needed: LLM + rules engine
-4. Structured output modes helpful for data extraction
-5. Long context windows enable full document analysis
+
+1. **LLMs excel at:**
+   - Understanding document structure
+   - Extracting named entities (people, assets)
+   - Explaining legal provisions in plain language
+   - Identifying obvious gaps and inconsistencies
+
+2. **LLMs need support for:**
+   - State-specific statutory requirements (rules engine)
+   - Current legal standards (knowledge cutoff)
+   - Precision on numbers/dates (validation layer)
+
+3. **Hybrid Architecture Required:**
+   - LLM for document understanding and explanation
+   - Rules engine for compliance checking
+   - Validation layer for accuracy assurance
 
 ### Document Parsing Research
 
-#### PDF Extraction Options
+#### HNW Document Complexity
 
-| Tool | Quality | Cost | Notes |
-|------|---------|------|-------|
-| PyMuPDF | Good | Free | Fast, reliable |
-| Adobe PDF Services | Excellent | Paid | Best quality |
-| AWS Textract | Excellent | Paid | Good for scans |
-| Unstructured.io | Very Good | Free/Paid | Good all-rounder |
+Typical HNW estate plan includes:
+- Revocable Living Trust (15–50 pages)
+- Pour-over Will (5–10 pages)
+- Durable Power of Attorney (5–10 pages)
+- Healthcare Proxy/Advance Directive (3–5 pages)
+- Trust amendments (variable)
+- Beneficiary designations (separate from documents)
+
+**Total:** 30–80+ pages across multiple documents
 
 #### Parsing Challenges
-- Scanned documents need OCR
-- Multi-column layouts
-- Tables and lists
-- Legal formatting conventions
-- Handwritten additions
 
-### Architecture Patterns
+1. **Attorney-drafted documents vary widely**
+   - Different formatting conventions
+   - Different clause structures
+   - Different terminology
 
-#### Similar Systems Researched
-1. **Lex Machina** - Legal analytics, ML for document analysis
-2. **DoNotPay** - Conversational legal robot
-3. **Harvey AI** - LLM for legal professionals
-4. **Casetext/CoCounsel** - AI legal assistant
+2. **Scanned vs. native PDFs**
+   - Many documents are scanned
+   - OCR quality varies
+   - Handwritten notes/signatures
 
-#### Key Patterns
-- Retrieval Augmented Generation (RAG) for legal knowledge
-- Multi-step reasoning with validation
-- Human-in-the-loop for high-stakes outputs
-- Audit trails and explainability
+3. **Multi-document coordination**
+   - Will-trust consistency
+   - Beneficiary designation alignment
+   - Amendment integration
+
+#### Recommended Approach
+
+1. **Document upload**: PyMuPDF + OCR fallback
+2. **Text extraction**: Preserve structure where possible
+3. **LLM parsing**: Extract key elements into structured data
+4. **Rules validation**: Check against state requirements
+5. **Gap identification**: Compare to best practices checklist
+
+---
+
+## Gap Taxonomy Research
+
+### Common Gaps in HNW Estate Plans
+
+Based on estate planning attorney interviews and industry research:
+
+#### Critical Gaps (Immediate Risk)
+
+1. **Deceased/Incapacitated Fiduciaries**
+   - Named executor/trustee has died or is incapacitated
+   - No successor or successor also unavailable
+   - Frequency: ~15% of plans 10+ years old
+
+2. **Improper Execution**
+   - Missing signatures
+   - Insufficient witnesses
+   - Notary issues for self-proving affidavit
+   - Frequency: ~5% (often in DIY documents)
+
+3. **Unfunded Trust**
+   - Trust exists but assets not titled to trust
+   - Results in probate despite trust
+   - Frequency: ~25% of trust-based plans
+
+#### High Priority Gaps
+
+4. **Outdated Beneficiary Designations**
+   - Ex-spouse still named on retirement accounts
+   - Deceased beneficiary not updated
+   - Beneficiary designation conflicts with will/trust
+   - Frequency: ~30%
+
+5. **Missing Incapacity Planning**
+   - No POA or healthcare proxy
+   - Outdated healthcare directives
+   - No HIPAA authorization
+   - Frequency: ~20%
+
+6. **Missing Digital Asset Provisions**
+   - No provision for digital accounts
+   - No password/access instructions
+   - No cryptocurrency provisions
+   - Frequency: ~60% of plans 5+ years old
+
+#### Medium Priority Gaps
+
+7. **Missing Contingent Beneficiaries**
+   - No backup if primary beneficiary predeceases
+   - No provisions for next generation
+   - Frequency: ~25%
+
+8. **State Law Changes**
+   - Plan drafted under old law
+   - Tax provisions no longer applicable
+   - Execution requirements changed
+   - Frequency: Variable by state
+
+9. **Asset Changes Not Reflected**
+   - New properties not addressed
+   - Business interests not covered
+   - Investment account changes
+   - Frequency: ~40%
+
+#### Advisory Items
+
+10. **Tax Optimization Opportunities**
+    - Estate tax exemption changes
+    - State inheritance tax considerations
+    - Charitable giving structures
+    - Frequency: ~50%
+
+11. **Family Governance**
+    - No family meeting provisions
+    - No trustee succession plan
+    - No dispute resolution mechanism
+    - Frequency: ~70%
 
 ---
 
 ## User Research
 
-### Informal User Interviews (N=12)
+### HNW User Interviews (Informal, N=15)
 
 #### Key Quotes
-> "I know I need a will but every time I look into it, it seems too complicated and expensive."
 
-> "I have a will from 10 years ago when we only had one kid. Now we have three and own a house. I know it needs updating but I don't want to start from scratch."
+> "I know my trust is probably out of date—my attorney retired five years ago and I've been meaning to find a new one, but I don't even know what questions to ask."
 
-> "The online forms I've tried all feel like they're not really understanding my situation. They just march you through the same questions regardless."
+> "My financial advisor keeps bugging me to review my estate plan, but last time I went to a lawyer it cost $8,000 just to make a few changes."
 
-> "I'd love something that just asks me questions like a person would and figures out what I need."
+> "I'd love to know what's actually wrong with my documents before I walk into a lawyer's office. I hate not knowing what I don't know."
+
+> "My biggest fear is that I've got something set up wrong and my kids are going to have a nightmare when I die."
+
+> "If I could get a report that tells me exactly what needs fixing, I'd pay a few hundred dollars for that easily. It's the open-ended attorney engagement that scares me."
 
 #### Pain Points Summary
-1. Cost perceived as prohibitive (even when it's not)
-2. Complexity and legal jargon intimidating
-3. Time commitment unclear
-4. Forms feel impersonal and rigid
-5. Uncertainty about whether output is valid
-6. Update process as frustrating as initial creation
 
-### Desired Features (Ranked)
-1. Plain English explanations
-2. Adaptive questions (not one-size-fits-all)
-3. Clear pricing upfront
-4. Ability to update specific parts
-5. Confidence that documents are legally valid
-6. Attorney review option available
+1. **Uncertainty** — Don't know what's wrong or what to fix
+2. **Cost anxiety** — Afraid of open-ended legal fees
+3. **Relationship gap** — No trusted attorney relationship
+4. **Time constraints** — Busy professionals; estate planning isn't urgent until it is
+5. **Complexity overwhelm** — Don't understand their own documents
+
+#### Desired Features (Ranked)
+
+1. Clear report of what's wrong/missing
+2. Prioritization (what's critical vs. nice-to-have)
+3. Plain-English explanations
+4. Fixed, transparent pricing
+5. No commitment to expensive follow-up
+6. Option to connect with attorney if needed
 
 ---
 
-## Market Research
+## Pricing Research
 
-### Search Volume Analysis (Monthly US)
+### Willingness to Pay
 
-| Keyword | Volume | Competition | CPC |
-|---------|--------|-------------|-----|
-| "online will" | 18,100 | High | $15 |
-| "make a will online" | 9,900 | High | $18 |
-| "free will template" | 8,100 | Medium | $8 |
-| "estate planning" | 27,100 | High | $25 |
-| "living trust" | 22,200 | High | $20 |
-| "how to write a will" | 14,800 | Medium | $12 |
-| "update my will" | 1,900 | Low | $10 |
-| "codicil to will" | 2,400 | Low | $8 |
+Based on user research and market analysis:
 
-**Opportunity:** "Update" keywords low competition, high intent
+| Price Point | Acceptance Rate | Notes |
+|-------------|-----------------|-------|
+| $99–$149 | 70%+ | "No-brainer" for basic analysis |
+| $199–$299 | 55% | Acceptable for comprehensive analysis |
+| $399–$499 | 40% | Need to see clear value |
+| $500–$799 | 25% | Premium tier; need more features |
+| $800+ | 15% | Must include attorney consult |
 
-### Conversion Benchmarks
+**Sweet Spot:** $399–$599 for comprehensive estate package analysis
 
-| Metric | Industry Avg | Top Performers |
-|--------|--------------|----------------|
-| Visitor to Start | 3-5% | 8-10% |
-| Start to Complete | 15-25% | 40-50% |
-| Complete to Purchase | 60-70% | 80%+ |
-| Overall Conversion | 0.3-0.9% | 2-4% |
+### Competitive Pricing Context
+
+| Service | Price | What You Get |
+|---------|-------|--------------|
+| Trust & Will (creation) | $159–$599 | New documents |
+| LegalZoom will + attorney | $399+ | New will + 30-min consult |
+| Attorney estate plan review | $1,500–$5,000 | Full review + recommendations |
+| **EstateAI analysis** | **$399–$599** | **Gap report + prioritization** |
+
+**Value Proposition:** 70–80% cost savings vs. attorney review
 
 ---
 
 ## References
 
-### Legal
+### Legal Sources
 - California Business & Professions Code §6400-6415
 - ABA Model Rules of Professional Conduct
-- State bar association UPL guidelines
+- State bar UPL guidance documents
 - Unauthorized Practice of Law Committee opinions
 
-### Technical
-- LangChain documentation
+### Market Research
+- Federal Reserve Survey of Consumer Finances
+- Wealth-X HNW Reports
+- Capgemini World Wealth Report
+- Cerulli Associates Affluent Market Research
+
+### Industry Sources
+- WealthManagement.com industry analysis
+- Financial Planning Association surveys
+- American College of Trust and Estate Counsel reports
+
+### Technical Sources
 - Anthropic API documentation
-- python-docx documentation
-- WeasyPrint documentation
-
-### Market
-- IBISWorld Industry Reports
-- Caring.com Annual Survey
-- Gallup Estate Planning Poll
-- US Census Bureau
-
-### Academic
-- "AI and Access to Justice" - Stanford Law
-- "Legal Document Assembly Systems" - MIT
-- "Conversational AI in Professional Services" - Harvard Business Review
+- LangChain documentation
+- PyMuPDF documentation
+- Unstructured.io documentation
 
 ---
 
 ## Open Questions
 
 ### Legal
-- [ ] Detailed UPL analysis for top 10 states
-- [ ] LDA registration process in California
-- [ ] Required disclaimers by state
-- [ ] Malpractice insurance requirements
+- [ ] Detailed UPL analysis for California positioning
+- [ ] Required disclaimers review by legal counsel
+- [ ] E&O insurance requirements for analysis platform
+- [ ] State bar notification requirements (if any)
 
 ### Technical
-- [ ] Best approach for document parsing accuracy
-- [ ] State rules database schema design
-- [ ] Conversation state management approach
-- [ ] Testing strategy for legal accuracy
-
-### Market
-- [ ] Detailed competitive pricing analysis
-- [ ] User willingness to pay validation
-- [ ] B2B channel partner research
-- [ ] International expansion feasibility
+- [ ] Document parsing accuracy benchmarks
+- [ ] Rules engine schema design
+- [ ] Confidence scoring methodology
+- [ ] Multi-document coordination approach
 
 ### Product
-- [ ] Minimum viable document set
-- [ ] Attorney review partnership model
-- [ ] Notary integration options
-- [ ] Subscription vs. transactional pricing
+- [ ] Gap taxonomy finalization
+- [ ] Report format and design
+- [ ] Risk scoring algorithm
+- [ ] Attorney referral network development
+
+### Market
+- [ ] User research validation (larger sample)
+- [ ] Pricing A/B testing plan
+- [ ] Channel partnership opportunities
+- [ ] Financial advisor integration approach
