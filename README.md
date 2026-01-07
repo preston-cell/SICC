@@ -47,10 +47,10 @@ High-net-worth individuals with $2M–$50M in assets represent a critically unde
 
 | Name | Role | Responsibilities |
 |------|------|------------------|
-| [Team Member 1] | [Role] | [Key responsibilities] |
-| [Team Member 2] | [Role] | [Key responsibilities] |
-| [Team Member 3] | [Role] | [Key responsibilities] |
-| [Team Member 4] | [Role] | [Key responsibilities] |
+| Preston Dinh | [Role] | [Key responsibilities] |
+| Ezekiel Dube-Garrett | [Role] | [Key responsibilities] |
+| Keegan Harrison | [Role] | [Key responsibilities] |
+| Colton Pozniak | [Role] | [Key responsibilities] |
 
 ---
 
