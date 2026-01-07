@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-EstateAI is an AI-powered conversational estate planning platform that makes creating and updating legal documents as simple as having a conversation. By combining large language models with a jurisdictional rules engine, we deliver state-specific, legally compliant documents at a fraction of traditional costs.
+EstateAI is an AI-assisted estate planning platform that simplifies how individuals create, understand, and maintain estate documents. Through a guided conversational experience, EstateAI helps users organize their information, understand key decisions, and generate state-specific legal drafts aligned with local requirements. By combining large language models with a jurisdiction-aware rules engine, EstateAI reduces complexity, cost, and friction—while keeping licensed attorneys in control of review, approval, and execution.
 
 ---
 
@@ -10,21 +10,22 @@ EstateAI is an AI-powered conversational estate planning platform that makes cre
 
 ### The Estate Planning Gap
 
-**Market Reality:**
-- 67% of American adults lack a will or estate plan
-- Only 32% of parents with minor children have a will
-- Average attorney cost: $1,000-$5,000 for basic estate plan
-- DIY online tools have <5% completion rates
+**Current Market Reality:**
+- Only 24% of American adults have a will or estate plan, a number that has decreased over the years
+- Only 36-40% of parents with children under 18 have a will
+- Average attorney cost: $1,000-$3,000 for basic estate plan
+- DIY online tools often are unsuccessful
+- Plans are incomplete and impartial
 
 **Why People Don't Plan:**
-1. **Cost** - Attorney fees are prohibitive for most households
-2. **Complexity** - Legal jargon and forms are intimidating
-3. **Time** - Multiple meetings, paperwork, back-and-forth
-4. **Inertia** - Easy to postpone "until later"
-5. **Rigidity** - Existing tools don't adapt to individual situations
+1. **Cost** - Attorney fees too expensive are prohibitive for most households
+2. **Complexity** - Legal jargon and forms are intimidating; estate planning requires unfamiliar concepts
+3. **Time** - Large time commitment; multiple meetings, paperwork, back-and-forth
+4. **Procrastination** - Easy to postpone until a later time
+5. **Uniformity** - Existing tools don't adapt to individual situations; life changes break plans quickly
 
-**The Existing Document Problem:**
-- Millions of Americans have outdated wills/trusts
+**Existing Document Problem:**
+- A significant majority of Americans have outdated wills/trusts
 - Life changes (marriage, children, divorce, death, new assets) require updates
 - Full document rewrites are expensive and often unnecessary
 - No affordable way to get targeted, specific updates
@@ -35,15 +36,15 @@ EstateAI is an AI-powered conversational estate planning platform that makes cre
 
 ### Core Value Proposition
 
-**"Estate planning that feels like talking to a knowledgeable friend, with the precision of a specialist attorney."**
+**"Estate planning that feels like talking to a friend, with the precision of a specialist attorney."**
 
 ### Key Capabilities
 
 #### 1. Conversational Document Creation
 - Natural language interaction (not form-filling)
 - Adaptive questioning based on user responses
-- Plain-English explanations of legal concepts
-- State-specific compliance built-in
+- Simple explanations of legal concepts
+- State-specific compliance
 
 #### 2. Import & Improve (Key Differentiator)
 - Upload existing will or trust
@@ -55,7 +56,7 @@ EstateAI is an AI-powered conversational estate planning platform that makes cre
 #### 3. Transparent Control
 - Preview documents before finalizing
 - Before/after comparisons for changes
-- Plain-English summaries of legal provisions
+- Simple summaries of legal provisions
 - Full audit trail of decisions
 
 #### 4. Execution Guidance
@@ -66,7 +67,7 @@ EstateAI is an AI-powered conversational estate planning platform that makes cre
 
 ---
 
-## Target Customer
+## Possible Target Customers
 
 ### Primary Persona: "Responsible Rachel"
 - **Demographics:** 35-55, married, 1-3 children, household income $75K-$200K
