@@ -4,96 +4,96 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                              CLIENT LAYER                                    │
+│                              CLIENT LAYER                                   │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐            │
-│  │   Web App       │  │   Mobile Web    │  │   Future:       │            │
-│  │   (Next.js)     │  │   (Responsive)  │  │   Advisor Portal│            │
-│  └────────┬────────┘  └────────┬────────┘  └────────┬────────┘            │
-│           │                    │                    │                      │
-│           └────────────────────┼────────────────────┘                      │
-│                                │                                           │
-└────────────────────────────────┼───────────────────────────────────────────┘
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐              │
+│  │   Web App       │  │   Mobile Web    │  │   Future:       │              │
+│  │   (Next.js)     │  │   (Responsive)  │  │   Advisor Portal│              │
+│  └────────┬────────┘  └────────┬────────┘  └────────┬────────┘              │
+│           │                    │                    │                       │
+│           └────────────────────┼────────────────────┘                       │
+│                                │                                            │
+└────────────────────────────────┼───────────────────────────────────────────-┘
                                  │
                                  ▼
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                              API GATEWAY                                     │
+│                              API GATEWAY                                    │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │  FastAPI Application                                                 │   │
-│  │  • Authentication / Authorization                                    │   │
-│  │  • Rate Limiting                                                     │   │
-│  │  • Request Validation                                                │   │
-│  │  • API Versioning                                                    │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │  FastAPI Application                                                │    │
+│  │  • Authentication / Authorization                                   │    │
+│  │  • Rate Limiting                                                    │    │
+│  │  • Request Validation                                               │    │
+│  │  • API Versioning                                                   │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
 │                                                                             │
-└────────────────────────────────┬───────────────────────────────────────────┘
+└────────────────────────────────┬───────────────────────────────────────────-┘
                                  │
                                  ▼
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                           SERVICE LAYER                                      │
+│                           SERVICE LAYER                                     │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
-│  ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐         │
-│  │  Document        │  │  Gap Analysis    │  │  Report          │         │
-│  │  Processing Svc  │  │  Engine          │  │  Generation Svc  │         │
-│  │                  │  │                  │  │                  │         │
-│  │  • Upload mgmt   │  │  • Element       │  │  • Report        │         │
-│  │  • PDF parsing   │  │    extraction    │  │    compilation   │         │
-│  │  • OCR fallback  │  │  • Rules check   │  │  • PDF render    │         │
-│  │  • Text extract  │  │  • Gap detect    │  │  • Plain English │         │
-│  │  • Structure ID  │  │  • Risk scoring  │  │    summaries     │         │
-│  └────────┬─────────┘  └────────┬─────────┘  └────────┬─────────┘         │
-│           │                     │                     │                    │
-│           └─────────────────────┼─────────────────────┘                    │
-│                                 │                                          │
-│                                 ▼                                          │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │                    ANALYSIS ORCHESTRATION                           │   │
-│  │                    (LangGraph / Custom Pipeline)                    │   │
-│  │                                                                     │   │
-│  │  • Multi-document coordination                                      │   │
-│  │  • Analysis workflow management                                     │   │
-│  │  • Error handling & retry                                           │   │
-│  │  • Progress tracking                                                │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
+│  ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐           │
+│  │  Document        │  │  Gap Analysis    │  │  Report          │           │
+│  │  Processing Svc  │  │  Engine          │  │  Generation Svc  │           │
+│  │                  │  │                  │  │                  │           │
+│  │  • Upload mgmt   │  │  • Element       │  │  • Report        │           │
+│  │  • PDF parsing   │  │    extraction    │  │    compilation   │           │
+│  │  • OCR fallback  │  │  • Rules check   │  │  • PDF render    │           │
+│  │  • Text extract  │  │  • Gap detect    │  │  • Plain English │           │
+│  │  • Structure ID  │  │  • Risk scoring  │  │    summaries     │           │
+│  └────────┬─────────┘  └────────┬─────────┘  └────────┬─────────┘           │
+│           │                     │                     │                     │
+│           └─────────────────────┼─────────────────────┘                     │
+│                                 │                                           │
+│                                 ▼                                           │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │                    ANALYSIS ORCHESTRATION                           │    │
+│  │                    (LangGraph / Custom Pipeline)                    │    │
+│  │                                                                     │    │
+│  │  • Multi-document coordination                                      │    │
+│  │  • Analysis workflow management                                     │    │
+│  │  • Error handling & retry                                           │    │
+│  │  • Progress tracking                                                │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
 │                                                                             │
-└────────────────────────────────┬───────────────────────────────────────────┘
+└────────────────────────────────┬───────────────────────────────────────────-┘
                                  │
                                  ▼
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                         AI/ML LAYER                                          │
+│                         AI/ML LAYER                                         │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
-│  ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐         │
-│  │  Claude API      │  │  Rules Engine    │  │  Gap Taxonomy    │         │
-│  │  (Anthropic)     │  │                  │  │  Database        │         │
-│  │                  │  │  • State rules   │  │                  │         │
-│  │  • Extraction    │  │  • Compliance    │  │  • Gap types     │         │
-│  │  • Gap detection │  │  • Validation    │  │  • Risk weights  │         │
-│  │  • Explanation   │  │  • Requirements  │  │  • Best practices│         │
-│  └────────┬─────────┘  └────────┬─────────┘  └────────┬─────────┘         │
-│           │                     │                     │                    │
-│           └─────────────────────┼─────────────────────┘                    │
-│                                 │                                          │
-└────────────────────────────────┬───────────────────────────────────────────┘
+│  ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐           │
+│  │  Claude API      │  │  Rules Engine    │  │  Gap Taxonomy    │           │
+│  │  (Anthropic)     │  │                  │  │  Database        │           │
+│  │                  │  │  • State rules   │  │                  │           │
+│  │  • Extraction    │  │  • Compliance    │  │  • Gap types     │           │
+│  │  • Gap detection │  │  • Validation    │  │  • Risk weights  │           │
+│  │  • Explanation   │  │  • Requirements  │  │  • Best practices│           │
+│  └────────┬─────────┘  └────────┬─────────┘  └────────┬─────────┘           │
+│           │                     │                     │                     │
+│           └─────────────────────┼─────────────────────┘                     │
+│                                 │                                           │
+└────────────────────────────────┬──────────────────────────────────────────-─┘
                                  │
                                  ▼
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                           DATA LAYER                                         │
+│                           DATA LAYER                                        │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
-│  ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐         │
-│  │  PostgreSQL      │  │  Object Storage  │  │  Vector Store    │         │
-│  │                  │  │  (S3/R2)         │  │  (pgvector)      │         │
-│  │  • Users         │  │                  │  │                  │         │
-│  │  • Analyses      │  │  • Uploaded docs │  │  • Clause        │         │
-│  │  • Reports       │  │  • Generated     │  │    embeddings    │         │
-│  │  • State rules   │  │    reports       │  │  • Pattern       │         │
-│  │  • Gap taxonomy  │  │  • Encrypted     │  │    matching      │         │
-│  └──────────────────┘  └──────────────────┘  └──────────────────┘         │
+│  ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐           │
+│  │  PostgreSQL      │  │  Object Storage  │  │  Vector Store    │           │
+│  │                  │  │  (S3/R2)         │  │  (pgvector)      │           │
+│  │  • Users         │  │                  │  │                  │           │
+│  │  • Analyses      │  │  • Uploaded docs │  │  • Clause        │           │
+│  │  • Reports       │  │  • Generated     │  │    embeddings    │           │
+│  │  • State rules   │  │    reports       │  │  • Pattern       │           │
+│  │  • Gap taxonomy  │  │  • Encrypted     │  │    matching      │           │
+│  └──────────────────┘  └──────────────────┘  └──────────────────┘           │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -107,8 +107,8 @@
 ```
 User                    Frontend            Backend             Storage
   │                        │                   │                    │
-  │  Upload estate plan   │                   │                    │
-  │  documents (PDF/DOCX) │                   │                    │
+  │  Upload estate plan    │                   │                    │
+  │  documents (PDF/DOCX)  │                   │                    │
   │───────────────────────>│                   │                    │
   │                        │  POST /upload     │                    │
   │                        │──────────────────>│                    │
@@ -123,7 +123,7 @@ User                    Frontend            Backend             Storage
   │                        │                   │                    │
   │                        │  Upload confirmed │                    │
   │                        │<──────────────────│                    │
-  │  "Documents received" │                   │                    │
+  │  "Documents received"  │                   │                    │
   │<───────────────────────│                   │                    │
   │                        │                   │                    │
 ```
@@ -134,8 +134,8 @@ User                    Frontend            Backend             Storage
 Document              Extraction            Rules Engine         Gap Detector
 Processing            Service               Service              Service
   │                        │                   │                    │
-  │  Raw text +           │                   │                    │
-  │  structure            │                   │                    │
+  │  Raw text +            │                   │                    │
+  │  structure             │                   │                    │
   │───────────────────────>│                   │                    │
   │                        │  Claude API:      │                    │
   │                        │  Extract elements │                    │
@@ -161,7 +161,7 @@ Processing            Service               Service              Service
   │                        │<──────────────────│                    │
   │                        │                   │                    │
   │                        │  Run gap detection│                    │
-  │                        │──────────────────────────────────────>│
+  │                        │──────────────────────────────────────> │
   │                        │                   │                    │
   │                        │                   │  Compare to:       │
   │                        │                   │  • Gap taxonomy    │
@@ -180,8 +180,8 @@ Processing            Service               Service              Service
 Gap Detector          Report Service        Claude API          User
 Service
   │                        │                   │                    │
-  │  Gap findings +       │                   │                    │
-  │  risk scores          │                   │                    │
+  │  Gap findings +        │                   │                    │
+  │  risk scores           │                   │                    │
   │───────────────────────>│                   │                    │
   │                        │  Generate         │                    │
   │                        │  explanations     │                    │
@@ -201,7 +201,7 @@ Service
   │                        │  Render PDF       │                    │
   │                        │                   │                    │
   │                        │                   │  Deliver report    │
-  │                        │──────────────────────────────────────>│
+  │                        │──────────────────────────────────────> │
   │                        │                   │                    │
 ```
 
@@ -384,53 +384,53 @@ GAP_CATEGORIES = {
 │                    ESTATE PLAN                         │
 │                  ANALYSIS REPORT                       │
 │                                                        │
-│  Prepared for: [Client Name]                          │
-│  Date: [Analysis Date]                                │
-│  Documents Analyzed: [List]                           │
+│  Prepared for: [Client Name]                           │
+│  Date: [Analysis Date]                                 │
+│  Documents Analyzed: [List]                            │
 ├────────────────────────────────────────────────────────┤
 │                                                        │
 │  EXECUTIVE SUMMARY                                     │
 │  ─────────────────                                     │
-│  Overall Risk Score: [X/100]                          │
-│  Critical Issues: [N]                                 │
-│  High Priority: [N]                                   │
-│  Medium Priority: [N]                                 │
-│  Advisory Items: [N]                                  │
+│  Overall Risk Score: [X/100]                           │
+│  Critical Issues: [N]                                  │
+│  High Priority: [N]                                    │
+│  Medium Priority: [N]                                  │
+│  Advisory Items: [N]                                   │
 │                                                        │
 ├────────────────────────────────────────────────────────┤
 │                                                        │
-│  CRITICAL ISSUES (Immediate Action Required)          │
-│  ───────────────────────────────────────────          │
+│  CRITICAL ISSUES (Immediate Action Required)           │
+│  ───────────────────────────────────────────           │
 │                                                        │
-│  ⚠️ Issue 1: [Title]                                  │
-│     What we found: [Description]                      │
-│     Why it matters: [Impact]                          │
-│     Recommended action: [Action]                      │
+│  ⚠️ Issue 1: [Title]                                   │
+│     What we found: [Description]                       │
+│     Why it matters: [Impact]                           │
+│     Recommended action: [Action]                       │
 │                                                        │
-│  ⚠️ Issue 2: ...                                      │
+│  ⚠️ Issue 2: ...                                       │
 │                                                        │
 ├────────────────────────────────────────────────────────┤
 │                                                        │
 │  HIGH PRIORITY ITEMS                                   │
 │  ───────────────────                                   │
-│  [Similar structure]                                  │
+│  [Similar structure]                                   │
 │                                                        │
 ├────────────────────────────────────────────────────────┤
 │                                                        │
 │  RECOMMENDATIONS                                       │
 │  ───────────────                                       │
-│  1. [Prioritized action item]                         │
-│  2. [Prioritized action item]                         │
-│  ...                                                  │
+│  1. [Prioritized action item]                          │
+│  2. [Prioritized action item]                          │
+│  ...                                                   │
 │                                                        │
 ├────────────────────────────────────────────────────────┤
 │                                                        │
-│  NEXT STEPS                                           │
-│  ──────────                                           │
-│  □ Connect with an estate planning attorney           │
-│  □ Schedule annual review                             │
+│  NEXT STEPS                                            │
+│  ──────────                                            │
+│  □ Connect with an estate planning attorney            │
+│  □ Schedule annual review                              │
 │                                                        │
-│  [Attorney Referral CTA]                              │
+│  [Attorney Referral CTA]                               │
 │                                                        │
 └────────────────────────────────────────────────────────┘
 ```
@@ -534,36 +534,36 @@ StateRule
 │                    SECURITY LAYERS                          │
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
-│  ┌─────────────────────────────────────────────────────┐   │
-│  │  Transport Security                                  │   │
-│  │  • TLS 1.3 for all connections                      │   │
-│  │  • Certificate pinning for mobile                   │   │
-│  │  • HSTS enabled                                     │   │
-│  └─────────────────────────────────────────────────────┘   │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │  Transport Security                                 │    │
+│  │  • TLS 1.3 for all connections                      │    │
+│  │  • Certificate pinning for mobile                   │    │
+│  │  • HSTS enabled                                     │    │
+│  └─────────────────────────────────────────────────────┘    │
 │                                                             │
-│  ┌─────────────────────────────────────────────────────┐   │
-│  │  Application Security                                │   │
-│  │  • OAuth 2.0 / OIDC authentication                  │   │
-│  │  • JWT tokens with short expiry                     │   │
-│  │  • Role-based access control                        │   │
-│  │  • Rate limiting per user/IP                        │   │
-│  └─────────────────────────────────────────────────────┘   │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │  Application Security                               │    │
+│  │  • OAuth 2.0 / OIDC authentication                  │    │
+│  │  • JWT tokens with short expiry                     │    │
+│  │  • Role-based access control                        │    │
+│  │  • Rate limiting per user/IP                        │    │
+│  └─────────────────────────────────────────────────────┘    │
 │                                                             │
-│  ┌─────────────────────────────────────────────────────┐   │
-│  │  Data Security                                       │   │
-│  │  • AES-256 encryption at rest                       │   │
-│  │  • Customer-specific encryption keys                │   │
-│  │  • PII detection and handling                       │   │
-│  │  • Automatic data retention policies                │   │
-│  └─────────────────────────────────────────────────────┘   │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │  Data Security                                      │    │
+│  │  • AES-256 encryption at rest                       │    │
+│  │  • Customer-specific encryption keys                │    │
+│  │  • PII detection and handling                       │    │
+│  │  • Automatic data retention policies                │    │
+│  └─────────────────────────────────────────────────────┘    │
 │                                                             │
-│  ┌─────────────────────────────────────────────────────┐   │
-│  │  Compliance                                          │   │
-│  │  • SOC 2 Type II (target)                           │   │
-│  │  • CCPA compliant                                   │   │
-│  │  • Document access audit logging                    │   │
-│  │  • User consent tracking                            │   │
-│  └─────────────────────────────────────────────────────┘   │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │  Compliance                                         │    │
+│  │  • SOC 2 Type II (target)                           │    │
+│  │  • CCPA compliant                                   │    │
+│  │  • Document access audit logging                    │    │
+│  │  • User consent tracking                            │    │
+│  └─────────────────────────────────────────────────────┘    │
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
