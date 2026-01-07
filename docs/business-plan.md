@@ -147,14 +147,14 @@ EstateAI is an AI-assisted estate planning platform that simplifies how individu
 1. **Import & Improve** - No competitor offers this capability
 2. **Conversational AI** - True adaptive dialogue vs. branching forms
 3. **Rules Engine** - LLM + jurisdictional logic for accuracy
-4. **Transparency** - Before/after, plain-English explanations
+4. **Transparency** - Plain-English explanations
 
 ---
 
 ## Go-to-Market Strategy
 
 ### Phase 1: MVP Launch
-- **Geography:** California only (largest state, tech-friendly)
+- **Geography:** Massachussetts (local state, tech-friendly)
 - **Product:** Simple Will + Import Analysis
 - **Channel:** Direct (SEO, content marketing)
 - **Pricing:** $99 Simple Will, $49 Import Analysis
