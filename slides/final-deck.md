@@ -59,8 +59,15 @@
 
 [Visual: Document upload → AI processing → Gap report]
 
+**Technology Stack:**
+- Next.js 16 + React 19 frontend
+- Convex real-time backend
+- E2B sandboxed execution
+- Claude Code CLI for AI analysis
+
+**Process:**
 - Extract key elements (beneficiaries, executors, assets)
-- Check against state-specific rules
+- Check against state-specific rules (Massachusetts first)
 - Compare to best practices checklist
 - Generate risk-scored gap report
 - Provide actionable recommendations
@@ -165,10 +172,17 @@
 ### Slide 12: Traction / Roadmap
 
 **Current Status:**
-- [x] Architecture designed
+- [x] Architecture designed (Next.js + Convex + E2B + Claude Code)
 - [x] Initial documentation complete
+- [x] Technical spike framework ready
 - [ ] Feasibility spikes in progress
 - [ ] Massachusetts rules research
+
+**Tech Stack Validated:**
+- Next.js 16 + React 19 (App Router)
+- Convex (real-time database + serverless)
+- E2B SDK (sandboxed code execution)
+- Claude Code CLI (AI analysis engine)
 
 **Milestones:**
 - Month 1–2: MVP development
@@ -214,12 +228,15 @@
 
 **Why Now:**
 - AI/LLM capabilities finally enable sophisticated document analysis
+- Claude Code CLI provides agentic AI for complex legal analysis
+- E2B sandboxing enables secure, isolated document processing
 - HNW demographic entering peak estate planning years
 - Digital adoption accelerating across all segments
 
 **Why Us:**
 - Deep understanding of HNW segment needs
 - Analysis-first approach is defensible differentiation
+- Modern tech stack (Next.js + Convex + E2B + Claude Code)
 - Technical capability to execute
 
 ---

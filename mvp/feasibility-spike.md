@@ -6,342 +6,247 @@ This document outlines the feasibility validation approach for the core EstateAI
 
 **Target Segment Reminder:** High-net-worth individuals with $2M–$50M in assets who have existing estate plans that need review.
 
+**Architecture:** Next.js + Convex + E2B with Claude Code CLI
+
 ---
 
-## Spike 1: Document Parsing & Element Extraction
+## Spike 1: Claude Code Estate Planning Analysis
 
 ### Objective
 
-Validate that we can accurately extract structured information from attorney-drafted estate planning documents.
+Validate that Claude Code can accurately analyze estate planning situations and generate appropriate gap analysis reports and draft documents within E2B sandboxes.
 
-### Test Documents
+### Test Prompts
 
-1. **Revocable Living Trust** (attorney-drafted, 25 pages)
-2. **Simple Will** (attorney-drafted, 8 pages)
-3. **Pour-over Will** (attorney-drafted, 5 pages)
-4. **Durable Power of Attorney** (attorney-drafted, 6 pages)
-5. **Trust with Amendments** (multiple documents)
-6. **Scanned Trust** (OCR challenge)
+```typescript
+const TEST_PROMPTS = [
+  // Gap Analysis Request
+  `Analyze this estate planning situation for a Massachusetts resident:
+  - Age 55, married with 2 adult children
+  - Net worth $8.2M
+  - Has a 2016 revocable trust
+  - Brother (named successor trustee) passed away in 2022
+  - Acquired vacation property in 2019
+  - Has cryptocurrency holdings
+  - No healthcare proxy on file
 
-### Data Points to Extract
+  Identify gaps, risks, and generate a prioritized report.`,
 
-**From Trusts:**
-- Trust name and type
-- Grantor(s) name(s)
-- Trustee(s) and successor trustees
-- Beneficiaries and distribution provisions
-- Assets referenced
-- Special provisions (spendthrift, incapacity, etc.)
-- Execution date and state
+  // Document Generation Request
+  `Generate a draft Healthcare Power of Attorney for a Massachusetts resident:
+  - Principal: Robert Chen, age 52
+  - Agent: Susan Chen (spouse)
+  - Successor Agent: Jennifer Chen (adult daughter)
+  - Include HIPAA authorization
 
-**From Wills:**
-- Testator name
-- Executor and alternate executor
-- Guardian nominations (if applicable)
-- Specific bequests
-- Residuary clause
-- Witness information
-- Execution date and state
+  Use Massachusetts statutory form requirements.`,
 
-**From POAs:**
-- Principal name
-- Agent(s) and successor agents
-- Powers granted
-- Effective date provisions
-- State of execution
+  // Gap Detection Test
+  `Review this estate plan summary and identify conflicts:
+  - Will leaves 50% to spouse, 50% to children
+  - IRA beneficiary designation: 100% to ex-spouse (divorced 2020)
+  - Joint bank account with adult son
+  - Trust names deceased brother as successor trustee
+
+  List all conflicts and their priority.`,
+];
+```
+
+### Test Implementation (Convex Action)
+
+```typescript
+// convex/spikeTests.ts
+import { action } from "./_generated/server";
+import { v } from "convex/values";
+import { Sandbox } from "@e2b/code-interpreter";
+
+export const runSpikeTest = action({
+  args: {
+    testPrompt: v.string(),
+    testName: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const startTime = Date.now();
+
+    try {
+      // Create E2B sandbox
+      const sandbox = await Sandbox.create({
+        apiKey: process.env.E2B_API_KEY,
+      });
+
+      // Install Claude Code
+      await sandbox.process.startAndWait(
+        "npm install -g @anthropic-ai/claude-code"
+      );
+
+      // Run estate planning analysis
+      const result = await sandbox.process.startAndWait(
+        `ANTHROPIC_API_KEY=${process.env.ANTHROPIC_API_KEY} claude-code "${args.testPrompt}"`,
+        { timeout: 300000 }
+      );
+
+      // Collect generated files
+      const files = await sandbox.filesystem.list("/home/user");
+      const generatedFiles = [];
+
+      for (const file of files) {
+        if (file.isFile) {
+          const content = await sandbox.filesystem.read(file.path);
+          generatedFiles.push({
+            name: file.name,
+            size: file.size,
+            content: content.substring(0, 500), // Preview
+          });
+        }
+      }
+
+      await sandbox.close();
+
+      const endTime = Date.now();
+
+      return {
+        testName: args.testName,
+        success: true,
+        executionTime: endTime - startTime,
+        output: result.stdout,
+        filesGenerated: generatedFiles.length,
+        files: generatedFiles,
+      };
+    } catch (error) {
+      return {
+        testName: args.testName,
+        success: false,
+        error: error.message,
+        executionTime: Date.now() - startTime,
+      };
+    }
+  },
+});
+```
 
 ### Success Criteria
 
-- [ ] >90% accuracy on native PDFs for key elements
-- [ ] >80% accuracy on scanned PDFs
-- [ ] Correct document type identification 100%
-- [ ] Extraction confidence scoring implemented
-- [ ] Processing time <60 seconds per document
-
-### Implementation Notes
-
-```python
-# Pseudo-code for parsing spike
-
-import pymupdf
-from anthropic import Anthropic
-
-def extract_document_text(pdf_path):
-    """Extract text from PDF with structure preservation"""
-    doc = pymupdf.open(pdf_path)
-    pages = []
-    for page in doc:
-        text = page.get_text("text")
-        pages.append({
-            "page_num": page.number + 1,
-            "text": text
-        })
-    return pages
-
-EXTRACTION_PROMPT = """
-Analyze this estate planning document and extract key information.
-
-Document text (by page):
-{document_pages}
-
-First, identify the document type:
-- revocable_trust
-- irrevocable_trust
-- simple_will
-- pour_over_will
-- durable_poa
-- healthcare_proxy
-- other
-
-Then extract structured data appropriate to the document type.
-
-For a TRUST, return:
-{{
-  "document_type": "revocable_trust",
-  "trust_name": "...",
-  "grantor": {{
-    "name": "...",
-    "address": "..."
-  }},
-  "trustees": {{
-    "initial": ["..."],
-    "successors": ["..."]
-  }},
-  "beneficiaries": [
-    {{
-      "name": "...",
-      "relationship": "...",
-      "distribution": "..."
-    }}
-  ],
-  "assets_referenced": ["..."],
-  "special_provisions": ["..."],
-  "execution": {{
-    "date": "YYYY-MM-DD",
-    "state": "XX",
-    "notarized": true/false
-  }},
-  "confidence": 0.0-1.0,
-  "extraction_notes": ["..."]
-}}
-
-For a WILL, return:
-{{
-  "document_type": "simple_will",
-  "testator": {{
-    "name": "...",
-    "address": "..."
-  }},
-  "executor": {{
-    "primary": "...",
-    "alternate": "..."
-  }},
-  "guardian": {{
-    "primary": "...",
-    "alternate": "..."
-  }},
-  "specific_bequests": [...],
-  "residuary_clause": "...",
-  "witnesses": ["..."],
-  "execution": {{
-    "date": "YYYY-MM-DD",
-    "state": "XX",
-    "self_proving": true/false
-  }},
-  "confidence": 0.0-1.0,
-  "extraction_notes": ["..."]
-}}
-"""
-
-# Test with sample HNW estate documents
-# Measure: accuracy, processing time, confidence calibration
-```
+- [ ] Claude Code successfully runs in E2B sandbox
+- [ ] Gap analysis prompts produce structured, prioritized reports
+- [ ] Document generation produces properly formatted drafts
+- [ ] Execution time <5 minutes per request
+- [ ] Generated files are retrievable from sandbox
 
 ### Deliverable
 
-- Jupyter notebook with extraction examples
-- Accuracy metrics by document type
-- Confidence calibration analysis
-- Recommendations for production approach
+- Working Convex action for running Claude Code in E2B
+- Test results for each prompt type
+- Performance benchmarks
+- Recommendations for prompt engineering
 
 ---
 
-## Spike 2: Gap Detection Engine
+## Spike 2: Gap Detection Accuracy
 
 ### Objective
 
-Validate that we can accurately identify gaps and issues in extracted estate plan data.
+Validate that Claude Code accurately identifies gaps and issues in described estate planning scenarios.
 
 ### Test Scenarios
 
-1. **Deceased Executor** — Will names executor who has passed away
-2. **Unfunded Trust** — Trust exists but no assets referenced
-3. **Missing Digital Assets** — No provision for digital accounts
-4. **Outdated Beneficiary** — Ex-spouse still named
-5. **Missing Contingent** — No backup if primary beneficiary predeceases
-6. **Will-Trust Mismatch** — Pour-over will doesn't match trust name
-7. **Expired POA** — POA effective only if specific condition met
+| Scenario | Expected Gaps | Severity |
+|----------|---------------|----------|
+| Deceased Executor | Executor unavailable | Critical |
+| Unfunded Trust | Assets not titled to trust | Critical |
+| Missing Digital Assets | No crypto/digital provisions | High |
+| Outdated Beneficiary | Ex-spouse still named | High |
+| Missing Contingent | No backup beneficiary | Medium |
+| Will-Trust Mismatch | Names don't align | High |
+| Missing Healthcare Proxy | No incapacity planning | High |
 
-### Gap Categories to Detect
+### Test Prompt Structure
 
-```python
-GAP_TAXONOMY = {
-    "critical": [
-        {
-            "code": "deceased_fiduciary",
-            "name": "Deceased or Incapacitated Fiduciary",
-            "detection": "Check if named executor/trustee is flagged as deceased",
-            "test_input": "Executor: John Smith (deceased 2022)"
-        },
-        {
-            "code": "improper_execution",
-            "name": "Document Not Properly Executed",
-            "detection": "Check witness count, notarization against state rules",
-            "test_input": "Will with 1 witness in state requiring 2"
-        },
-        {
-            "code": "unfunded_trust",
-            "name": "Trust Not Funded",
-            "detection": "Trust exists but no assets titled to trust",
-            "test_input": "Trust document with no asset schedule"
-        }
-    ],
-    "high": [
-        {
-            "code": "outdated_beneficiary",
-            "name": "Outdated Beneficiary Designation",
-            "detection": "Beneficiary context suggests change needed",
-            "test_input": "Ex-spouse named as primary beneficiary"
-        },
-        {
-            "code": "missing_incapacity",
-            "name": "Missing Incapacity Planning",
-            "detection": "No POA or healthcare proxy in document set",
-            "test_input": "Will + Trust but no POA"
-        },
-        {
-            "code": "missing_digital_assets",
-            "name": "No Digital Asset Provisions",
-            "detection": "No mention of digital assets, online accounts",
-            "test_input": "Trust drafted pre-2015 with no digital provisions"
-        }
-    ],
-    "medium": [
-        {
-            "code": "missing_contingent",
-            "name": "Missing Contingent Beneficiary",
-            "detection": "Primary beneficiary named, no alternate",
-            "test_input": "All to spouse, no provision if spouse predeceases"
-        },
-        {
-            "code": "document_coordination",
-            "name": "Document Coordination Issue",
-            "detection": "Will and trust provisions don't align",
-            "test_input": "Pour-over will names wrong trust"
-        }
-    ]
+```typescript
+const gapDetectionTest = `
+You are an estate planning analyst. Given the following estate plan description, identify ALL gaps, risks, and issues.
+
+Estate Plan Summary:
+- State: Massachusetts
+- Net Worth: $8.2M
+- Family: Married, 2 adult children
+- Current Documents:
+  * Revocable Living Trust (2016)
+    - Trustees: Robert Chen, Susan Chen
+    - Successor Trustee: David Chen (brother, deceased 2022)
+    - Beneficiaries: Children equally
+  * Pour-over Will (2016)
+    - Executor: Susan Chen
+    - Alternate Executor: David Chen (deceased)
+  * Durable POA (2016)
+    - Agent: Susan Chen
+    - Successor Agent: David Chen (deceased)
+- Missing Documents:
+  * No Healthcare Proxy
+  * No HIPAA Authorization
+- Asset Issues:
+  * Vacation property (2019) not in trust
+  * Cryptocurrency holdings not addressed
+
+For each gap found, provide:
+1. Gap type (critical/high/medium/advisory)
+2. What's wrong
+3. Why it matters
+4. Recommended action
+
+Format as a structured JSON response.
+`;
+```
+
+### Expected Output Validation
+
+```typescript
+interface ExpectedGap {
+  type: "critical" | "high" | "medium" | "advisory";
+  code: string;
+  description: string;
+}
+
+const EXPECTED_GAPS: ExpectedGap[] = [
+  { type: "critical", code: "deceased_successor_trustee", description: "Successor trustee is deceased" },
+  { type: "critical", code: "deceased_alternate_executor", description: "Alternate executor is deceased" },
+  { type: "critical", code: "deceased_successor_poa_agent", description: "Successor POA agent is deceased" },
+  { type: "high", code: "missing_healthcare_proxy", description: "No healthcare decision authority" },
+  { type: "high", code: "missing_hipaa", description: "No HIPAA authorization" },
+  { type: "high", code: "unfunded_trust_asset", description: "Vacation property not in trust" },
+  { type: "high", code: "missing_digital_assets", description: "No cryptocurrency provisions" },
+];
+
+function validateGapDetection(aiOutput: string, expected: ExpectedGap[]): {
+  found: number;
+  missed: number;
+  falsePositives: number;
+  accuracy: number;
+} {
+  // Parse AI output and compare to expected gaps
+  // Return accuracy metrics
 }
 ```
 
 ### Success Criteria
 
-- [ ] >85% true positive rate for critical gaps
-- [ ] <10% false positive rate
+- [ ] >85% true positive rate (finds expected gaps)
+- [ ] <10% false positive rate (identifies gaps that aren't there)
 - [ ] Correct severity classification >90%
-- [ ] Risk score correlates with expert assessment
-- [ ] Clear explanation generated for each gap
-
-### Implementation Notes
-
-```python
-# Pseudo-code for gap detection spike
-
-def detect_gaps(extracted_data, state_rules, user_context=None):
-    """
-    Run gap detection on extracted document data.
-
-    Args:
-        extracted_data: Structured data from extraction
-        state_rules: State-specific legal requirements
-        user_context: Optional user-provided context (e.g., life changes)
-
-    Returns:
-        List of Gap findings with severity and explanations
-    """
-    gaps = []
-
-    # Check critical gaps
-    gaps.extend(check_fiduciary_status(extracted_data))
-    gaps.extend(check_execution_requirements(extracted_data, state_rules))
-    gaps.extend(check_trust_funding(extracted_data))
-
-    # Check high priority gaps
-    gaps.extend(check_beneficiary_currency(extracted_data, user_context))
-    gaps.extend(check_incapacity_planning(extracted_data))
-    gaps.extend(check_digital_assets(extracted_data))
-
-    # Check medium priority gaps
-    gaps.extend(check_contingent_beneficiaries(extracted_data))
-    gaps.extend(check_document_coordination(extracted_data))
-
-    # Score and rank
-    for gap in gaps:
-        gap.risk_score = calculate_risk_score(gap)
-        gap.explanation = generate_explanation(gap)
-
-    return sorted(gaps, key=lambda g: g.risk_score, reverse=True)
-
-GAP_DETECTION_PROMPT = """
-Analyze this estate plan data for potential gaps and issues.
-
-Extracted Data:
-{extracted_data}
-
-State: {state}
-State Rules:
-{state_rules}
-
-User Context (if provided):
-{user_context}
-
-Identify any gaps, issues, or missing provisions. For each finding:
-1. Classify severity: critical, high, medium, or advisory
-2. Explain what was found
-3. Explain why it matters
-4. Suggest a remediation
-
-Return as JSON array:
-[
-  {{
-    "gap_type": "...",
-    "severity": "critical|high|medium|advisory",
-    "title": "Short title",
-    "finding": "What we found",
-    "impact": "Why it matters",
-    "recommendation": "What to do",
-    "confidence": 0.0-1.0
-  }}
-]
-"""
-
-# Test with scenarios
-# Measure: precision, recall, severity accuracy
-```
+- [ ] Clear, actionable recommendations
 
 ### Deliverable
 
-- Gap detection test suite with known-answer tests
-- Precision/recall metrics by gap type
-- False positive analysis
-- Recommendations for production calibration
+- Test suite with validation logic
+- Accuracy metrics across test scenarios
+- Gap taxonomy refinement recommendations
 
 ---
 
-## Spike 3: State Rules Engine
+## Spike 3: State Rules Integration
 
 ### Objective
 
-Validate the approach for encoding and applying state-specific legal requirements.
+Validate the approach for integrating state-specific legal requirements into Claude Code prompts.
 
 ### Test States
 
@@ -350,307 +255,194 @@ Validate the approach for encoding and applying state-specific legal requirement
 3. **California** — Complex trust laws, community property
 4. **Florida** — Stricter rules, retiree concentration
 
-### Rules to Encode
+### State Rules Prompt Template
 
-**Will Execution Requirements:**
-- Minimum age
-- Witness count
-- Witness qualifications
-- Notarization requirements
-- Self-proving affidavit availability
-- Holographic will validity
+```typescript
+const MASSACHUSETTS_RULES_CONTEXT = `
+## Massachusetts Estate Planning Rules
 
-**Trust Requirements:**
-- Formalities
-- Required provisions
-- Funding requirements
-- Amendment procedures
+### Will Execution Requirements (MGL c. 190B)
+- Testator must be 18+ years old
+- Must be signed by testator or by another at testator's direction
+- Requires 2 witnesses who sign in presence of testator
+- Holographic (handwritten) wills are NOT valid in MA
+- Self-proving affidavit recommended but not required
 
-**POA Requirements:**
-- Statutory form requirements
-- Witness/notary requirements
-- Specific powers language
+### Trust Requirements
+- Revocable trusts require written instrument
+- Trust must have ascertainable beneficiary
+- Trustee must have duties to perform
+
+### Power of Attorney (MGL c. 190B)
+- Must be signed by principal
+- Requires notarization for durable POA
+- Statutory form available
+
+### Healthcare Proxy (MGL c. 201D)
+- Separate document from living will
+- Requires 2 witnesses
+- Witnesses cannot be agent or alternate
+
+### Key Massachusetts Considerations
+- No state estate tax on estates under $2M
+- Elective share: surviving spouse can claim statutory share
+- Community property not recognized (separate property state)
+`;
+
+const stateAwarePrompt = (userSituation: string, state: string) => `
+${state === "MA" ? MASSACHUSETTS_RULES_CONTEXT : getStateRules(state)}
+
+Given these state-specific rules, analyze the following estate planning situation:
+
+${userSituation}
+
+Ensure all recommendations comply with ${state} law.
+`;
+```
 
 ### Success Criteria
 
-- [ ] Rules correctly encoded for 4 test states
-- [ ] Validation correctly flags non-compliant documents
-- [ ] Rules versioning implemented
-- [ ] Update process documented
-- [ ] Query performance <100ms
-
-### Implementation Notes
-
-```python
-# Pseudo-code for rules engine spike
-
-from pydantic import BaseModel
-from typing import List, Optional
-
-class WitnessRequirement(BaseModel):
-    count: int
-    min_age: int
-    cannot_be_beneficiary: bool
-    must_sign_in_presence: bool
-
-class ExecutionRequirements(BaseModel):
-    witnesses: WitnessRequirement
-    notarization_required: bool
-    self_proving_available: bool
-
-class StateWillRules(BaseModel):
-    state: str
-    min_testator_age: int
-    execution: ExecutionRequirements
-    holographic_valid: bool
-    required_clauses: List[str]
-    version: str
-    effective_date: str
-
-# Massachusetts rules (MVP state)
-MA_WILL_RULES = StateWillRules(
-    state="MA",
-    min_testator_age=18,
-    execution=ExecutionRequirements(
-        witnesses=WitnessRequirement(
-            count=2,
-            min_age=18,
-            cannot_be_beneficiary=False,  # Recommended but not required in MA
-            must_sign_in_presence=True
-        ),
-        notarization_required=False,
-        self_proving_available=True  # MGL c. 192
-    ),
-    holographic_valid=False,  # MA does NOT recognize holographic wills
-    required_clauses=["revocation", "signature", "attestation"],
-    version="2024.1",
-    effective_date="2024-01-01"
-)
-
-def validate_will(extracted_data, state_rules):
-    """Validate will against state requirements"""
-    issues = []
-
-    # Check witness count
-    witness_count = len(extracted_data.get("witnesses", []))
-    if witness_count < state_rules.execution.witnesses.count:
-        issues.append({
-            "type": "execution_error",
-            "severity": "critical",
-            "message": f"Will has {witness_count} witnesses; {state_rules.state} requires {state_rules.execution.witnesses.count}"
-        })
-
-    # Check for self-proving affidavit
-    if state_rules.execution.self_proving_available:
-        if not extracted_data.get("self_proving"):
-            issues.append({
-                "type": "missing_self_proving",
-                "severity": "advisory",
-                "message": "Self-proving affidavit recommended but not present"
-            })
-
-    return issues
-
-# Test with documents from each state
-# Verify correct rule application
-```
+- [ ] Claude Code correctly applies state-specific rules
+- [ ] Identifies state-specific compliance issues
+- [ ] Generates state-compliant document drafts
+- [ ] No incorrect legal information in output
 
 ### Deliverable
 
-- Rules schema definition
-- Rules for 4 test states
-- Validation test suite
-- Performance benchmarks
-- Update procedure documentation
+- State rules context templates for MA, NY, CA, FL
+- Validation tests for state-specific outputs
+- Prompt engineering recommendations
 
 ---
 
-## Spike 4: Report Generation
+## Spike 4: Document Generation Quality
 
 ### Objective
 
-Validate that we can generate clear, professional, actionable gap analysis reports.
+Validate that Claude Code can generate professional-quality draft legal documents.
 
-### Test Cases
+### Test Documents
 
-1. **Clean Plan** — Few/no issues found
-2. **Critical Issues** — Multiple critical gaps
-3. **Mixed Severity** — Variety of gap types
-4. **Complex Plan** — Trust + Will + POA + Healthcare
+1. **Last Will and Testament** (Massachusetts statutory form)
+2. **Healthcare Power of Attorney** (Massachusetts statutory form)
+3. **HIPAA Authorization**
+4. **Gap Analysis Report** (formatted markdown)
 
-### Report Requirements
+### Generation Prompt Example
 
-- Professional design suitable for HNW audience
-- Executive summary with risk score
-- Prioritized findings by severity
-- Plain-English explanations
-- Clear recommendations
-- Attorney referral call-to-action
+```typescript
+const documentGenerationPrompt = `
+Generate a draft Massachusetts Healthcare Power of Attorney document.
+
+Principal Information:
+- Name: Robert Chen
+- Address: 123 Main Street, Boston, MA 02101
+- Date of Birth: January 15, 1972
+
+Agent Information:
+- Primary Agent: Susan Chen (spouse)
+  - Address: 123 Main Street, Boston, MA 02101
+  - Phone: (617) 555-1234
+- Successor Agent: Jennifer Chen (daughter)
+  - Address: 456 Oak Avenue, Cambridge, MA 02139
+  - Phone: (617) 555-5678
+
+Requirements:
+1. Use Massachusetts statutory form language where applicable (MGL c. 201D)
+2. Include HIPAA authorization section
+3. Include provision for end-of-life decisions
+4. Add signature blocks for principal and 2 witnesses
+5. Include notary acknowledgment section
+
+Output as a properly formatted document that could be printed and executed.
+Add clear "DRAFT - FOR REVIEW ONLY" watermark language.
+`;
+```
+
+### Quality Metrics
+
+| Metric | Target |
+|--------|--------|
+| Legal accuracy | >95% |
+| Proper formatting | 100% |
+| Complete sections | 100% |
+| Draft disclaimer present | 100% |
+| State compliance | 100% |
 
 ### Success Criteria
 
-- [ ] Report renders correctly for all test cases
-- [ ] PDF output is professional quality
-- [ ] Plain-English explanations validated by non-lawyers
-- [ ] Generation time <30 seconds
-- [ ] Mobile-friendly web version
-
-### Implementation Notes
-
-```python
-# Pseudo-code for report generation spike
-
-from jinja2 import Template
-from weasyprint import HTML
-
-REPORT_TEMPLATE = """
-<!DOCTYPE html>
-<html>
-<head>
-    <style>
-        /* Professional styling for HNW audience */
-        body { font-family: 'Georgia', serif; }
-        .header { border-bottom: 2px solid #1a365d; }
-        .critical { border-left: 4px solid #e53e3e; }
-        .high { border-left: 4px solid #dd6b20; }
-        .medium { border-left: 4px solid #d69e2e; }
-        .advisory { border-left: 4px solid #3182ce; }
-    </style>
-</head>
-<body>
-    <div class="header">
-        <h1>Estate Plan Analysis Report</h1>
-        <p>Prepared for: {{ client_name }}</p>
-        <p>Date: {{ analysis_date }}</p>
-    </div>
-
-    <div class="executive-summary">
-        <h2>Executive Summary</h2>
-        <div class="risk-score">
-            Overall Risk Score: {{ risk_score }}/100
-        </div>
-        <div class="summary-counts">
-            <p>Critical Issues: {{ critical_count }}</p>
-            <p>High Priority: {{ high_count }}</p>
-            <p>Medium Priority: {{ medium_count }}</p>
-            <p>Advisory Items: {{ advisory_count }}</p>
-        </div>
-    </div>
-
-    {% if critical_findings %}
-    <div class="findings critical-section">
-        <h2>Critical Issues</h2>
-        {% for finding in critical_findings %}
-        <div class="finding critical">
-            <h3>{{ finding.title }}</h3>
-            <p><strong>What we found:</strong> {{ finding.finding }}</p>
-            <p><strong>Why it matters:</strong> {{ finding.impact }}</p>
-            <p><strong>Recommended action:</strong> {{ finding.recommendation }}</p>
-        </div>
-        {% endfor %}
-    </div>
-    {% endif %}
-
-    <!-- Continue for other severity levels -->
-
-    <div class="next-steps">
-        <h2>Recommended Next Steps</h2>
-        <ol>
-            {% for step in next_steps %}
-            <li>{{ step }}</li>
-            {% endfor %}
-        </ol>
-    </div>
-
-    <div class="cta">
-        <h2>Ready to Address These Issues?</h2>
-        <p>Connect with a vetted estate planning attorney in your area.</p>
-        <a href="{{ attorney_cta_url }}" class="button">Find an Attorney</a>
-    </div>
-</body>
-</html>
-"""
-
-def generate_report(analysis_results, user_info):
-    """Generate PDF report from analysis results"""
-    template = Template(REPORT_TEMPLATE)
-
-    # Group findings by severity
-    critical = [f for f in analysis_results.findings if f.severity == "critical"]
-    high = [f for f in analysis_results.findings if f.severity == "high"]
-    medium = [f for f in analysis_results.findings if f.severity == "medium"]
-    advisory = [f for f in analysis_results.findings if f.severity == "advisory"]
-
-    html_content = template.render(
-        client_name=user_info.name,
-        analysis_date=analysis_results.date,
-        risk_score=analysis_results.risk_score,
-        critical_count=len(critical),
-        high_count=len(high),
-        medium_count=len(medium),
-        advisory_count=len(advisory),
-        critical_findings=critical,
-        high_findings=high,
-        medium_findings=medium,
-        advisory_findings=advisory,
-        next_steps=generate_next_steps(analysis_results),
-        attorney_cta_url="/find-attorney"
-    )
-
-    # Generate PDF
-    pdf = HTML(string=html_content).write_pdf()
-    return pdf
-
-# Test with various analysis results
-# Get feedback from test users
-```
+- [ ] Documents include all required sections
+- [ ] Proper legal language used
+- [ ] Clear "DRAFT" disclaimers present
+- [ ] Formatting suitable for attorney review
+- [ ] State-specific requirements addressed
 
 ### Deliverable
 
-- Report template (HTML/CSS)
-- PDF rendering pipeline
-- Sample reports for each test case
-- User feedback on clarity/usefulness
-- Performance metrics
+- Sample generated documents
+- Quality assessment checklist
+- Template improvement recommendations
 
 ---
 
-## Spike Timeline
+## Spike 5: Real-Time Updates & UX
 
-| Spike | Duration | Dependencies |
-|-------|----------|--------------|
-| Document Parsing | 4–5 days | Sample HNW documents |
-| Gap Detection | 4–5 days | Parsing spike complete |
-| Rules Engine | 3–4 days | State law research |
-| Report Generation | 3–4 days | Gap detection complete |
+### Objective
 
-**Total: 3–4 weeks**
+Validate that Convex real-time subscriptions provide good UX during long-running analyses.
+
+### Test Implementation
+
+```typescript
+// Frontend component
+function AnalysisStatus({ runId }: { runId: Id<"agentRuns"> }) {
+  const run = useQuery(api.queries.getRun, { runId });
+  const files = useQuery(api.queries.getFilesForRun, { runId });
+
+  if (!run) return <LoadingSpinner />;
+
+  return (
+    <div>
+      <StatusBadge status={run.status} />
+
+      {run.status === "running" && (
+        <ProgressIndicator
+          message="Analyzing estate planning situation..."
+        />
+      )}
+
+      {run.status === "completed" && (
+        <>
+          <OutputDisplay output={run.output} />
+          <FileList files={files} />
+        </>
+      )}
+
+      {run.status === "failed" && (
+        <ErrorDisplay error={run.error} />
+      )}
+    </div>
+  );
+}
+```
+
+### Success Criteria
+
+- [ ] Status updates appear within 1 second of change
+- [ ] No polling required (true real-time)
+- [ ] Graceful handling of long-running operations
+- [ ] Clear feedback during processing
+- [ ] Error states displayed appropriately
+
+### Deliverable
+
+- Working real-time status component
+- UX recommendations
+- Performance measurements
 
 ---
 
-## Risk Assessment
-
-| Risk | Likelihood | Impact | Mitigation |
-|------|------------|--------|------------|
-| Document parsing accuracy insufficient | Medium | High | OCR fallback; confidence scoring; human review for low confidence |
-| Gap detection false positives | Medium | Medium | Conservative thresholds; user verification step |
-| State rules complexity | High | Medium | Start with CA only; modular design |
-| Report clarity for HNW audience | Medium | Medium | User testing; professional design review |
-| Processing time too slow | Low | Medium | Async processing; progress indicators |
-
----
-
-## Next Steps After Spikes
-
-1. Evaluate spike results against success criteria
-2. Identify necessary adjustments to architecture
-3. Refine gap taxonomy based on findings
-4. Create detailed MVP specification
-5. Begin MVP development
-
----
-
-## Appendix: Sample Test Data
+## Test Data
 
 ### Test Case: Complex HNW Estate
 
@@ -712,3 +504,68 @@ def generate_report(analysis_results, user_info):
   "expected_risk_score": 72
 }
 ```
+
+---
+
+## Next Steps After Spikes
+
+1. Evaluate spike results against success criteria
+2. Refine prompts based on findings
+3. Build production Convex actions
+4. Implement full gap analysis workflow
+5. Create document template library
+6. Begin MVP development
+
+---
+
+## Environment Setup for Spikes
+
+```bash
+# Clone repository
+git clone https://github.com/preston-cell/SICC.git
+cd SICC
+
+# Install dependencies
+npm install
+
+# Set environment variables
+cp .env.example .env.local
+# Edit .env.local with your keys:
+# - ANTHROPIC_API_KEY
+# - E2B_API_KEY
+# - NEXT_PUBLIC_CONVEX_URL
+
+# Start Convex dev server
+npx convex dev
+
+# In another terminal, start Next.js
+npm run dev
+
+# Run spike tests via the UI or Convex dashboard
+```
+
+---
+
+## Spike Timeline
+
+| Spike | Focus | Duration |
+|-------|-------|----------|
+| Spike 1 | Claude Code in E2B | 2-3 days |
+| Spike 2 | Gap Detection Accuracy | 2-3 days |
+| Spike 3 | State Rules Integration | 2-3 days |
+| Spike 4 | Document Generation | 2-3 days |
+| Spike 5 | Real-Time UX | 1-2 days |
+
+**Total:** ~2 weeks for all spikes
+
+---
+
+## Risk Assessment
+
+| Risk | Likelihood | Impact | Mitigation |
+|------|------------|--------|------------|
+| E2B sandbox timeout | Medium | High | Increase timeout, optimize prompts |
+| Claude Code accuracy | Low | High | Prompt engineering, validation |
+| Convex performance | Low | Medium | Use indexes, optimize queries |
+| State rules complexity | Medium | Medium | Start with MA only, expand later |
+| Document quality | Medium | High | Attorney review workflow |

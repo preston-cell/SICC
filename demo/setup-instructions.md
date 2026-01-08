@@ -79,44 +79,52 @@ Use for demos emphasizing blended family complexity:
 
 ## Environment Setup
 
-### Local Development (Future)
+### Local Development
 
 ```bash
 # Clone repository
-git clone [repo-url]
-cd estateai
+git clone https://github.com/preston-cell/SICC.git
+cd SICC
 
-# Backend setup
-cd mvp/backend
-python -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-
-# Set environment variables
-export ANTHROPIC_API_KEY="..."
-export DATABASE_URL="..."
-export S3_BUCKET="..."
-
-# Run backend
-uvicorn main:app --reload
-
-# Frontend setup (new terminal)
-cd mvp/frontend
+# Install dependencies
 npm install
+
+# Set up environment variables
+cp .env.example .env.local
+# Edit .env.local with your keys:
+# - ANTHROPIC_API_KEY (for Claude Code CLI)
+# - E2B_API_KEY (for sandbox execution)
+# - NEXT_PUBLIC_CONVEX_URL (from Convex dashboard)
+
+# Start Convex development server
+npx convex dev
+
+# In another terminal, start Next.js
 npm run dev
 
 # Access at http://localhost:3000
 ```
 
+### Convex Setup
+
+1. Create a Convex account at [convex.dev](https://convex.dev)
+2. Run `npx convex init` to initialize the project
+3. Copy the deployment URL to your `.env.local`
+4. Run `npx convex dev` to sync schema and functions
+
+### E2B Setup
+
+1. Create an E2B account at [e2b.dev](https://e2b.dev)
+2. Generate an API key from the dashboard
+3. Add `E2B_API_KEY` to your `.env.local`
+
 ### Staging/Demo Environment
 
-*Demo environment setup instructions will be added once infrastructure is provisioned.*
-
-**Target Configuration:**
-- Frontend: Vercel deployment
-- Backend: Railway/Render
-- Database: Supabase/RDS
-- Storage: Cloudflare R2/S3
+**Production Configuration:**
+- Frontend: Vercel deployment (Next.js 16)
+- Backend: Convex (serverless functions + real-time database)
+- Sandboxing: E2B (isolated code execution)
+- AI: Claude Code CLI (@anthropic-ai/claude-code)
 
 ---
 
