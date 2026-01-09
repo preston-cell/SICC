@@ -63,7 +63,7 @@ EstateAI is an AI-powered estate planning tool that provides **gap analysis** of
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                     Frontend (Next.js)                       │
+│                     Frontend (Next.js)                      │
 │  ┌───────────────┐  ┌───────────────┐  ┌────────────────┐   │
 │  │ Estate Input  │→ │ Analysis View │  │   Documents    │   │
 │  │ (situation,   │  │ (gap report,  │  │   (download,   │   │
@@ -76,7 +76,7 @@ EstateAI is an AI-powered estate planning tool that provides **gap analysis** of
                 │                                 │
                 ↓                                 ↓
 ┌─────────────────────────────────────────────────────────────┐
-│                      Convex Backend                          │
+│                      Convex Backend                         │
 │  ┌──────────────────┐       ┌─────────────────────────────┐ │
 │  │  runAgent Action │       │         Queries             │ │
 │  │                  │       └─────────────────────────────┘ │
@@ -85,11 +85,11 @@ EstateAI is an AI-powered estate planning tool that provides **gap analysis** of
 │  │  3. Run Claude   │──────→│        Database             │ │
 │  │  4. Save docs    │       │    (runs, documents)        │ │
 │  └──────────────────┘       └─────────────────────────────┘ │
-│           │                                                  │
-└───────────┼──────────────────────────────────────────────────┘
+│           │                                                 │
+└───────────┼─────────────────────────────────────────────────┘
             ↓
 ┌─────────────────────────────────────────────────────────────┐
-│                   E2B Sandbox (isolated)                     │
+│                   E2B Sandbox (isolated)                    │
 │  ┌────────────────────────────────────────────────────────┐ │
 │  │  Claude Code analyzes estate planning situation        │ │
 │  │  and generates:                                        │ │
