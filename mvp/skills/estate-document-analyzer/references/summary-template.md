@@ -1,0 +1,171 @@
+# Summary Template
+
+Use this structure for all comprehensive markdown summary outputs.
+
+## Template Structure
+
+```markdown
+# Estate Document Analysis Summary
+
+**Analysis Date:** [Current Date]  
+**Documents Analyzed:** [Number] document(s)  
+**Jurisdiction:** Massachusetts / Federal
+
+---
+
+## Document Overview
+
+| Document | Type | Execution Date | Pages |
+|----------|------|----------------|-------|
+| [Filename] | [Document Type] | [Date] | [#] |
+
+---
+
+## Key Parties Identified
+
+### [Document 1 Name]
+
+| Role | Name(s) | Notes |
+|------|---------|-------|
+| Grantor/Testator/Principal | [Name] | |
+| Trustee | [Name] | |
+| Successor Trustee | [Name] | |
+| Executor/Personal Representative | [Name] | |
+| Beneficiaries (Primary) | [Names] | [Relationship if stated] |
+| Beneficiaries (Contingent) | [Names] | [Conditions] |
+| Agent (POA) | [Name] | [Scope of authority] |
+| Guardian | [Name] | [For whom] |
+| Witnesses | [Names] | |
+| Notary | [Name] | [Date notarized] |
+
+[Repeat for each document]
+
+---
+
+## Document-by-Document Analysis
+
+### [Document 1: Full Title]
+
+**Document Type:** [Type]  
+**Execution Date:** [Date]  
+**Effective Date:** [Date if different]  
+**Governing Law:** [State]  
+**References to Other Documents:** [List any]
+
+#### Operative Provisions
+
+##### [Article/Section I: Title]
+
+| Provision | Plain English Meaning | Source Text |
+|-----------|----------------------|-------------|
+| [Clause name/number] | [Translation] | "[Exact quote]" |
+
+[Note: Flag ambiguous clauses with neutral observation]
+> **Observation:** This clause contains language that may be interpreted in multiple ways: "[quoted text]". The intended meaning may require clarification.
+
+##### [Article/Section II: Title]
+
+[Continue for all sections...]
+
+#### Asset Schedules (if present)
+
+**Schedule A: [Title]**
+
+| Item | Description | Value (if stated) |
+|------|-------------|-------------------|
+| 1 | [Full description] | [Amount] |
+
+[Continue for all schedules...]
+
+#### Digital Asset Provisions (if present)
+
+| Provision Type | Details | Source Location |
+|----------------|---------|-----------------|
+| Digital Asset Definition | [How document defines digital assets] | [Section] |
+| Fiduciary Access | [What access is granted] | [Section] |
+| Specific Platforms | [Any named platforms/accounts] | [Section] |
+| Cryptocurrency | [Any crypto-specific provisions] | [Section] |
+
+#### Execution Details
+
+| Element | Present | Details |
+|---------|---------|---------|
+| Testator/Grantor Signature | Yes/No | [Date, location] |
+| Witness Signatures | Yes/No | [Number, names] |
+| Notarization | Yes/No | [Date, notary name] |
+| Self-Proving Affidavit | Yes/No | |
+
+---
+
+[Repeat "### [Document N]" section for each additional document]
+
+---
+
+## Cross-Document Analysis
+
+[Include only if multiple documents were analyzed]
+
+### Document Relationships
+
+| Document | References | Relationship |
+|----------|------------|--------------|
+| [Pour-Over Will] | [Trust Name, Date] | Directs assets to trust |
+| [Trust Amendment] | [Original Trust, Date] | Modifies original trust |
+
+### Beneficiary Comparison
+
+| Beneficiary | [Doc 1] | [Doc 2] | [Doc 3] | Notes |
+|-------------|---------|---------|---------|-------|
+| [Name] | Primary | Primary | Not listed | Consistent |
+| [Name] | Contingent | Primary | N/A | Differs between documents |
+
+### Version/Date Sequencing
+
+| Document Type | Versions Found | Most Recent |
+|---------------|----------------|-------------|
+| [Type] | [Count] | [Date] |
+
+### Observations
+
+[Neutral observations about cross-document relationships, not risk assessments]
+
+- The Pour-Over Will dated [X] references a Revocable Living Trust dated [Y].
+- Beneficiary designations in the 401(k) form name [Person A], while the Will names [Person B] as residuary beneficiary.
+- Two Trust Amendments were provided; Amendment #2 dated [X] is the most recent.
+
+---
+
+## Complete Provision Index
+
+[Alphabetical index of all provisions across all documents]
+
+| Provision Topic | Document | Location | Page |
+|-----------------|----------|----------|------|
+| Anatomical gifts | Will | Article VII | 12 |
+| Beneficiary (primary) | Trust | Section 4.1 | 8 |
+| [Continue...] | | | |
+
+---
+
+## Confidentiality Notice
+
+This analysis is provided for informational purposes only and does not constitute legal advice. The information contained herein is confidential and intended solely for the use of the individual or entity to whom it is addressed. 
+
+This analysis should not be relied upon as a substitute for consultation with a qualified estate planning attorney. Laws vary by jurisdiction and change over time. The analysis focuses on Massachusetts state law and applicable federal law as of the analysis date.
+
+For legal advice specific to your situation, please consult a licensed attorney in your jurisdiction.
+
+---
+
+*Generated by Estate Document Analyzer*
+```
+
+## Guidelines for Using This Template
+
+1. **Exhaustive but Efficient**: Include every operative clause, but write concisely
+2. **Source Traceability**: Always quote exact source text for each provision
+3. **Neutral Observations**: Flag ambiguous clauses without characterizing as "risks" or "gaps"
+4. **Consistent Formatting**: Use tables for structured data, prose for observations
+5. **Cross-References**: When multiple documents exist, always include relationship mapping
+6. **Digital Assets**: Give special attention section when digital asset provisions exist
+7. **Confidentiality Notice**: Always include at end of every summary

@@ -1,0 +1,269 @@
+"use client";
+
+import { useState, ReactNode } from "react";
+import { useMutation } from "convex/react";
+import { api } from "../../convex/_generated/api";
+import { Id } from "../../convex/_generated/dataModel";
+
+interface Reminder {
+  _id: Id<"reminders">;
+  type: "annual_review" | "life_event" | "document_update" | "beneficiary_review" | "custom";
+  title: string;
+  description?: string;
+  lifeEvent?: string;
+  dueDate: number;
+  status: "pending" | "completed" | "snoozed" | "dismissed";
+  priority: "low" | "medium" | "high" | "urgent";
+  isRecurring: boolean;
+  recurrencePattern?: string;
+}
+
+interface ReminderCardProps {
+  reminder: Reminder;
+  onComplete?: () => void;
+}
+
+// Icons for reminder types
+const TYPE_ICONS: Record<string, ReactNode> = {
+  annual_review: (
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+    </svg>
+  ),
+  life_event: (
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+    </svg>
+  ),
+  document_update: (
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+    </svg>
+  ),
+  beneficiary_review: (
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+    </svg>
+  ),
+  custom: (
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+    </svg>
+  ),
+};
+
+const PRIORITY_COLORS = {
+  low: "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400",
+  medium: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
+  high: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400",
+  urgent: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
+};
+
+const TYPE_COLORS = {
+  annual_review: "from-indigo-500 to-purple-500",
+  life_event: "from-pink-500 to-rose-500",
+  document_update: "from-blue-500 to-cyan-500",
+  beneficiary_review: "from-emerald-500 to-green-500",
+  custom: "from-gray-500 to-slate-500",
+};
+
+export function ReminderCard({ reminder, onComplete }: ReminderCardProps) {
+  const [showSnoozeMenu, setShowSnoozeMenu] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const completeReminder = useMutation(api.reminders.completeReminder);
+  const snoozeReminder = useMutation(api.reminders.snoozeReminder);
+  const dismissReminder = useMutation(api.reminders.dismissReminder);
+
+  const isOverdue = reminder.status === "pending" && reminder.dueDate < Date.now();
+  const daysUntilDue = Math.ceil((reminder.dueDate - Date.now()) / (1000 * 60 * 60 * 24));
+
+  const formatDueDate = (timestamp: number) => {
+    const date = new Date(timestamp);
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: date.getFullYear() !== new Date().getFullYear() ? "numeric" : undefined,
+    });
+  };
+
+  const handleComplete = async () => {
+    await completeReminder({
+      reminderId: reminder._id,
+      createNextRecurrence: reminder.isRecurring,
+    });
+    onComplete?.();
+  };
+
+  const handleSnooze = async (days: number) => {
+    const snoozeUntil = Date.now() + (days * 24 * 60 * 60 * 1000);
+    await snoozeReminder({
+      reminderId: reminder._id,
+      snoozeUntil,
+    });
+    setShowSnoozeMenu(false);
+    onComplete?.();
+  };
+
+  const handleDismiss = async () => {
+    await dismissReminder({ reminderId: reminder._id });
+    onComplete?.();
+  };
+
+  if (reminder.status === "completed" || reminder.status === "dismissed") {
+    return null;
+  }
+
+  return (
+    <div className={`group relative bg-white dark:bg-gray-800 rounded-xl border-2 transition-all duration-200 overflow-hidden ${
+      isOverdue
+        ? "border-red-300 dark:border-red-700"
+        : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
+    }`}>
+      {/* Color accent bar */}
+      <div className={`h-1 bg-gradient-to-r ${TYPE_COLORS[reminder.type]}`} />
+
+      <div className="p-4">
+        {/* Header */}
+        <div className="flex items-start gap-3">
+          {/* Icon */}
+          <div className={`p-2 rounded-lg bg-gradient-to-br ${TYPE_COLORS[reminder.type]} text-white`}>
+            {TYPE_ICONS[reminder.type]}
+          </div>
+
+          {/* Content */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-start justify-between gap-2">
+              <h3 className="font-semibold text-gray-900 dark:text-white truncate">
+                {reminder.title}
+              </h3>
+
+              {/* Priority badge */}
+              <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${PRIORITY_COLORS[reminder.priority]}`}>
+                {reminder.priority}
+              </span>
+            </div>
+
+            {/* Due date */}
+            <div className={`flex items-center gap-2 mt-1 text-sm ${
+              isOverdue ? "text-red-600 dark:text-red-400" : "text-gray-500 dark:text-gray-400"
+            }`}>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>
+                {isOverdue ? (
+                  <>Overdue by {Math.abs(daysUntilDue)} day{Math.abs(daysUntilDue) !== 1 ? "s" : ""}</>
+                ) : daysUntilDue === 0 ? (
+                  "Due today"
+                ) : daysUntilDue === 1 ? (
+                  "Due tomorrow"
+                ) : (
+                  <>Due {formatDueDate(reminder.dueDate)} ({daysUntilDue} days)</>
+                )}
+              </span>
+
+              {reminder.isRecurring && (
+                <span className="flex items-center gap-1 text-blue-600 dark:text-blue-400">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  {reminder.recurrencePattern}
+                </span>
+              )}
+            </div>
+
+            {/* Description (expandable) */}
+            {reminder.description && (
+              <button
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="mt-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white flex items-center gap-1"
+              >
+                {isExpanded ? "Hide details" : "Show details"}
+                <svg className={`w-3.5 h-3.5 transition-transform ${isExpanded ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+            )}
+
+            {isExpanded && reminder.description && (
+              <p className="mt-2 text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-900/50 p-3 rounded-lg">
+                {reminder.description}
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className="flex items-center gap-2 mt-4 pt-3 border-t border-gray-100 dark:border-gray-700">
+          {/* Complete button */}
+          <button
+            onClick={handleComplete}
+            className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white text-sm font-medium rounded-lg hover:from-green-600 hover:to-emerald-600 transition-all"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+            Complete
+          </button>
+
+          {/* Snooze button */}
+          <div className="relative">
+            <button
+              onClick={() => setShowSnoozeMenu(!showSnoozeMenu)}
+              className="flex items-center justify-center gap-1 px-3 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-all"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Snooze
+            </button>
+
+            {/* Snooze dropdown */}
+            {showSnoozeMenu && (
+              <div className="absolute right-0 mt-1 w-40 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-10">
+                <button
+                  onClick={() => handleSnooze(1)}
+                  className="w-full px-3 py-2 text-sm text-left text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 first:rounded-t-lg"
+                >
+                  1 day
+                </button>
+                <button
+                  onClick={() => handleSnooze(3)}
+                  className="w-full px-3 py-2 text-sm text-left text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                >
+                  3 days
+                </button>
+                <button
+                  onClick={() => handleSnooze(7)}
+                  className="w-full px-3 py-2 text-sm text-left text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                >
+                  1 week
+                </button>
+                <button
+                  onClick={() => handleSnooze(30)}
+                  className="w-full px-3 py-2 text-sm text-left text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 last:rounded-b-lg"
+                >
+                  1 month
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Dismiss button */}
+          <button
+            onClick={handleDismiss}
+            className="flex items-center justify-center p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+            title="Dismiss"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default ReminderCard;
