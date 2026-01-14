@@ -3,10 +3,21 @@
 import { Suspense } from "react";
 import IntakeProgress from "../../components/IntakeProgress";
 import IntakeNavigation from "../../components/IntakeNavigation";
-import { FormField, TextInput, RadioGroup, FormSection, TextArea, Checkbox } from "../../components/FormFields";
-import { useIntakeForm } from "../useIntakeForm";
+import { FormField, TextInput, RadioGroup, FormSection, TextArea, Checkbox, InfoBox } from "../../components/FormFields";
+import { useIntakeForm, useOtherSectionData } from "../useIntakeForm";
 import GlossaryTooltip, { GlossaryHelpIcon } from "../../components/GlossaryTooltip";
 import { ExtractedBadge, ExtractedDataBanner } from "../../components/ExtractedBadge";
+
+// Existing docs data interface for cross-section check
+interface ExistingDocsData {
+  hasHealthcareDirective: string;
+  hasPOAHealthcare: string;
+}
+
+// Family data interface for minor children check
+interface FamilyData {
+  children: Array<{ isMinor: boolean }>;
+}
 
 interface GoalsData {
   // Primary Beneficiaries
@@ -156,6 +167,25 @@ function GoalsFormContent() {
     hasExtractedData,
   } = useIntakeForm<GoalsData>("goals", DEFAULT_DATA);
 
+  // Fetch existing docs data to check if healthcare directive exists
+  const { data: existingDocsData } = useOtherSectionData<ExistingDocsData>(
+    estatePlanId,
+    "existing_documents"
+  );
+
+  // Fetch family data to check for minor children
+  const { data: familyData } = useOtherSectionData<FamilyData>(
+    estatePlanId,
+    "family"
+  );
+
+  // Check if healthcare directive already exists
+  const hasExistingHealthcareDirective = existingDocsData?.hasHealthcareDirective === "yes";
+  const hasExistingHealthcarePOA = existingDocsData?.hasPOAHealthcare === "yes";
+
+  // Check if there are minor children from family data
+  const hasMinorChildrenFromFamily = familyData?.children?.some((child) => child.isMinor) ?? false;
+
   const canContinue = true;
 
   if (!estatePlanId) {
@@ -275,82 +305,107 @@ function GoalsFormContent() {
           )}
         </FormSection>
 
-        {/* Guardian for Minors */}
-        <FormSection
-          title={<><GlossaryTooltip term="Guardian">Guardian</GlossaryTooltip> for Minor Children</>}
-          description="If you have minor children, who should care for them?"
-        >
-          <Checkbox
-            checked={formData.hasMinorChildren}
-            onChange={(v) => updateField("hasMinorChildren", v)}
-            label="I have minor children who need a guardian designation"
-          />
+        {/* Guardian for Minors - Only shown if minor children exist from family data */}
+        {hasMinorChildrenFromFamily && (
+          <FormSection
+            title={<><GlossaryTooltip term="Guardian">Guardian</GlossaryTooltip> for Minor Children</>}
+            description="You indicated you have minor children. If you haven't already designated a guardian in the Family section, you can do so here."
+          >
+            <InfoBox type="info">
+              Guardian information was collected in the Family section. You can review or add additional instructions here.
+            </InfoBox>
 
-          {formData.hasMinorChildren && (
-            <div className="space-y-4 mt-4 pl-4 border-l-2 border-blue-200 dark:border-blue-800">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField label="Preferred guardian's name">
+            <div className="mt-4">
+              <Checkbox
+                checked={formData.hasMinorChildren}
+                onChange={(v) => updateField("hasMinorChildren", v)}
+                label="I want to add additional guardian details or instructions"
+              />
+            </div>
+
+            {formData.hasMinorChildren && (
+              <div className="space-y-4 mt-4 pl-4 border-l-2 border-blue-200 dark:border-blue-800">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField label="Preferred guardian's name">
+                    <TextInput
+                      value={formData.guardianName}
+                      onChange={(v) => updateField("guardianName", v)}
+                      placeholder="Full legal name"
+                    />
+                  </FormField>
+                  <FormField label="Relationship">
+                    <TextInput
+                      value={formData.guardianRelationship}
+                      onChange={(v) => updateField("guardianRelationship", v)}
+                      placeholder="e.g., Sister, Brother, Friend"
+                    />
+                  </FormField>
+                </div>
+                <FormField label="Alternate guardian">
                   <TextInput
-                    value={formData.guardianName}
-                    onChange={(v) => updateField("guardianName", v)}
-                    placeholder="Full legal name"
+                    value={formData.alternateGuardianName}
+                    onChange={(v) => updateField("alternateGuardianName", v)}
+                    placeholder="Full name of backup guardian"
                   />
                 </FormField>
-                <FormField label="Relationship">
-                  <TextInput
-                    value={formData.guardianRelationship}
-                    onChange={(v) => updateField("guardianRelationship", v)}
-                    placeholder="e.g., Sister, Brother, Friend"
+                <FormField label="Any special instructions for raising your children?">
+                  <TextArea
+                    value={formData.guardianInstructions}
+                    onChange={(v) => updateField("guardianInstructions", v)}
+                    placeholder="e.g., Religious upbringing preferences, education priorities, keeping siblings together"
+                    rows={3}
                   />
                 </FormField>
               </div>
-              <FormField label="Alternate guardian">
-                <TextInput
-                  value={formData.alternateGuardianName}
-                  onChange={(v) => updateField("alternateGuardianName", v)}
-                  placeholder="Full name of backup guardian"
-                />
-              </FormField>
-              <FormField label="Any special instructions for raising your children?">
-                <TextArea
-                  value={formData.guardianInstructions}
-                  onChange={(v) => updateField("guardianInstructions", v)}
-                  placeholder="e.g., Religious upbringing preferences, education priorities, keeping siblings together"
-                  rows={3}
-                />
-              </FormField>
-            </div>
-          )}
-        </FormSection>
+            )}
+          </FormSection>
+        )}
 
-        {/* Healthcare Wishes */}
+        {/* Healthcare Wishes - Condensed if directive already exists */}
         <FormSection
           title="Healthcare Wishes"
-          description="Your preferences for medical care if you cannot communicate"
+          description={hasExistingHealthcareDirective
+            ? "You indicated you already have a healthcare directive. Review these preferences if you'd like to update them."
+            : "Your preferences for medical care if you cannot communicate"
+          }
         >
-          <FormField label="Life-sustaining treatment preferences">
-            <RadioGroup
-              name="lifeSupportPreference"
-              value={formData.lifeSupportPreference}
-              onChange={(v) => updateField("lifeSupportPreference", v)}
-              options={LIFE_SUPPORT_OPTIONS}
-            />
-          </FormField>
+          {hasExistingHealthcareDirective && (
+            <InfoBox type="info" title="Healthcare Directive Already Exists">
+              You indicated in the Existing Documents section that you already have a healthcare directive.
+              The fields below are optional - only fill them in if you want to document updated preferences.
+            </InfoBox>
+          )}
 
-          <FormField label="Organ donation">
-            <RadioGroup
-              name="organDonation"
-              value={formData.organDonation}
-              onChange={(v) => updateField("organDonation", v)}
-              options={ORGAN_DONATION_OPTIONS}
-            />
-          </FormField>
+          {!hasExistingHealthcareDirective && (
+            <>
+              <FormField label="Life-sustaining treatment preferences">
+                <RadioGroup
+                  name="lifeSupportPreference"
+                  value={formData.lifeSupportPreference}
+                  onChange={(v) => updateField("lifeSupportPreference", v)}
+                  options={LIFE_SUPPORT_OPTIONS}
+                />
+              </FormField>
 
-          <FormField label="Additional healthcare wishes">
+              <FormField label="Organ donation">
+                <RadioGroup
+                  name="organDonation"
+                  value={formData.organDonation}
+                  onChange={(v) => updateField("organDonation", v)}
+                  options={ORGAN_DONATION_OPTIONS}
+                />
+              </FormField>
+            </>
+          )}
+
+          <FormField label={hasExistingHealthcareDirective ? "Updates or changes to your healthcare wishes (optional)" : "Additional healthcare wishes"}>
             <TextArea
               value={formData.additionalHealthcareWishes}
               onChange={(v) => updateField("additionalHealthcareWishes", v)}
-              placeholder="Any other healthcare preferences or instructions"
+              placeholder={hasExistingHealthcareDirective
+                ? "Describe any changes you'd like to make to your existing directive"
+                : "Any other healthcare preferences or instructions"
+              }
               rows={3}
             />
           </FormField>

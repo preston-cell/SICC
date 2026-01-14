@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useParams } from "next/navigation";
-import { useQuery, useAction } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { Id } from "../../../convex/_generated/dataModel";
 import Link from "next/link";
@@ -87,24 +87,70 @@ export default function AnalysisPage() {
   const latestAnalysis = useQuery(api.queries.getLatestGapAnalysis, { estatePlanId });
   const intakeProgress = useQuery(api.queries.getIntakeProgress, { estatePlanId });
 
-  // Run analysis action
-  const runGapAnalysis = useAction(api.gapAnalysis.runGapAnalysis);
+  // Get full intake data for analysis
+  const intakeData = useQuery(api.queries.getEstatePlanFull, { estatePlanId });
 
-  const handleRunAnalysis = async () => {
+  // Mutation to save gap analysis results
+  const saveGapAnalysis = useMutation(api.estatePlanning.saveGapAnalysisPublic);
+
+  const handleRunAnalysis = useCallback(async () => {
     setIsRunning(true);
     setError(null);
 
     try {
-      const result = await runGapAnalysis({ estatePlanId });
+      // Build intake data object for the API
+      const apiIntakeData = {
+        estatePlan: { stateOfResidence: estatePlan?.stateOfResidence },
+        personal: intakeData?.intake?.find((i: { section: string }) => i.section === "personal"),
+        family: intakeData?.intake?.find((i: { section: string }) => i.section === "family"),
+        assets: intakeData?.intake?.find((i: { section: string }) => i.section === "assets"),
+        existingDocuments: intakeData?.intake?.find((i: { section: string }) => i.section === "existing_documents"),
+        goals: intakeData?.intake?.find((i: { section: string }) => i.section === "goals"),
+        beneficiaryDesignations: intakeData?.beneficiaryDesignations || [],
+      };
+
+      // Call the API route directly (bypasses Convex timeout issues)
+      const response = await fetch("/api/gap-analysis", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ intakeData: apiIntakeData }),
+      });
+
+      const result = await response.json();
+
       if (!result.success) {
         setError(result.error || "Analysis failed");
+        return;
       }
+
+      // Save results to Convex
+      await saveGapAnalysis({
+        estatePlanId,
+        score: result.analysisResult.score || 50,
+        estateComplexity: result.analysisResult.estateComplexity || undefined,
+        estimatedEstateTax: result.analysisResult.estimatedEstateTax
+          ? JSON.stringify(result.analysisResult.estimatedEstateTax)
+          : undefined,
+        missingDocuments: JSON.stringify(result.analysisResult.missingDocuments || []),
+        outdatedDocuments: JSON.stringify(result.analysisResult.outdatedDocuments || []),
+        inconsistencies: JSON.stringify(result.analysisResult.inconsistencies || []),
+        taxOptimization: result.analysisResult.taxOptimization
+          ? JSON.stringify(result.analysisResult.taxOptimization)
+          : undefined,
+        medicaidPlanning: result.analysisResult.medicaidPlanning
+          ? JSON.stringify(result.analysisResult.medicaidPlanning)
+          : undefined,
+        recommendations: JSON.stringify(result.analysisResult.recommendations || []),
+        stateSpecificNotes: JSON.stringify(result.analysisResult.stateSpecificNotes || []),
+        rawAnalysis: result.analysisResult.rawAnalysis || result.stdout,
+      });
+
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
       setIsRunning(false);
     }
-  };
+  }, [estatePlanId, estatePlan, intakeData, saveGapAnalysis]);
 
   // Parse analysis data
   const parseJsonArray = <T,>(jsonString: string | undefined): T[] => {

@@ -1,9 +1,28 @@
 "use client";
 
-import { useUser } from "@clerk/nextjs";
 import { useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useEffect, useRef } from "react";
+
+// Check if Clerk is configured
+const isClerkConfigured = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+
+// Dynamically import useUser only if Clerk is configured
+let useClerkUser: () => { user: unknown; isSignedIn: boolean; isLoaded: boolean } = () => ({
+  user: null,
+  isSignedIn: false,
+  isLoaded: true,
+});
+
+if (isClerkConfigured) {
+  // This will be tree-shaken if not used
+  try {
+    const clerk = require("@clerk/nextjs");
+    useClerkUser = clerk.useUser;
+  } catch {
+    // Clerk not available
+  }
+}
 
 /**
  * Hook to sync Clerk authentication with Convex user database.
@@ -13,7 +32,7 @@ import { useEffect, useRef } from "react";
  * 2. Links any anonymous session data to their account
  */
 export function useAuthSync() {
-  const { user, isSignedIn, isLoaded } = useUser();
+  const { user, isSignedIn, isLoaded } = useClerkUser();
   const getOrCreateUser = useMutation(api.users.getOrCreateUser);
   const linkSessionToUser = useMutation(api.users.linkSessionToUser);
 
@@ -28,14 +47,15 @@ export function useAuthSync() {
 
       try {
         // Get user's primary email
-        const email = user.primaryEmailAddress?.emailAddress;
+        const typedUser = user as { id: string; primaryEmailAddress?: { emailAddress: string }; fullName?: string; firstName?: string };
+        const email = typedUser.primaryEmailAddress?.emailAddress;
         if (!email) return;
 
         // Create or get user in Convex
         const userId = await getOrCreateUser({
-          clerkId: user.id,
+          clerkId: typedUser.id,
           email,
-          name: user.fullName || user.firstName || email.split("@")[0],
+          name: typedUser.fullName || typedUser.firstName || email.split("@")[0],
         });
 
         // Get session ID from localStorage

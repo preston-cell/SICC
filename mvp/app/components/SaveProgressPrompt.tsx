@@ -1,6 +1,6 @@
 "use client";
 
-import { SignUpButton, useUser } from "@clerk/nextjs";
+import { SignUpButton, useUser } from "./ClerkComponents";
 import { useState, useEffect } from "react";
 
 interface SaveProgressPromptProps {

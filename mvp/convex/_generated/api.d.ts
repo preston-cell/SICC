@@ -11,6 +11,8 @@
 import type * as documentAnalysis from "../documentAnalysis.js";
 import type * as documentExtraction from "../documentExtraction.js";
 import type * as documentGeneration from "../documentGeneration.js";
+import type * as documentGenerationMutations from "../documentGenerationMutations.js";
+import type * as e2bClient from "../e2bClient.js";
 import type * as estatePlanning from "../estatePlanning.js";
 import type * as extractedData from "../extractedData.js";
 import type * as gapAnalysis from "../gapAnalysis.js";
@@ -34,6 +36,8 @@ declare const fullApi: ApiFromModules<{
   documentAnalysis: typeof documentAnalysis;
   documentExtraction: typeof documentExtraction;
   documentGeneration: typeof documentGeneration;
+  documentGenerationMutations: typeof documentGenerationMutations;
+  e2bClient: typeof e2bClient;
   estatePlanning: typeof estatePlanning;
   extractedData: typeof extractedData;
   gapAnalysis: typeof gapAnalysis;

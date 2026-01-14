@@ -4,9 +4,15 @@ import { Suspense, useState } from "react";
 import IntakeProgress from "../../components/IntakeProgress";
 import IntakeNavigation from "../../components/IntakeNavigation";
 import { FormField, TextInput, Select, RadioGroup, FormSection, Checkbox, TextArea, InfoBox } from "../../components/FormFields";
-import { useIntakeForm } from "../useIntakeForm";
+import { useIntakeForm, useOtherSectionData, getCurrentYear } from "../useIntakeForm";
 import GlossaryTooltip, { GlossaryHelpIcon } from "../../components/GlossaryTooltip";
 import { ExtractedBadge, ExtractedDataBanner } from "../../components/ExtractedBadge";
+
+// Existing docs data interface for cross-section check
+interface ExistingDocsData {
+  beneficiaryDesignationsReviewed: string;
+  beneficiaryDesignationsYear: string;
+}
 
 // Beneficiary designation interface
 interface BeneficiaryDesignation {
@@ -187,6 +193,20 @@ function AssetsFormContent() {
     isFieldExtracted,
     hasExtractedData,
   } = useIntakeForm<AssetsData>("assets", DEFAULT_DATA);
+
+  // Fetch existing docs data to check if beneficiaries were already confirmed
+  const { data: existingDocsData } = useOtherSectionData<ExistingDocsData>(
+    estatePlanId,
+    "existing_documents"
+  );
+
+  // Check if beneficiary designations were already reviewed and confirmed
+  const beneficiariesAlreadyConfirmed = existingDocsData?.beneficiaryDesignationsReviewed === "yes";
+  const beneficiariesReviewYear = existingDocsData?.beneficiaryDesignationsYear || "";
+
+  // Get current year for dynamic placeholders
+  const currentYear = getCurrentYear();
+  const currentMonth = new Date().toLocaleString("en-US", { month: "long" });
 
   const toggleRetirementType = (type: string) => {
     setFormData((prev) => {
@@ -476,17 +496,29 @@ function AssetsFormContent() {
           title={<><GlossaryTooltip term="Beneficiary Designation">Beneficiary Designations</GlossaryTooltip> Tracker</>}
           description="Track beneficiaries on accounts that bypass your will"
         >
-          <InfoBox type="warning" title="Important: These Assets Bypass Your Will">
-            <p className="mb-2">
-              <strong>Retirement accounts, life insurance, and TOD/POD accounts pass directly to named beneficiaries</strong> -
-              they do not go through your will or trust. This means:
-            </p>
-            <ul className="list-disc list-inside space-y-1 text-sm">
-              <li>A beneficiary named on your 401(k) will receive it, even if your will says otherwise</li>
-              <li>Outdated beneficiaries (like an ex-spouse) may still receive assets if not updated</li>
-              <li>These designations should be reviewed regularly and kept consistent with your estate plan</li>
-            </ul>
-          </InfoBox>
+          {beneficiariesAlreadyConfirmed ? (
+            <InfoBox type="info" title="Beneficiary Designations Already Reviewed">
+              <p className="mb-2">
+                You indicated in the Existing Documents section that your beneficiary designations are current
+                {beneficiariesReviewYear && ` (last reviewed: ${beneficiariesReviewYear})`}.
+              </p>
+              <p className="text-sm">
+                If you&apos;d still like to document your beneficiaries for reference, you can enable tracking below.
+              </p>
+            </InfoBox>
+          ) : (
+            <InfoBox type="warning" title="Important: These Assets Bypass Your Will">
+              <p className="mb-2">
+                <strong>Retirement accounts, life insurance, and TOD/POD accounts pass directly to named beneficiaries</strong> -
+                they do not go through your will or trust. This means:
+              </p>
+              <ul className="list-disc list-inside space-y-1 text-sm">
+                <li>A beneficiary named on your 401(k) will receive it, even if your will says otherwise</li>
+                <li>Outdated beneficiaries (like an ex-spouse) may still receive assets if not updated</li>
+                <li>These designations should be reviewed regularly and kept consistent with your estate plan</li>
+              </ul>
+            </InfoBox>
+          )}
 
           <div className="mt-6">
             <Checkbox
@@ -497,8 +529,14 @@ function AssetsFormContent() {
                   addBeneficiaryDesignation();
                 }
               }}
-              label="I want to track my beneficiary designations"
-              description="We'll help ensure your beneficiaries are consistent with your estate plan"
+              label={beneficiariesAlreadyConfirmed
+                ? "I still want to document my beneficiary designations for reference"
+                : "I want to track my beneficiary designations"
+              }
+              description={beneficiariesAlreadyConfirmed
+                ? "Optional: Create a record of your beneficiary designations"
+                : "We'll help ensure your beneficiaries are consistent with your estate plan"
+              }
             />
           </div>
 
@@ -639,7 +677,7 @@ function AssetsFormContent() {
                       <TextInput
                         value={designation.lastReviewedDate}
                         onChange={(v) => updateBeneficiaryDesignation(designation.id, "lastReviewedDate", v)}
-                        placeholder="e.g., January 2024"
+                        placeholder={`e.g., ${currentMonth} ${currentYear}`}
                         type="text"
                       />
                     </FormField>
@@ -681,7 +719,7 @@ function AssetsFormContent() {
               <TextInput
                 value={formData.vehiclesDetails}
                 onChange={(v) => updateField("vehiclesDetails", v)}
-                placeholder="e.g., 2022 Tesla Model 3, 2020 Ford F-150"
+                placeholder={`e.g., ${currentYear} Tesla Model 3, ${currentYear - 2} Ford F-150`}
               />
             </FormField>
           )}

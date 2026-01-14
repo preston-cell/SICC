@@ -359,6 +359,38 @@ export const saveGapAnalysis = internalMutation({
   },
 });
 
+// Public mutation for saving gap analysis (called from frontend API route flow)
+export const saveGapAnalysisPublic = mutation({
+  args: {
+    estatePlanId: v.id("estatePlans"),
+    score: v.optional(v.number()),
+    estateComplexity: v.optional(v.string()),
+    estimatedEstateTax: v.optional(v.string()),
+    missingDocuments: v.string(),
+    outdatedDocuments: v.string(),
+    inconsistencies: v.string(),
+    taxOptimization: v.optional(v.string()),
+    medicaidPlanning: v.optional(v.string()),
+    recommendations: v.string(),
+    stateSpecificNotes: v.string(),
+    rawAnalysis: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const analysisId = await ctx.db.insert("gapAnalysis", {
+      ...args,
+      createdAt: Date.now(),
+    });
+
+    // Update estate plan status
+    await ctx.db.patch(args.estatePlanId, {
+      status: "analysis_complete",
+      updatedAt: Date.now(),
+    });
+
+    return analysisId;
+  },
+});
+
 // ============================================
 // USER MUTATIONS (for future auth)
 // ============================================

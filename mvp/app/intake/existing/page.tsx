@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import IntakeProgress from "../../components/IntakeProgress";
 import IntakeNavigation from "../../components/IntakeNavigation";
 import { FormField, TextInput, RadioGroup, FormSection, TextArea } from "../../components/FormFields";
-import { useIntakeForm } from "../useIntakeForm";
+import { useIntakeForm, getCurrentYear } from "../useIntakeForm";
 import GlossaryTooltip, { GlossaryHelpIcon } from "../../components/GlossaryTooltip";
 import { ExtractedBadge, ExtractedDataBanner } from "../../components/ExtractedBadge";
 
@@ -96,6 +96,12 @@ const REVIEW_TIMEFRAMES = [
 ];
 
 function ExistingDocsFormContent() {
+  // Get current year for dynamic placeholders
+  const currentYear = getCurrentYear();
+  const recentYear = currentYear - 1;
+  const olderYear = currentYear - 3;
+  const oldYear = currentYear - 5;
+
   const {
     formData,
     updateField,
@@ -182,7 +188,7 @@ function ExistingDocsFormContent() {
                   <TextInput
                     value={formData.willYear}
                     onChange={(v) => updateField("willYear", v)}
-                    placeholder="e.g., 2020"
+                    placeholder={`e.g., ${oldYear}`}
                   />
                 </FormField>
                 <FormField label="Which state was it created in?">
@@ -232,7 +238,7 @@ function ExistingDocsFormContent() {
                 <TextInput
                   value={formData.trustYear}
                   onChange={(v) => updateField("trustYear", v)}
-                  placeholder="e.g., 2019"
+                  placeholder={`e.g., ${oldYear}`}
                 />
               </FormField>
               <FormField label="Any concerns or changes needed?">
@@ -267,7 +273,7 @@ function ExistingDocsFormContent() {
                   <TextInput
                     value={formData.poaFinancialYear}
                     onChange={(v) => updateField("poaFinancialYear", v)}
-                    placeholder="e.g., 2021"
+                    placeholder={`e.g., ${olderYear}`}
                   />
                 </FormField>
                 <FormField label="Who is your agent?">
@@ -303,7 +309,7 @@ function ExistingDocsFormContent() {
                   <TextInput
                     value={formData.poaHealthcareYear}
                     onChange={(v) => updateField("poaHealthcareYear", v)}
-                    placeholder="e.g., 2021"
+                    placeholder={`e.g., ${olderYear}`}
                   />
                 </FormField>
                 <FormField label="Who is your agent?">
@@ -338,7 +344,7 @@ function ExistingDocsFormContent() {
                 <TextInput
                   value={formData.healthcareDirectiveYear}
                   onChange={(v) => updateField("healthcareDirectiveYear", v)}
-                  placeholder="e.g., 2020"
+                  placeholder={`e.g., ${oldYear}`}
                 />
               </FormField>
             </div>
@@ -384,7 +390,7 @@ function ExistingDocsFormContent() {
                 <TextInput
                   value={formData.beneficiaryDesignationsYear}
                   onChange={(v) => updateField("beneficiaryDesignationsYear", v)}
-                  placeholder="e.g., 2023"
+                  placeholder={`e.g., ${recentYear}`}
                 />
               </FormField>
             </div>
