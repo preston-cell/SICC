@@ -259,7 +259,7 @@ interface BeneficiaryDesignation {
 
 // Interface for detected common issues
 interface CommonDocumentIssue {
-  type: "missing_beneficiary" | "unclear_trust" | "missing_guardian" | "outdated_designation" | "inconsistent_beneficiary";
+  type: "missing_beneficiary" | "unclear_trust" | "missing_guardian" | "outdated_designation" | "inconsistent_beneficiary" | "business_succession";
   severity: "critical" | "high" | "medium" | "low";
   title: string;
   description: string;
@@ -302,6 +302,16 @@ interface AssetsData {
   hasTrust?: boolean;
   trustType?: string;
   trustDetails?: string;
+  // Business interest fields
+  hasBusinessInterests?: boolean;
+  businessType?: string;
+  businessName?: string;
+  businessValue?: string;
+  businessOwnershipPercentage?: number;
+  hasBusinessPartners?: boolean;
+  hasBuySellAgreement?: boolean;
+  hasSuccessionPlan?: boolean;
+  businessKeyEmployees?: boolean;
 }
 
 // Interface for parsed existing documents data
@@ -597,6 +607,118 @@ function detectOutdatedDesignations(
 }
 
 /**
+ * Detect business interest issues
+ * Checks for business succession planning, buy-sell agreements, and key person concerns
+ */
+function detectBusinessInterestIssues(
+  assetsData: AssetsData,
+  familyData: FamilyData,
+  existingDocsData: ExistingDocsData
+): CommonDocumentIssue[] {
+  const issues: CommonDocumentIssue[] = [];
+
+  // Only process if user has business interests
+  if (!assetsData.hasBusinessInterests) {
+    return issues;
+  }
+
+  // Critical: No succession plan for business
+  if (!assetsData.hasSuccessionPlan) {
+    issues.push({
+      type: "business_succession",
+      severity: "critical",
+      title: "No Business Succession Plan",
+      description: "You own a business but haven't established a succession plan. Without one, your business may fail, be sold at a loss, or create family conflicts if you become incapacitated or pass away.",
+      recommendation: "Develop a comprehensive business succession plan that addresses ownership transfer, management transition, and funding mechanisms. Consider whether the business will be sold, transferred to family, or liquidated.",
+    });
+  }
+
+  // Critical: Has business partners but no buy-sell agreement
+  if (assetsData.hasBusinessPartners && !assetsData.hasBuySellAgreement) {
+    issues.push({
+      type: "business_succession",
+      severity: "critical",
+      title: "No Buy-Sell Agreement with Business Partners",
+      description: "You have business partners but no buy-sell agreement in place. If a partner dies, becomes disabled, or wants to exit, there's no defined process for handling their ownership interest.",
+      recommendation: "Execute a buy-sell agreement with all partners that establishes: valuation methods, triggering events (death, disability, retirement, divorce), funding mechanisms (life insurance, installment payments), and transfer restrictions.",
+    });
+  }
+
+  // High: Business value is significant but no life insurance to fund buy-out
+  const significantBusinessValues = ["500k_1m", "1m_2m", "2m_5m", "5m_10m", "over_10m"];
+  if (assetsData.businessValue && significantBusinessValues.includes(assetsData.businessValue)) {
+    if (!assetsData.hasLifeInsurance && assetsData.hasBusinessPartners) {
+      issues.push({
+        type: "business_succession",
+        severity: "high",
+        title: "No Life Insurance to Fund Business Buy-Out",
+        description: "Your business has significant value with partners, but you may not have adequate life insurance to fund a buy-out. Partners or heirs may not have liquidity to purchase your interest.",
+        recommendation: "Consider key person life insurance or cross-purchase life insurance policies to fund buy-sell agreement obligations. This ensures liquidity is available when needed.",
+      });
+    }
+  }
+
+  // High: Family business without clear family involvement plan
+  if (familyData.hasChildren && !assetsData.hasSuccessionPlan) {
+    issues.push({
+      type: "business_succession",
+      severity: "high",
+      title: "Family Business Succession Unclear",
+      description: "You have children and a business, but no succession plan. It's unclear whether family members will inherit, manage, or sell the business.",
+      recommendation: "Decide and document: Will children inherit the business? Are they qualified and interested in running it? Should some children receive business interests while others receive equivalent non-business assets? Consider a family meeting to discuss expectations.",
+    });
+  }
+
+  // High: Business with key employees but no retention planning
+  if (assetsData.businessKeyEmployees && !assetsData.hasSuccessionPlan) {
+    issues.push({
+      type: "business_succession",
+      severity: "high",
+      title: "Key Employee Retention Not Addressed",
+      description: "Your business relies on key employees, but there's no plan to retain them during ownership transition. Key employees may leave, taking critical knowledge and relationships.",
+      recommendation: "Implement key employee retention strategies: stay bonuses, deferred compensation, phantom stock, or actual equity participation. Document these arrangements and communicate with key personnel.",
+    });
+  }
+
+  // Medium: Sole proprietorship or 100% ownership without backup
+  if (assetsData.businessOwnershipPercentage === 100 || !assetsData.hasBusinessPartners) {
+    if (!existingDocsData.hasPOAFinancial) {
+      issues.push({
+        type: "business_succession",
+        severity: "high",
+        title: "No Financial POA for Business Operations",
+        description: "You're the sole owner of your business with no financial power of attorney. If you become incapacitated, no one may have legal authority to operate, sell, or manage the business.",
+        recommendation: "Execute a durable financial power of attorney that specifically grants authority over business operations, banking, contracts, and potential sale of business assets.",
+      });
+    }
+  }
+
+  // Medium: Business entity type may need review
+  if (assetsData.businessType === "sole_proprietorship") {
+    issues.push({
+      type: "business_succession",
+      severity: "medium",
+      title: "Sole Proprietorship Limits Estate Planning Options",
+      description: "Operating as a sole proprietorship limits liability protection and succession planning options. The business cannot be easily transferred or have shared ownership.",
+      recommendation: "Consult with a business attorney about converting to an LLC or corporation. These structures offer better liability protection, easier ownership transfer, and more sophisticated succession planning options.",
+    });
+  }
+
+  // Medium: Business but no operating agreement or corporate documents reviewed
+  if (assetsData.businessType && ["llc", "partnership", "s_corp", "c_corp"].includes(assetsData.businessType)) {
+    issues.push({
+      type: "business_succession",
+      severity: "medium",
+      title: "Review Business Governing Documents",
+      description: "Your business structure has governing documents (operating agreement, bylaws, partnership agreement) that should be reviewed to ensure they align with your estate plan.",
+      recommendation: "Review your business governing documents with your estate planning attorney. Ensure transfer restrictions, buy-out provisions, and management succession align with your will and trust provisions.",
+    });
+  }
+
+  return issues;
+}
+
+/**
  * Main function to detect all common document issues
  * Aggregates results from all detection functions
  */
@@ -614,6 +736,7 @@ function detectCommonIssues(
   allIssues.push(...detectUnclearTrustIssues(existingDocsData, assetsData, goalsData));
   allIssues.push(...detectMissingGuardians(familyData, existingDocsData));
   allIssues.push(...detectOutdatedDesignations(beneficiaryDesignations));
+  allIssues.push(...detectBusinessInterestIssues(assetsData, familyData, existingDocsData));
 
   // Sort by severity (critical first)
   const severityOrder = { critical: 0, high: 1, medium: 2, low: 3 };
@@ -744,7 +867,7 @@ Based on this information, provide a detailed gap analysis in the following JSON
   },
   "commonIssues": [
     {
-      "type": "<missing_beneficiary, unclear_trust, missing_guardian, outdated_designation, or inconsistent_beneficiary>",
+      "type": "<missing_beneficiary, unclear_trust, missing_guardian, outdated_designation, inconsistent_beneficiary, or business_succession>",
       "severity": "<critical, high, medium, or low>",
       "title": "<short title for the issue>",
       "description": "<detailed description of the issue>",
