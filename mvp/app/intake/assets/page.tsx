@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useState, useMemo } from "react";
 import IntakeProgress from "../../components/IntakeProgress";
 import IntakeNavigation from "../../components/IntakeNavigation";
 import { FormField, TextInput, Select, RadioGroup, FormSection, Checkbox, TextArea, InfoBox } from "../../components/FormFields";
@@ -127,6 +127,44 @@ const VALUE_RANGES = [
   { value: "over_10m", label: "Over $10 million" },
 ];
 
+// Midpoint values for auto-calculation (using conservative midpoint estimates)
+const VALUE_RANGE_MIDPOINTS: Record<string, number> = {
+  "under_100k": 50000,
+  "100k_250k": 175000,
+  "250k_500k": 375000,
+  "500k_1m": 750000,
+  "1m_2m": 1500000,
+  "2m_5m": 3500000,
+  "5m_10m": 7500000,
+  "over_10m": 15000000,
+};
+
+// Helper to convert value range to numeric estimate
+function getValueEstimate(rangeValue: string): number {
+  return VALUE_RANGE_MIDPOINTS[rangeValue] || 0;
+}
+
+// Helper to find the appropriate range for a calculated value
+function getValueRangeForAmount(amount: number): string {
+  if (amount <= 0) return "";
+  if (amount < 100000) return "under_100k";
+  if (amount < 250000) return "100k_250k";
+  if (amount < 500000) return "250k_500k";
+  if (amount < 1000000) return "500k_1m";
+  if (amount < 2000000) return "1m_2m";
+  if (amount < 5000000) return "2m_5m";
+  if (amount < 10000000) return "5m_10m";
+  return "over_10m";
+}
+
+// Helper to format currency
+function formatCurrency(amount: number): string {
+  if (amount >= 1000000) {
+    return `$${(amount / 1000000).toFixed(1)}M`;
+  }
+  return `$${(amount / 1000).toFixed(0)}K`;
+}
+
 const RETIREMENT_ACCOUNT_TYPES = [
   { value: "401k", label: "401(k)" },
   { value: "403b", label: "403(b)" },
@@ -236,6 +274,59 @@ function AssetsFormContent() {
   };
 
   const canContinue = true;
+
+  // Auto-calculate total estate value from individual asset values
+  const calculatedEstateValue = useMemo(() => {
+    let total = 0;
+
+    // Real Estate
+    if (formData.hasPrimaryHome && formData.primaryHomeValue) {
+      total += getValueEstimate(formData.primaryHomeValue);
+    }
+
+    // Financial Accounts
+    if (formData.hasBankAccounts && formData.bankAccountsValue) {
+      total += getValueEstimate(formData.bankAccountsValue);
+    }
+    if (formData.hasInvestmentAccounts && formData.investmentAccountsValue) {
+      total += getValueEstimate(formData.investmentAccountsValue);
+    }
+    if (formData.hasRetirementAccounts && formData.retirementAccountsValue) {
+      total += getValueEstimate(formData.retirementAccountsValue);
+    }
+    if (formData.hasCryptocurrency && formData.cryptocurrencyValue) {
+      total += getValueEstimate(formData.cryptocurrencyValue);
+    }
+
+    // Business
+    if (formData.hasBusinessInterests && formData.businessValue) {
+      total += getValueEstimate(formData.businessValue);
+    }
+
+    // Life Insurance (death benefit)
+    if (formData.hasLifeInsurance && formData.lifeInsuranceValue) {
+      total += getValueEstimate(formData.lifeInsuranceValue);
+    }
+
+    return total;
+  }, [
+    formData.hasPrimaryHome, formData.primaryHomeValue,
+    formData.hasBankAccounts, formData.bankAccountsValue,
+    formData.hasInvestmentAccounts, formData.investmentAccountsValue,
+    formData.hasRetirementAccounts, formData.retirementAccountsValue,
+    formData.hasCryptocurrency, formData.cryptocurrencyValue,
+    formData.hasBusinessInterests, formData.businessValue,
+    formData.hasLifeInsurance, formData.lifeInsuranceValue,
+  ]);
+
+  const suggestedValueRange = getValueRangeForAmount(calculatedEstateValue);
+
+  // Auto-update estimated total value when calculated value changes
+  const handleUseCalculatedValue = () => {
+    if (suggestedValueRange) {
+      updateField("estimatedTotalValue", suggestedValueRange);
+    }
+  };
 
   if (!estatePlanId) {
     return (
@@ -815,6 +906,31 @@ function AssetsFormContent() {
           title="Total Estate Value"
           description="Your best estimate of total estate value (assets minus debts)"
         >
+          {/* Auto-calculated estimate */}
+          {calculatedEstateValue > 0 && (
+            <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+              <div className="flex items-start justify-between">
+                <div>
+                  <h4 className="font-medium text-blue-900 dark:text-blue-100">
+                    Calculated Estimate: {formatCurrency(calculatedEstateValue)}
+                  </h4>
+                  <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
+                    Based on the asset values you provided above
+                  </p>
+                </div>
+                {suggestedValueRange && formData.estimatedTotalValue !== suggestedValueRange && (
+                  <button
+                    type="button"
+                    onClick={handleUseCalculatedValue}
+                    className="px-3 py-1.5 text-sm font-medium text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-800 hover:bg-blue-200 dark:hover:bg-blue-700 rounded-md transition-colors"
+                  >
+                    Use This Value
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
           <FormField label="Estimated Total Value" hint="This helps us determine if estate tax planning is relevant">
             <RadioGroup
               name="estimatedTotalValue"
@@ -823,6 +939,15 @@ function AssetsFormContent() {
               options={VALUE_RANGES.map((r) => ({ ...r, description: undefined }))}
             />
           </FormField>
+
+          {/* Disclaimer */}
+          <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+            <p className="text-xs text-amber-800 dark:text-amber-200">
+              <strong>Disclaimer:</strong> The calculated estimate above is based on midpoint values of the ranges you selected and is provided for general guidance only.
+              It does not include assets without specified values (vehicles, valuables, other real estate) or account for debts and liabilities.
+              This estimate is not intended as financial, tax, or legal advice. For accurate estate valuation, please consult with a qualified financial advisor or estate planning attorney.
+            </p>
+          </div>
         </FormSection>
       </div>
 
