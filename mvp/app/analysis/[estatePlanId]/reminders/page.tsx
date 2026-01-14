@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, use, ReactNode } from "react";
+import { useState, use, ReactNode, useEffect } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { Id } from "../../../../convex/_generated/dataModel";
@@ -16,27 +16,91 @@ type ReminderType = "annual_review" | "life_event" | "document_update" | "benefi
 type PriorityType = "low" | "medium" | "high" | "urgent";
 type RecurrencePattern = "monthly" | "quarterly" | "annually" | "biannually";
 
+// Priority to days mapping for smart due dates
+const PRIORITY_TO_DAYS: Record<PriorityType, number> = {
+  urgent: 7,
+  high: 14,
+  medium: 30,
+  low: 90,
+};
+
+// Calculate smart due date from priority
+const calculateSmartDueDate = (priority: PriorityType): string => {
+  const days = PRIORITY_TO_DAYS[priority];
+  const date = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
+  return date.toISOString().split("T")[0];
+};
+
+// Format relative date for display
+const formatRelativeDate = (priority: PriorityType): string => {
+  const days = PRIORITY_TO_DAYS[priority];
+  if (days === 7) return "in 1 week";
+  if (days === 14) return "in 2 weeks";
+  if (days === 30) return "in 1 month";
+  if (days === 90) return "in 3 months";
+  return `in ${days} days`;
+};
+
 export default function RemindersPage({ params }: PageProps) {
   const { estatePlanId } = use(params);
   const estatePlanIdTyped = estatePlanId as Id<"estatePlans">;
 
   const [activeTab, setActiveTab] = useState<"reminders" | "life-events" | "settings">("reminders");
   const [showAddForm, setShowAddForm] = useState(false);
+  const [useSmartDates, setUseSmartDates] = useState(true);
   const [newReminder, setNewReminder] = useState({
     type: "custom" as ReminderType,
     title: "",
     description: "",
-    dueDate: "",
+    dueDate: calculateSmartDueDate("medium"),
     priority: "medium" as PriorityType,
     isRecurring: false,
     recurrencePattern: "annually" as RecurrencePattern,
   });
 
+  // Settings state - persisted in localStorage
+  const [settings, setSettings] = useState({
+    autoGenerateFromAnalysis: true,
+    autoAdjustDates: true,
+    annualReviewReminders: true,
+    beneficiaryReviewReminders: true,
+    lifeEventPrompts: true,
+  });
+
+  // Load settings from localStorage on mount
+  useEffect(() => {
+    const savedSettings = localStorage.getItem(`reminder-settings-${estatePlanId}`);
+    if (savedSettings) {
+      setSettings(JSON.parse(savedSettings));
+    }
+  }, [estatePlanId]);
+
+  // Save settings to localStorage when they change
+  const updateSetting = (key: keyof typeof settings, value: boolean) => {
+    const newSettings = { ...settings, [key]: value };
+    setSettings(newSettings);
+    localStorage.setItem(`reminder-settings-${estatePlanId}`, JSON.stringify(newSettings));
+  };
+
+  // Update due date when priority changes (if using smart dates)
+  useEffect(() => {
+    if (useSmartDates) {
+      setNewReminder(prev => ({
+        ...prev,
+        dueDate: calculateSmartDueDate(prev.priority),
+      }));
+    }
+  }, [newReminder.priority, useSmartDates]);
+
   const estatePlan = useQuery(api.queries.getEstatePlan, { estatePlanId: estatePlanIdTyped });
-  const reminders = useQuery(api.reminders.getReminders, { estatePlanId: estatePlanIdTyped });
+  const remindersData = useQuery(api.reminders.getRemindersWithSubTaskCounts, { estatePlanId: estatePlanIdTyped });
   const stats = useQuery(api.reminders.getReminderStats, { estatePlanId: estatePlanIdTyped });
   const createReminder = useMutation(api.reminders.createReminder);
   const createDefaultReminders = useMutation(api.reminders.createDefaultReminders);
+  const generateActionItems = useMutation(api.reminders.generateActionItemsFromAnalysis);
+
+  const reminders = remindersData?.reminders || [];
+  const subTaskCounts = remindersData?.subTaskCounts || {};
 
   const pendingReminders = reminders?.filter(r => r.status === "pending") || [];
   const overdueReminders = reminders?.filter(r => r.status === "pending" && r.dueDate < Date.now()) || [];
@@ -217,7 +281,11 @@ export default function RemindersPage({ params }: PageProps) {
                 </h3>
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                   {overdueReminders.map((reminder) => (
-                    <ReminderCard key={reminder._id} reminder={reminder} />
+                    <ReminderCard
+                      key={reminder._id}
+                      reminder={reminder}
+                      subTaskCount={subTaskCounts[reminder._id]}
+                    />
                   ))}
                 </div>
               </div>
@@ -234,7 +302,11 @@ export default function RemindersPage({ params }: PageProps) {
                     .filter(r => r.dueDate >= Date.now())
                     .sort((a, b) => a.dueDate - b.dueDate)
                     .map((reminder) => (
-                      <ReminderCard key={reminder._id} reminder={reminder} />
+                      <ReminderCard
+                        key={reminder._id}
+                        reminder={reminder}
+                        subTaskCount={subTaskCounts[reminder._id]}
+                      />
                     ))}
                 </div>
               </div>
@@ -319,14 +391,67 @@ export default function RemindersPage({ params }: PageProps) {
               </p>
             </div>
 
+            {/* Smart Features Section */}
             <div className="space-y-4">
+              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wide">
+                Smart Features
+              </h4>
+
+              <div className="flex items-center justify-between p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                <div>
+                  <p className="font-medium text-gray-900 dark:text-white">Auto-generate from Analysis</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Automatically create action items from gap analysis results</p>
+                </div>
+                <button
+                  onClick={() => updateSetting("autoGenerateFromAnalysis", !settings.autoGenerateFromAnalysis)}
+                  className={`relative w-12 h-6 rounded-full transition-colors ${
+                    settings.autoGenerateFromAnalysis ? "bg-blue-500" : "bg-gray-300 dark:bg-gray-600"
+                  }`}
+                >
+                  <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${
+                    settings.autoGenerateFromAnalysis ? "right-1" : "left-1"
+                  }`}></span>
+                </button>
+              </div>
+
+              <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg">
+                <div>
+                  <p className="font-medium text-gray-900 dark:text-white">Auto-adjust Due Dates</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Automatically adjust due dates when priority changes</p>
+                </div>
+                <button
+                  onClick={() => updateSetting("autoAdjustDates", !settings.autoAdjustDates)}
+                  className={`relative w-12 h-6 rounded-full transition-colors ${
+                    settings.autoAdjustDates ? "bg-blue-500" : "bg-gray-300 dark:bg-gray-600"
+                  }`}
+                >
+                  <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${
+                    settings.autoAdjustDates ? "right-1" : "left-1"
+                  }`}></span>
+                </button>
+              </div>
+            </div>
+
+            {/* Standard Reminders Section */}
+            <div className="space-y-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wide">
+                Standard Reminders
+              </h4>
+
               <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg">
                 <div>
                   <p className="font-medium text-gray-900 dark:text-white">Annual Review Reminders</p>
                   <p className="text-sm text-gray-500 dark:text-gray-400">Remind me to review my estate plan each year</p>
                 </div>
-                <button className="relative w-12 h-6 bg-blue-500 rounded-full transition-colors">
-                  <span className="absolute right-1 top-1 w-4 h-4 bg-white rounded-full shadow transition-transform"></span>
+                <button
+                  onClick={() => updateSetting("annualReviewReminders", !settings.annualReviewReminders)}
+                  className={`relative w-12 h-6 rounded-full transition-colors ${
+                    settings.annualReviewReminders ? "bg-blue-500" : "bg-gray-300 dark:bg-gray-600"
+                  }`}
+                >
+                  <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${
+                    settings.annualReviewReminders ? "right-1" : "left-1"
+                  }`}></span>
                 </button>
               </div>
 
@@ -335,8 +460,15 @@ export default function RemindersPage({ params }: PageProps) {
                   <p className="font-medium text-gray-900 dark:text-white">Beneficiary Review</p>
                   <p className="text-sm text-gray-500 dark:text-gray-400">Remind me to check beneficiary designations every 6 months</p>
                 </div>
-                <button className="relative w-12 h-6 bg-blue-500 rounded-full transition-colors">
-                  <span className="absolute right-1 top-1 w-4 h-4 bg-white rounded-full shadow transition-transform"></span>
+                <button
+                  onClick={() => updateSetting("beneficiaryReviewReminders", !settings.beneficiaryReviewReminders)}
+                  className={`relative w-12 h-6 rounded-full transition-colors ${
+                    settings.beneficiaryReviewReminders ? "bg-blue-500" : "bg-gray-300 dark:bg-gray-600"
+                  }`}
+                >
+                  <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${
+                    settings.beneficiaryReviewReminders ? "right-1" : "left-1"
+                  }`}></span>
                 </button>
               </div>
 
@@ -345,18 +477,59 @@ export default function RemindersPage({ params }: PageProps) {
                   <p className="font-medium text-gray-900 dark:text-white">Life Event Prompts</p>
                   <p className="text-sm text-gray-500 dark:text-gray-400">Create reminders when I log major life events</p>
                 </div>
-                <button className="relative w-12 h-6 bg-blue-500 rounded-full transition-colors">
-                  <span className="absolute right-1 top-1 w-4 h-4 bg-white rounded-full shadow transition-transform"></span>
+                <button
+                  onClick={() => updateSetting("lifeEventPrompts", !settings.lifeEventPrompts)}
+                  className={`relative w-12 h-6 rounded-full transition-colors ${
+                    settings.lifeEventPrompts ? "bg-blue-500" : "bg-gray-300 dark:bg-gray-600"
+                  }`}
+                >
+                  <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${
+                    settings.lifeEventPrompts ? "right-1" : "left-1"
+                  }`}></span>
                 </button>
               </div>
             </div>
 
+            {/* Priority to Due Date Reference */}
             <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-3">
+                Smart Due Date Schedule
+              </h4>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-lg text-center">
+                  <p className="text-xs font-medium text-red-600 dark:text-red-400 uppercase">Urgent</p>
+                  <p className="text-lg font-bold text-red-700 dark:text-red-300">7 days</p>
+                </div>
+                <div className="p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg text-center">
+                  <p className="text-xs font-medium text-orange-600 dark:text-orange-400 uppercase">High</p>
+                  <p className="text-lg font-bold text-orange-700 dark:text-orange-300">14 days</p>
+                </div>
+                <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-center">
+                  <p className="text-xs font-medium text-blue-600 dark:text-blue-400 uppercase">Medium</p>
+                  <p className="text-lg font-bold text-blue-700 dark:text-blue-300">30 days</p>
+                </div>
+                <div className="p-3 bg-gray-50 dark:bg-gray-900/50 rounded-lg text-center">
+                  <p className="text-xs font-medium text-gray-600 dark:text-gray-400 uppercase">Low</p>
+                  <p className="text-lg font-bold text-gray-700 dark:text-gray-300">90 days</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-4 border-t border-gray-200 dark:border-gray-700 flex gap-3">
               <button
                 onClick={handleSetupDefaultReminders}
-                className="px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-medium rounded-lg hover:from-blue-600 hover:to-indigo-600 transition-all"
+                className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
               >
                 Reset to Default Reminders
+              </button>
+              <button
+                onClick={async () => {
+                  const result = await generateActionItems({ estatePlanId: estatePlanIdTyped });
+                  alert(result.message);
+                }}
+                className="px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-medium rounded-lg hover:from-blue-600 hover:to-indigo-600 transition-all"
+              >
+                Generate from Analysis
               </button>
             </div>
           </div>
@@ -424,19 +597,7 @@ export default function RemindersPage({ params }: PageProps) {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Due Date
-                  </label>
-                  <input
-                    type="date"
-                    value={newReminder.dueDate}
-                    onChange={(e) => setNewReminder({ ...newReminder, dueDate: e.target.value })}
-                    className="w-full px-3 py-2 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-
+              <div className="space-y-3">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Priority
@@ -446,12 +607,46 @@ export default function RemindersPage({ params }: PageProps) {
                     onChange={(e) => setNewReminder({ ...newReminder, priority: e.target.value as PriorityType })}
                     className="w-full px-3 py-2 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
-                    <option value="low">Low</option>
-                    <option value="medium">Medium</option>
-                    <option value="high">High</option>
-                    <option value="urgent">Urgent</option>
+                    <option value="low">Low (90 days)</option>
+                    <option value="medium">Medium (30 days)</option>
+                    <option value="high">High (14 days)</option>
+                    <option value="urgent">Urgent (7 days)</option>
                   </select>
                 </div>
+
+                {/* Smart Date Display */}
+                <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                  <div>
+                    <p className="text-sm font-medium text-blue-700 dark:text-blue-300">
+                      Due: {new Date(newReminder.dueDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                    </p>
+                    <p className="text-xs text-blue-600 dark:text-blue-400">
+                      {formatRelativeDate(newReminder.priority)}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setUseSmartDates(!useSmartDates)}
+                    className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200 underline"
+                  >
+                    {useSmartDates ? "Set custom date" : "Use smart date"}
+                  </button>
+                </div>
+
+                {/* Manual Date Override */}
+                {!useSmartDates && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Custom Due Date
+                    </label>
+                    <input
+                      type="date"
+                      value={newReminder.dueDate}
+                      onChange={(e) => setNewReminder({ ...newReminder, dueDate: e.target.value })}
+                      className="w-full px-3 py-2 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                )}
               </div>
 
               <div className="flex items-center gap-3">

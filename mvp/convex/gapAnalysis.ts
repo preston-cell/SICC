@@ -191,6 +191,12 @@ if __name__ == "__main__":
         rawAnalysis: analysisResult.rawAnalysis || output,
       });
 
+      // Auto-generate action items from the analysis with smart due dates
+      await ctx.runMutation(internal.reminders.internalGenerateActionItems, {
+        estatePlanId,
+        includeSubTasks: true,
+      });
+
       // Update run as completed
       await ctx.runMutation(internal.mutations.updateRun, {
         runId,
