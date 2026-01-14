@@ -392,21 +392,21 @@ function GoalsFormContent() {
         {/* Charitable Giving */}
         <FormSection
           title="Charitable Giving"
-          description="Would you like to include charitable gifts in your estate plan?"
+          description="Optional: Leave gifts to charity"
         >
           <Checkbox
             checked={formData.charitableGiving}
             onChange={(v) => updateField("charitableGiving", v)}
-            label="I want to include charitable giving in my estate plan"
+            label="I want to leave something to charity"
           />
 
           {formData.charitableGiving && (
-            <FormField label="Charitable giving details">
+            <FormField label="Which organizations and how much?">
               <TextArea
                 value={formData.charitableDetails}
                 onChange={(v) => updateField("charitableDetails", v)}
-                placeholder="e.g., 10% to American Red Cross, $50,000 to my alma mater"
-                rows={3}
+                placeholder="e.g., $5,000 to local food bank, 5% to church"
+                rows={2}
               />
             </FormField>
           )}
@@ -455,15 +455,15 @@ function GoalsFormContent() {
             <Checkbox
               checked={formData.businessSuccession}
               onChange={(v) => updateField("businessSuccession", v)}
-              label="Business succession planning needed"
-              description="You own a business that needs transition planning"
+              label="I own a business"
+              description="We'll help plan for what happens to it"
             />
             {formData.businessSuccession && (
-              <FormField label="Please explain">
+              <FormField label="Who should take over the business?">
                 <TextArea
                   value={formData.businessSuccessionDetails}
                   onChange={(v) => updateField("businessSuccessionDetails", v)}
-                  placeholder="Describe your business succession goals"
+                  placeholder="e.g., My son John, sell to partner, close it down"
                   rows={2}
                 />
               </FormField>
