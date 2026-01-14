@@ -334,6 +334,7 @@ export const saveGapAnalysis = internalMutation({
     score: v.optional(v.number()),
     estateComplexity: v.optional(v.string()),
     estimatedEstateTax: v.optional(v.string()),
+    commonIssues: v.optional(v.string()), // JSON string of detected common issues (missing beneficiaries, unclear trusts, missing guardians)
     missingDocuments: v.string(),
     outdatedDocuments: v.string(),
     inconsistencies: v.string(),

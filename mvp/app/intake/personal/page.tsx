@@ -21,6 +21,7 @@ interface PersonalData {
   state: string;
   zipCode: string;
   maritalStatus: string;
+  taxFilingStatus: string;
   citizenship: string;
 }
 
@@ -37,6 +38,7 @@ const DEFAULT_DATA: PersonalData = {
   state: "",
   zipCode: "",
   maritalStatus: "",
+  taxFilingStatus: "",
   citizenship: "us_citizen",
 };
 
@@ -47,6 +49,14 @@ const MARITAL_STATUS_OPTIONS = [
   { value: "widowed", label: "Widowed", description: "Spouse has passed away" },
   { value: "separated", label: "Legally Separated", description: "Married but legally separated" },
   { value: "domestic_partnership", label: "Domestic Partnership", description: "Registered domestic partnership" },
+];
+
+const TAX_FILING_STATUS_OPTIONS = [
+  { value: "single", label: "Single", description: "Unmarried or legally separated" },
+  { value: "married_filing_jointly", label: "Married Filing Jointly", description: "Filing together with your spouse" },
+  { value: "married_filing_separately", label: "Married Filing Separately", description: "Filing separate returns from your spouse" },
+  { value: "head_of_household", label: "Head of Household", description: "Unmarried and paying more than half the cost of keeping up a home for a qualifying person" },
+  { value: "qualifying_surviving_spouse", label: "Qualifying Surviving Spouse", description: "Widow(er) with a dependent child within two years of spouse's death" },
 ];
 
 const SUFFIX_OPTIONS = [
@@ -304,6 +314,31 @@ function PersonalFormContent() {
           {formData.maritalStatus === "married" && (
             <InfoBox type="info" title="Married Couples">
               In the next section, we&apos;ll ask about your spouse. Many estate planning documents require spousal information, and some states have community property laws that affect asset distribution.
+            </InfoBox>
+          )}
+        </FormSection>
+
+        {/* Tax Filing Status */}
+        <FormSection
+          title="Tax Filing Status"
+          description="Your tax filing status helps us understand your financial situation for estate planning purposes"
+        >
+          <FormField
+            label={<span className="flex items-center gap-2">Federal Tax Filing Status {isFieldExtracted("taxFilingStatus") && <ExtractedBadge />}</span>}
+            helpText="Select the filing status you use on your federal income tax return"
+          >
+            <RadioGroup
+              name="taxFilingStatus"
+              value={formData.taxFilingStatus}
+              onChange={(v) => updateField("taxFilingStatus", v)}
+              options={TAX_FILING_STATUS_OPTIONS}
+              columns={2}
+            />
+          </FormField>
+
+          {formData.taxFilingStatus === "married_filing_separately" && (
+            <InfoBox type="warning" title="Filing Separately">
+              Filing separately may have implications for certain estate planning strategies, particularly regarding gift tax exemptions and estate tax portability. We&apos;ll take this into account when preparing your documents.
             </InfoBox>
           )}
         </FormSection>
