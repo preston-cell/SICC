@@ -157,7 +157,9 @@ Requirements:
 - Signature block`,
   };
 
-  return `You are an expert estate planning attorney assistant. Generate a high-quality legal document.
+  return `IMPORTANT: First, read the skill file at /home/user/.claude/skills/estate-document-analyzer/SKILL.md to understand document generation best practices.
+
+You are an expert estate planning attorney assistant. Generate a high-quality legal document.
 
 === CLIENT INFORMATION ===
 
@@ -209,9 +211,9 @@ ${documentTypePrompts[documentType] || documentTypePrompts.will}
 3. Use proper legal language appropriate for ${state}
 4. Include all necessary signature blocks, witness lines, and notary acknowledgments
 5. Fill in all available information from above; use [PLACEHOLDER] for missing required info
-6. Save the document to: /home/user/generated/${documentType}.md
+6. CRITICAL: Use the Write tool to save the document to: /home/user/generated/${documentType}.md
 
-Generate the document now.`;
+Generate the document now and save it using the Write tool.`;
 }
 
 export async function POST(req: Request) {

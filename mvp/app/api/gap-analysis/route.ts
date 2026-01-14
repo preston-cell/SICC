@@ -52,7 +52,9 @@ function buildAnalysisPrompt(intakeData: IntakeData): string {
 
   const beneficiaryData = intakeData.beneficiaryDesignations || [];
 
-  return `You are an expert estate planning analyst using the us-estate-planning-analyzer skill.
+  return `IMPORTANT: First, read the skill file at /home/user/.claude/skills/us-estate-planning-analyzer/SKILL.md to understand the estate planning analysis methodology.
+
+You are an expert estate planning analyst. Use the methodology from the skill file to perform a comprehensive gap analysis.
 
 Perform a comprehensive gap analysis of the following estate planning data.
 
@@ -102,9 +104,9 @@ Analyze this estate plan comprehensively. Consider:
 
 === OUTPUT FORMAT ===
 
-Save your analysis as JSON to: /home/user/generated/analysis.json
+CRITICAL: You MUST use the Write tool to save your analysis as a JSON file to: /home/user/generated/analysis.json
 
-Use this exact format:
+The JSON must follow this exact format:
 {
   "score": <number 0-100 representing estate plan completeness>,
   "estateComplexity": "<low, moderate, or high>",
