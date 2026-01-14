@@ -392,100 +392,109 @@ function GoalsFormContent() {
         {/* Charitable Giving */}
         <FormSection
           title="Charitable Giving"
-          description="Would you like to include charitable gifts in your estate plan?"
+          description="Optional: Leave gifts to charity"
         >
           <Checkbox
             checked={formData.charitableGiving}
             onChange={(v) => updateField("charitableGiving", v)}
-            label="I want to include charitable giving in my estate plan"
+            label="I want to leave something to charity"
           />
 
           {formData.charitableGiving && (
-            <FormField label="Charitable giving details">
+            <FormField label="Which organizations and how much?">
               <TextArea
                 value={formData.charitableDetails}
                 onChange={(v) => updateField("charitableDetails", v)}
-                placeholder="e.g., 10% to American Red Cross, $50,000 to my alma mater"
-                rows={3}
+                placeholder="e.g., $5,000 to local food bank, 5% to church"
+                rows={2}
               />
             </FormField>
           )}
         </FormSection>
 
-        {/* Special Considerations */}
+        {/* Special Considerations - Opt-in */}
         <FormSection
-          title="Special Considerations"
-          description="Any unique circumstances we should know about?"
+          title="Special Situations"
+          description="Do any of these apply to you? (Optional)"
         >
-          <div className="space-y-4">
-            <Checkbox
-              checked={formData.blendedFamily}
-              onChange={(v) => updateField("blendedFamily", v)}
-              label="Blended family"
-              description="Children from different relationships, stepchildren"
-            />
-            {formData.blendedFamily && (
-              <FormField label="Please explain">
-                <TextArea
-                  value={formData.blendedFamilyDetails}
-                  onChange={(v) => updateField("blendedFamilyDetails", v)}
-                  placeholder="Describe your family situation"
-                  rows={2}
-                />
-              </FormField>
-            )}
+          <Checkbox
+            checked={formData.hasSpecialConsiderations}
+            onChange={(v) => updateField("hasSpecialConsiderations", v)}
+            label="I have a special situation to address"
+            description="Blended family, special needs beneficiary, business ownership, or international assets"
+          />
 
-            <Checkbox
-              checked={formData.specialNeedsBeneficiary}
-              onChange={(v) => updateField("specialNeedsBeneficiary", v)}
-              label={<>Beneficiary with special needs <GlossaryHelpIcon term="Special Needs Trust" /></>}
-              description="May require a special needs trust to preserve government benefits"
-            />
-            {formData.specialNeedsBeneficiary && (
-              <FormField label="Please explain">
-                <TextArea
-                  value={formData.specialNeedsDetails}
-                  onChange={(v) => updateField("specialNeedsDetails", v)}
-                  placeholder="Describe the situation"
-                  rows={2}
-                />
-              </FormField>
-            )}
+          {formData.hasSpecialConsiderations && (
+            <div className="space-y-4 mt-4 pl-4 border-l-2 border-blue-200 dark:border-blue-800">
+              <Checkbox
+                checked={formData.blendedFamily}
+                onChange={(v) => updateField("blendedFamily", v)}
+                label="Blended family"
+                description="Children from different relationships, stepchildren"
+              />
+              {formData.blendedFamily && (
+                <FormField label="Please explain">
+                  <TextArea
+                    value={formData.blendedFamilyDetails}
+                    onChange={(v) => updateField("blendedFamilyDetails", v)}
+                    placeholder="Describe your family situation"
+                    rows={2}
+                  />
+                </FormField>
+              )}
 
-            <Checkbox
-              checked={formData.businessSuccession}
-              onChange={(v) => updateField("businessSuccession", v)}
-              label="Business succession planning needed"
-              description="You own a business that needs transition planning"
-            />
-            {formData.businessSuccession && (
-              <FormField label="Please explain">
-                <TextArea
-                  value={formData.businessSuccessionDetails}
-                  onChange={(v) => updateField("businessSuccessionDetails", v)}
-                  placeholder="Describe your business succession goals"
-                  rows={2}
-                />
-              </FormField>
-            )}
+              <Checkbox
+                checked={formData.specialNeedsBeneficiary}
+                onChange={(v) => updateField("specialNeedsBeneficiary", v)}
+                label={<>Beneficiary with special needs <GlossaryHelpIcon term="Special Needs Trust" /></>}
+                description="May require a special needs trust"
+              />
+              {formData.specialNeedsBeneficiary && (
+                <FormField label="Please explain">
+                  <TextArea
+                    value={formData.specialNeedsDetails}
+                    onChange={(v) => updateField("specialNeedsDetails", v)}
+                    placeholder="Describe the situation"
+                    rows={2}
+                  />
+                </FormField>
+              )}
 
-            <Checkbox
-              checked={formData.internationalAssets}
-              onChange={(v) => updateField("internationalAssets", v)}
-              label="International assets or beneficiaries"
-              description="Property abroad or beneficiaries in other countries"
-            />
-            {formData.internationalAssets && (
-              <FormField label="Please explain">
-                <TextArea
-                  value={formData.internationalDetails}
-                  onChange={(v) => updateField("internationalDetails", v)}
-                  placeholder="Describe international considerations"
-                  rows={2}
-                />
-              </FormField>
-            )}
-          </div>
+              <Checkbox
+                checked={formData.businessSuccession}
+                onChange={(v) => updateField("businessSuccession", v)}
+                label="I own a business"
+                description="We'll help plan for what happens to it"
+              />
+              {formData.businessSuccession && (
+                <FormField label="Who should take over the business?">
+                  <TextArea
+                    value={formData.businessSuccessionDetails}
+                    onChange={(v) => updateField("businessSuccessionDetails", v)}
+                    placeholder="e.g., My son John, sell to partner, close it down"
+                    rows={2}
+                  />
+                </FormField>
+              )}
+
+              <Checkbox
+                checked={formData.internationalAssets}
+                onChange={(v) => updateField("internationalAssets", v)}
+                label="International assets or beneficiaries"
+                description="Property abroad or beneficiaries in other countries"
+              />
+              {formData.internationalAssets && (
+                <FormField label="Please explain">
+                  <TextArea
+                    value={formData.internationalDetails}
+                    onChange={(v) => updateField("internationalDetails", v)}
+                    placeholder="Describe international considerations"
+                    rows={2}
+                  />
+                </FormField>
+              )}
+            </div>
+          )}
         </FormSection>
 
         {/* Top Priorities */}

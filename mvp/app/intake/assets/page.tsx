@@ -604,7 +604,8 @@ function AssetsFormContent() {
           )}
         </FormSection>
 
-        {/* Beneficiary Designations - Important Section */}
+        {/* Beneficiary Designations - Only show if user has relevant assets or owns a business */}
+        {(formData.hasRetirementAccounts || formData.hasLifeInsurance || formData.hasBusinessInterests) && (
         <FormSection
           title={<><GlossaryTooltip term="Beneficiary Designation">Beneficiary Designations</GlossaryTooltip> Tracker</>}
           description="Track beneficiaries on accounts that bypass your will"
@@ -612,13 +613,8 @@ function AssetsFormContent() {
           <InfoBox type="warning" title="Important: These Assets Bypass Your Will">
             <p className="mb-2">
               <strong>Retirement accounts, life insurance, and TOD/POD accounts pass directly to named beneficiaries</strong> -
-              they do not go through your will or trust. This means:
+              they do not go through your will or trust.
             </p>
-            <ul className="list-disc list-inside space-y-1 text-sm">
-              <li>A beneficiary named on your 401(k) will receive it, even if your will says otherwise</li>
-              <li>Outdated beneficiaries (like an ex-spouse) may still receive assets if not updated</li>
-              <li>These designations should be reviewed regularly and kept consistent with your estate plan</li>
-            </ul>
           </InfoBox>
 
           <div className="mt-6">
@@ -631,7 +627,7 @@ function AssetsFormContent() {
                 }
               }}
               label="I want to track my beneficiary designations"
-              description="We'll help ensure your beneficiaries are consistent with your estate plan"
+              description="Optional: Track which beneficiaries are on each account"
             />
           </div>
 
@@ -798,6 +794,7 @@ function AssetsFormContent() {
             </div>
           )}
         </FormSection>
+        )}
 
         {/* Other Assets */}
         <FormSection
