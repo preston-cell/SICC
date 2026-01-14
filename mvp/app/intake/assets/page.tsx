@@ -41,6 +41,9 @@ interface AssetsData {
   hasRetirementAccounts: boolean;
   retirementAccountsValue: string;
   retirementAccountTypes: string[];
+  hasCryptocurrency: boolean;
+  cryptocurrencyDetails: string;
+  cryptocurrencyValue: string;
 
   // Business Interests
   hasBusinessInterests: boolean;
@@ -57,6 +60,9 @@ interface AssetsData {
   vehiclesDetails: string;
   hasValuables: boolean;
   valuablesDetails: string;
+  hasSafeDepositBox: boolean;
+  safeDepositBoxLocation: string;
+  safeDepositBoxContents: string;
   hasOtherAssets: boolean;
   otherAssetsDetails: string;
 
@@ -85,6 +91,9 @@ const DEFAULT_DATA: AssetsData = {
   hasRetirementAccounts: false,
   retirementAccountsValue: "",
   retirementAccountTypes: [],
+  hasCryptocurrency: false,
+  cryptocurrencyDetails: "",
+  cryptocurrencyValue: "",
   hasBusinessInterests: false,
   businessDetails: "",
   businessValue: "",
@@ -95,6 +104,9 @@ const DEFAULT_DATA: AssetsData = {
   vehiclesDetails: "",
   hasValuables: false,
   valuablesDetails: "",
+  hasSafeDepositBox: false,
+  safeDepositBoxLocation: "",
+  safeDepositBoxContents: "",
   hasOtherAssets: false,
   otherAssetsDetails: "",
   hasSignificantDebts: false,
@@ -404,6 +416,36 @@ function AssetsFormContent() {
               </FormField>
             </div>
           )}
+
+          {/* Cryptocurrency */}
+          <Checkbox
+            checked={formData.hasCryptocurrency}
+            onChange={(v) => updateField("hasCryptocurrency", v)}
+            label="Cryptocurrency"
+            description="Bitcoin, Ethereum, and other digital assets"
+          />
+          {formData.hasCryptocurrency && (
+            <div className="ml-4 space-y-4">
+              <InfoBox type="tip">
+                Cryptocurrency requires special estate planning considerations. Make sure your executor knows how to access your digital wallets and private keys.
+              </InfoBox>
+              <FormField label="Types of cryptocurrency held">
+                <TextInput
+                  value={formData.cryptocurrencyDetails}
+                  onChange={(v) => updateField("cryptocurrencyDetails", v)}
+                  placeholder="e.g., Bitcoin, Ethereum, stored on Coinbase and Ledger hardware wallet"
+                />
+              </FormField>
+              <FormField label="Estimated Value">
+                <Select
+                  value={formData.cryptocurrencyValue}
+                  onChange={(v) => updateField("cryptocurrencyValue", v)}
+                  options={VALUE_RANGES}
+                  placeholder="Select range"
+                />
+              </FormField>
+            </div>
+          )}
         </FormSection>
 
         {/* Business Interests */}
@@ -700,6 +742,34 @@ function AssetsFormContent() {
                 placeholder="e.g., Engagement ring ($15k), Art collection ($50k)"
               />
             </FormField>
+          )}
+
+          <Checkbox
+            checked={formData.hasSafeDepositBox}
+            onChange={(v) => updateField("hasSafeDepositBox", v)}
+            label="Safe deposit box"
+            description="Bank safe deposit boxes containing important items or documents"
+          />
+          {formData.hasSafeDepositBox && (
+            <div className="ml-4 space-y-4">
+              <InfoBox type="info">
+                Make sure your executor or a trusted family member knows the location of your safe deposit box and has access authorization. Consider adding them as a co-renter.
+              </InfoBox>
+              <FormField label="Bank and branch location">
+                <TextInput
+                  value={formData.safeDepositBoxLocation}
+                  onChange={(v) => updateField("safeDepositBoxLocation", v)}
+                  placeholder="e.g., Chase Bank, Main Street Branch, Box #1234"
+                />
+              </FormField>
+              <FormField label="Contents (general description)">
+                <TextArea
+                  value={formData.safeDepositBoxContents}
+                  onChange={(v) => updateField("safeDepositBoxContents", v)}
+                  placeholder="e.g., Original will, property deeds, jewelry, gold coins, important documents"
+                />
+              </FormField>
+            </div>
           )}
 
           <Checkbox
