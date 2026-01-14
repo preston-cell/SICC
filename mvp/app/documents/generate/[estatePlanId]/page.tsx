@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams, useSearchParams } from "next/navigation";
-import { useQuery, useAction } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { Id } from "../../../../convex/_generated/dataModel";
 import Link from "next/link";
@@ -130,8 +130,11 @@ export default function DocumentGeneratePage() {
   // Fetch intake progress
   const intakeProgress = useQuery(api.queries.getIntakeProgress, { estatePlanId });
 
-  // Document generation action
-  const generateDocument = useAction(api.documentGeneration.generateDocument);
+  // Fetch full intake data for API call
+  const intakeData = useQuery(api.queries.getEstatePlanFull, { estatePlanId });
+
+  // Mutation to save generated document
+  const createDocument = useMutation(api.estatePlanning.createDocument);
 
   // Parse missing documents from gap analysis
   const missingDocTypes = new Set<string>();
@@ -144,7 +147,7 @@ export default function DocumentGeneratePage() {
     }
   }
 
-  // Handle document generation
+  // Handle document generation - calls API directly (bypasses Convex timeout)
   const handleGenerate = useCallback(async (docType: DocumentType) => {
     setGenerationState({
       isGenerating: true,
@@ -153,26 +156,55 @@ export default function DocumentGeneratePage() {
     });
 
     try {
-      const result = await generateDocument({
-        estatePlanId,
-        documentType: docType,
-        useAI,
+      // Build intake data object for the API
+      const apiIntakeData = {
+        personal: intakeData?.intake?.find((i: { section: string; data: string }) => i.section === "personal")?.data
+          ? JSON.parse(intakeData.intake.find((i: { section: string }) => i.section === "personal")?.data || "{}")
+          : {},
+        family: intakeData?.intake?.find((i: { section: string; data: string }) => i.section === "family")?.data
+          ? JSON.parse(intakeData.intake.find((i: { section: string }) => i.section === "family")?.data || "{}")
+          : {},
+        assets: intakeData?.intake?.find((i: { section: string; data: string }) => i.section === "assets")?.data
+          ? JSON.parse(intakeData.intake.find((i: { section: string }) => i.section === "assets")?.data || "{}")
+          : {},
+        goals: intakeData?.intake?.find((i: { section: string; data: string }) => i.section === "goals")?.data
+          ? JSON.parse(intakeData.intake.find((i: { section: string }) => i.section === "goals")?.data || "{}")
+          : {},
+      };
+
+      // Call the API route directly (bypasses Convex timeout issues)
+      const response = await fetch("/api/document-generation", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ documentType: docType, intakeData: apiIntakeData }),
       });
 
-      if (result.success && result.content) {
-        const docInfo = DOCUMENT_TYPES.find(d => d.type === docType);
-        setPreviewState({
-          isOpen: true,
-          title: docInfo?.name || "Generated Document",
-          content: result.content,
-          documentId: result.documentId || null,
-        });
-      } else {
+      const result = await response.json();
+
+      if (!result.success) {
         setGenerationState(prev => ({
           ...prev,
           error: result.error || "Failed to generate document",
         }));
+        return;
       }
+
+      // Save the document to Convex
+      const docInfo = DOCUMENT_TYPES.find(d => d.type === docType);
+      const documentId = await createDocument({
+        estatePlanId,
+        type: docType,
+        title: docInfo?.name || "Generated Document",
+        content: result.content,
+        format: "markdown",
+      });
+
+      setPreviewState({
+        isOpen: true,
+        title: docInfo?.name || "Generated Document",
+        content: result.content,
+        documentId: documentId || null,
+      });
     } catch (error) {
       setGenerationState(prev => ({
         ...prev,
@@ -185,7 +217,7 @@ export default function DocumentGeneratePage() {
         generatingType: null,
       }));
     }
-  }, [estatePlanId, generateDocument, useAI]);
+  }, [estatePlanId, intakeData, createDocument]);
 
   // Handle download
   const handleDownload = useCallback(() => {
