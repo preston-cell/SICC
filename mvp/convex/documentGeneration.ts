@@ -1,17 +1,19 @@
+"use node";
+
 /**
- * Document Generation Action
+ * Document Generation Action - Using Claude Code in E2B
  *
  * This action generates legal documents by:
  * 1. Fetching intake data from the database
- * 2. Transforming it into the format needed by document templates
- * 3. Optionally using Claude to enhance/customize the document
+ * 2. Calling the Next.js API route which runs Claude Code in E2B
+ * 3. Claude Code iterates and generates high-quality legal documents
  * 4. Saving the generated document to the database
  */
 
-import { action, internalMutation } from "./_generated/server";
+import { action } from "./_generated/server";
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
-import Anthropic from "@anthropic-ai/sdk";
+import { Id } from "./_generated/dataModel";
 
 // Document type validator
 const documentTypeValidator = v.union(
@@ -23,43 +25,6 @@ const documentTypeValidator = v.union(
   v.literal("hipaa"),
   v.literal("other")
 );
-
-// Internal mutation to save generated document
-export const saveGeneratedDocument = internalMutation({
-  args: {
-    estatePlanId: v.id("estatePlans"),
-    type: documentTypeValidator,
-    title: v.string(),
-    content: v.string(),
-    format: v.union(v.literal("markdown"), v.literal("html"), v.literal("pdf")),
-  },
-  handler: async (ctx, args) => {
-    const now = Date.now();
-
-    // Get the next version number for this document type
-    const existingDocs = await ctx.db
-      .query("documents")
-      .withIndex("by_type", (q) =>
-        q.eq("estatePlanId", args.estatePlanId).eq("type", args.type)
-      )
-      .collect();
-    const version = existingDocs.length + 1;
-
-    const docId = await ctx.db.insert("documents", {
-      estatePlanId: args.estatePlanId,
-      type: args.type,
-      title: args.title,
-      content: args.content,
-      format: args.format,
-      version,
-      status: "draft",
-      createdAt: now,
-      updatedAt: now,
-    });
-
-    return docId;
-  },
-});
 
 // Helper to parse intake data
 interface IntakeSection {
@@ -189,284 +154,200 @@ function parseIntakeData(intakeSections: IntakeSection[]): {
   return result;
 }
 
-// Transform intake data to will format
-function transformToWillData(intake: ReturnType<typeof parseIntakeData>) {
+// Document type display names
+const documentTitles: Record<string, string> = {
+  will: "Last Will and Testament",
+  trust: "Revocable Living Trust",
+  poa_financial: "Durable Power of Attorney for Finances",
+  poa_healthcare: "Healthcare Power of Attorney",
+  healthcare_directive: "Healthcare Directive (Living Will)",
+  hipaa: "HIPAA Authorization",
+};
+
+// Build Claude Code prompt for document generation
+function buildDocumentGenerationPrompt(
+  documentType: string,
+  intake: ReturnType<typeof parseIntakeData>
+): string {
   const { personal, family, assets, goals } = intake;
+  const state = personal.state || "California";
+  const fullName = `${personal.firstName || ""} ${personal.middleName || ""} ${personal.lastName || ""}`.trim() || "[Client Name]";
 
-  // Build children array
-  const children = family.children?.map((child) => ({
-    name: child.name,
-    birthDate: child.dateOfBirth,
-    isMinor: child.isMinor || false,
-    isDeceased: child.isDeceased || false,
-  })) || [];
+  const documentTypePrompts: Record<string, string> = {
+    will: `Generate a comprehensive Last Will and Testament for ${fullName}.
 
-  // Build specific bequests from assets
-  const specificBequests: Array<{
-    property: string;
-    beneficiary: string;
-    beneficiaryRelationship?: string;
-    alternateBeneficiary?: string;
-  }> = [];
+Requirements:
+- State: ${state}
+- Use proper legal language while keeping it readable
+- Include all standard sections:
+  * Declaration and revocation of prior wills
+  * Family status declaration
+  * Specific bequests (if any)
+  * Residuary estate distribution
+  * Executor appointment and powers
+  * Guardian nomination (if minor children)
+  * No-contest clause
+  * Signature and witness blocks
+- Include survivorship period (45 days recommended)
+- Make sure to reference all named parties correctly`,
 
-  // Add major assets as specific bequests if there's a specific distribution plan
-  if (goals.distributionPreference === "specific") {
-    // Real estate
-    assets.realEstate?.forEach((prop) => {
-      specificBequests.push({
-        property: prop.name || prop.description || "Real property",
-        beneficiary: family.primaryBeneficiary || "[Beneficiary]",
-        beneficiaryRelationship: family.primaryBeneficiaryRelationship,
-      });
-    });
-  }
+    trust: `Generate a comprehensive Revocable Living Trust for ${fullName}.
 
-  // Build pets array
-  const pets = goals.pets?.map((pet) => ({
-    name: pet.name,
-    type: pet.type,
-    caretaker: pet.caretaker || family.primaryBeneficiary || "[Caretaker]",
-  }));
+Requirements:
+- State: ${state}
+- Trust name: "The ${fullName} Revocable Living Trust"
+- Include all standard sections:
+  * Declaration and purpose
+  * Grantor and trustee appointments
+  * Trust property (Schedule A)
+  * Revocability provisions
+  * Incapacity provisions
+  * Distribution provisions
+  * Powers of trustee
+  * Successor trustee provisions
+  * Spendthrift clause
+  * Governing law
+  * Signature and notary blocks`,
 
-  return {
-    testatorFullName: `${personal.firstName || ""} ${personal.middleName || ""} ${personal.lastName || ""}`.trim() || "[Your Name]",
-    testatorAddress: personal.address || "[Address]",
-    testatorCity: personal.city || "[City]",
-    testatorState: personal.state || "California",
-    testatorCounty: personal.county || "[County]",
-    maritalStatus: (personal.maritalStatus as "single" | "married" | "divorced" | "widowed" | "domestic_partnership") || "single",
-    spouseName: personal.spouseName,
-    children,
-    pets,
-    specificBequests,
-    residuaryBeneficiary: family.primaryBeneficiary || "[Primary Beneficiary]",
-    residuaryBeneficiaryRelationship: family.primaryBeneficiaryRelationship,
-    alternateResiduaryBeneficiary: family.alternateBeneficiary,
-    alternateResiduaryBeneficiaryRelationship: family.alternateBeneficiaryRelationship,
-    executorName: family.executor || "[Executor Name]",
-    executorRelationship: family.executorRelationship,
-    alternateExecutorName: family.alternateExecutor,
-    alternateExecutorRelationship: family.alternateExecutorRelationship,
-    guardianName: family.guardian,
-    guardianRelationship: family.guardianRelationship,
-    alternateGuardianName: family.alternateGuardian,
-    includeNoContestClause: true,
-    survivorshipDays: 45,
+    poa_financial: `Generate a comprehensive Durable Power of Attorney for Finances for ${fullName}.
+
+Requirements:
+- State: ${state}
+- Make it "durable" (survives incapacity)
+- Include comprehensive powers:
+  * Real estate transactions
+  * Banking and financial institution access
+  * Investment management
+  * Tax matters
+  * Business operations
+  * Insurance matters
+  * Retirement accounts
+  * Gift-giving authority (with limits)
+- Include springing provisions (effective upon incapacity)
+- Signature and notary blocks`,
+
+    poa_healthcare: `Generate a comprehensive Healthcare Power of Attorney for ${fullName}.
+
+Requirements:
+- State: ${state}
+- Include all standard sections:
+  * Agent designation
+  * Powers granted (consent, refuse, withdraw treatment)
+  * Medical records access (HIPAA)
+  * Facility admission authority
+  * Organ donation preferences
+  * Agent succession
+  * Effective date provisions
+- Signature and witness blocks`,
+
+    healthcare_directive: `Generate a comprehensive Healthcare Directive (Living Will) for ${fullName}.
+
+Requirements:
+- State: ${state}
+- Include clear directives for:
+  * Terminal illness
+  * Permanent unconsciousness
+  * Advanced dementia/end-stage conditions
+- Cover specific treatments:
+  * CPR
+  * Mechanical ventilation
+  * Artificial nutrition/hydration
+  * Dialysis
+  * Antibiotics
+- Include comfort care preferences
+- Pain management preferences
+- Organ donation preferences
+- Signature and witness blocks`,
+
+    hipaa: `Generate a comprehensive HIPAA Authorization for ${fullName}.
+
+Requirements:
+- State: ${state}
+- Authorize release of all protected health information
+- Include mental health, HIV/AIDS, and substance abuse records
+- Designate healthcare agent as authorized recipient
+- Include purpose (healthcare decision-making)
+- No expiration unless revoked
+- Signature block`,
   };
+
+  return `You are an expert estate planning attorney assistant. Generate a high-quality legal document.
+
+=== CLIENT INFORMATION ===
+
+PERSONAL:
+- Full Name: ${fullName}
+- Address: ${personal.address || "[Address]"}, ${personal.city || "[City]"}, ${personal.state || "[State]"} ${personal.zipCode || "[ZIP]"}
+- County: ${personal.county || "[County]"}
+- Date of Birth: ${personal.dateOfBirth || "[DOB]"}
+- Marital Status: ${personal.maritalStatus || "single"}
+${personal.spouseName ? `- Spouse: ${personal.spouseName}` : ""}
+
+FAMILY:
+${family.children && family.children.length > 0
+  ? `- Children: ${family.children.map(c => `${c.name}${c.isMinor ? " (minor)" : ""}`).join(", ")}`
+  : "- No children"}
+- Primary Beneficiary: ${family.primaryBeneficiary || "[Not specified]"} (${family.primaryBeneficiaryRelationship || "relationship"})
+- Alternate Beneficiary: ${family.alternateBeneficiary || "[Not specified]"}
+- Executor: ${family.executor || "[Not specified]"} (${family.executorRelationship || "relationship"})
+- Alternate Executor: ${family.alternateExecutor || "[Not specified]"}
+${family.guardian ? `- Guardian for minors: ${family.guardian}` : ""}
+- Healthcare Agent: ${family.healthcareAgent || "[Not specified]"}
+- Financial Agent: ${family.financialAgent || "[Not specified]"}
+
+ASSETS:
+${assets.estimatedTotalValue ? `- Estimated Total Value: $${assets.estimatedTotalValue.toLocaleString()}` : ""}
+${assets.realEstate && assets.realEstate.length > 0 ? `- Real Estate: ${assets.realEstate.length} properties` : ""}
+${assets.bankAccounts && assets.bankAccounts.length > 0 ? `- Bank Accounts: ${assets.bankAccounts.length} accounts` : ""}
+${assets.investments && assets.investments.length > 0 ? `- Investments: ${assets.investments.length} accounts` : ""}
+${assets.retirementAccounts && assets.retirementAccounts.length > 0 ? `- Retirement: ${assets.retirementAccounts.length} accounts` : ""}
+${assets.lifeInsurance && assets.lifeInsurance.length > 0 ? `- Life Insurance: ${assets.lifeInsurance.length} policies` : ""}
+${assets.businessInterests && assets.businessInterests.length > 0 ? `- Business Interests: ${assets.businessInterests.length}` : ""}
+
+GOALS:
+- Primary Goal: ${goals.primaryGoal || "Not specified"}
+- Distribution Preference: ${goals.distributionPreference || "Not specified"}
+${goals.charitableGiving ? `- Charitable Giving: Yes` : ""}
+${goals.specialInstructions ? `- Special Instructions: ${goals.specialInstructions}` : ""}
+${goals.endOfLifeWishes ? `- End-of-Life Wishes: ${goals.endOfLifeWishes}` : ""}
+${goals.organDonation ? `- Organ Donation: ${goals.organDonation}` : ""}
+
+=== DOCUMENT REQUEST ===
+
+${documentTypePrompts[documentType] || documentTypePrompts.will}
+
+=== OUTPUT REQUIREMENTS ===
+
+1. Generate the complete document in Markdown format
+2. Include a prominent DRAFT disclaimer at the top
+3. Use proper legal language appropriate for ${state}
+4. Include all necessary signature blocks, witness lines, and notary acknowledgments
+5. Fill in all available information from above; use [PLACEHOLDER] for missing required info
+6. Save the document to: /home/user/generated/${documentType}.md
+
+Generate the document now.`;
 }
 
-// Transform intake data to trust format
-function transformToTrustData(intake: ReturnType<typeof parseIntakeData>) {
-  const { personal, family, assets } = intake;
-
-  const fullName = `${personal.firstName || ""} ${personal.middleName || ""} ${personal.lastName || ""}`.trim() || "[Your Name]";
-
-  // Build trust property from assets
-  const trustProperty: Array<{
-    description: string;
-    type: "real_estate" | "bank_account" | "investment" | "vehicle" | "business" | "personal_property" | "other";
-    estimatedValue?: number;
-  }> = [];
-
-  assets.realEstate?.forEach((prop) => {
-    trustProperty.push({
-      description: prop.name || prop.description || "Real property",
-      type: "real_estate",
-      estimatedValue: prop.value,
-    });
-  });
-
-  assets.bankAccounts?.forEach((acc) => {
-    trustProperty.push({
-      description: acc.name || acc.description || "Bank account",
-      type: "bank_account",
-      estimatedValue: acc.value,
-    });
-  });
-
-  assets.investments?.forEach((inv) => {
-    trustProperty.push({
-      description: inv.name || inv.description || "Investment account",
-      type: "investment",
-      estimatedValue: inv.value,
-    });
-  });
-
-  // Build beneficiaries
-  const beneficiaries: Array<{
-    name: string;
-    relationship?: string;
-    propertyDescription: string;
-  }> = [];
-
-  if (family.primaryBeneficiary) {
-    beneficiaries.push({
-      name: family.primaryBeneficiary,
-      relationship: family.primaryBeneficiaryRelationship,
-      propertyDescription: "Residuary trust property",
-    });
-  }
-
-  return {
-    trustName: `The ${fullName} Revocable Living Trust`,
-    trustType: personal.maritalStatus === "married" ? "shared" as const : "individual" as const,
-    grantorFullName: fullName,
-    grantorAddress: personal.address || "[Address]",
-    grantorCity: personal.city || "[City]",
-    grantorState: personal.state || "California",
-    grantorCounty: personal.county || "[County]",
-    coGrantorFullName: personal.maritalStatus === "married" ? personal.spouseName : undefined,
-    initialTrusteeName: fullName,
-    initialTrusteeIsSameAsGrantor: true,
-    successorTrusteeName: family.trustee || family.executor || "[Successor Trustee]",
-    successorTrusteeRelationship: family.executorRelationship,
-    incapacityDeterminer: "physician" as const,
-    trustProperty,
-    beneficiaries,
-    residuaryBeneficiary: family.primaryBeneficiary || "[Primary Beneficiary]",
-    residuaryBeneficiaryRelationship: family.primaryBeneficiaryRelationship,
-    alternateResiduaryBeneficiary: family.alternateBeneficiary,
-    survivorshipDays: 5,
-    includeSpendthriftProvision: true,
-    governingLaw: personal.state || "California",
-  };
-}
-
-// Transform intake data to financial POA format
-function transformToFinancialPOAData(intake: ReturnType<typeof parseIntakeData>) {
-  const { personal, family } = intake;
-
-  const fullName = `${personal.firstName || ""} ${personal.middleName || ""} ${personal.lastName || ""}`.trim() || "[Your Name]";
-
-  return {
-    principalFullName: fullName,
-    principalAddress: personal.address || "[Address]",
-    principalCity: personal.city || "[City]",
-    principalState: personal.state || "California",
-    principalCounty: personal.county || "[County]",
-    agentName: family.financialAgent || family.executor || "[Agent Name]",
-    agentRelationship: family.financialAgentRelationship || family.executorRelationship,
-    alternateAgentName: family.alternateFinancialAgent || family.alternateExecutor,
-    effectiveImmediately: false,
-    springingPOA: true,
-    powers: {
-      realEstate: true,
-      financialInstitutions: true,
-      stocks: true,
-      bonds: true,
-      commodities: true,
-      tangiblePersonalProperty: true,
-      safeDepositBoxes: true,
-      insurance: true,
-      retirement: true,
-      taxes: true,
-      gifts: true,
-      trusts: true,
-      businessOperations: true,
-      claims: true,
-      government: true,
-      allPowers: true,
-    },
-    allowGifts: true,
-    giftLimitPerPerson: 17000, // Annual gift tax exclusion
-    giftLimitPerYear: 50000,
-    allowGiftsToAgent: false,
-    agentCompensation: "reasonable" as const,
-  };
-}
-
-// Transform intake data to healthcare POA format
-function transformToHealthcarePOAData(intake: ReturnType<typeof parseIntakeData>) {
-  const { personal, family, goals } = intake;
-
-  const fullName = `${personal.firstName || ""} ${personal.middleName || ""} ${personal.lastName || ""}`.trim() || "[Your Name]";
-
-  return {
-    principalFullName: fullName,
-    principalAddress: personal.address || "[Address]",
-    principalCity: personal.city || "[City]",
-    principalState: personal.state || "California",
-    principalCounty: personal.county || "[County]",
-    principalDateOfBirth: personal.dateOfBirth,
-    agentName: family.healthcareAgent || "[Healthcare Agent]",
-    agentRelationship: family.healthcareAgentRelationship,
-    alternateAgentName: family.alternateHealthcareAgent,
-    authorityStartsUpon: "incapacity" as const,
-    powers: {
-      consentToTreatment: true,
-      refuseTreatment: true,
-      withdrawTreatment: true,
-      accessMedicalRecords: true,
-      hireDischargeMedicalPersonnel: true,
-      admitToFacilities: true,
-      organDonation: goals.organDonation !== "no",
-      autopsy: true,
-      dispositionOfRemains: true,
-    },
-    lifeSustainingTreatment: "agent_decides" as const,
-    artificialNutrition: "agent_decides" as const,
-    organDonationPreference: (goals.organDonation === "yes" ? "yes" : goals.organDonation === "no" ? "no" : "agent_decides") as "yes" | "no" | "agent_decides",
-    painManagement: "balanced" as const,
-  };
-}
-
-// Transform intake data to healthcare directive format
-function transformToHealthcareDirectiveData(intake: ReturnType<typeof parseIntakeData>) {
-  const { personal, goals } = intake;
-
-  const fullName = `${personal.firstName || ""} ${personal.middleName || ""} ${personal.lastName || ""}`.trim() || "[Your Name]";
-
-  return {
-    principalFullName: fullName,
-    principalAddress: personal.address || "[Address]",
-    principalCity: personal.city || "[City]",
-    principalState: personal.state || "California",
-    principalCounty: personal.county || "[County]",
-    principalDateOfBirth: personal.dateOfBirth,
-    conditions: {
-      terminalIllness: true,
-      permanentUnconsciousness: true,
-      advancedDementia: true,
-      endStageCondition: true,
-    },
-    lifeSustainingTreatment: {
-      cardiopulmonaryResuscitation: "trial" as const,
-      mechanicalVentilation: "trial" as const,
-      artificialNutrition: "trial" as const,
-      artificialHydration: "yes" as const,
-      dialysis: "trial" as const,
-      antibiotics: "yes" as const,
-      bloodTransfusions: "yes" as const,
-    },
-    comfortCare: {
-      painMedication: true,
-      hospiceCare: true,
-      spiritualCare: true,
-      familyPresence: true,
-      musicOrReadings: true,
-    },
-    painManagement: "maximum_comfort" as const,
-    careLocation: "home" as const,
-    organDonation: (goals.organDonation === "yes" ? "full" : goals.organDonation === "no" ? "none" : "full") as "full" | "limited" | "none" | "research_only",
-    allowAutopsy: "if_required" as const,
-    bodyDisposition: (goals.funeralPreferences?.includes("cremat") ? "cremation" : "burial") as "burial" | "cremation" | "donation_to_science" | "agent_decides",
-    additionalInstructions: goals.endOfLifeWishes,
-  };
-}
-
-// Main document generation action
+// Main document generation action using Claude Code in E2B via API route
 export const generateDocument = action({
   args: {
     estatePlanId: v.id("estatePlans"),
     documentType: documentTypeValidator,
-    useAI: v.optional(v.boolean()),
+    useAI: v.optional(v.boolean()), // kept for API compatibility, always uses Claude Code now
   },
   handler: async (ctx, args): Promise<{
     success: boolean;
     documentId?: string;
     content?: string;
     error?: string;
+    runId?: string;
   }> => {
+    // Create run record
+    const runId: Id<"agentRuns"> = await ctx.runMutation(
+      internal.mutations.createRun,
+      { prompt: `Generate ${args.documentType} document for estate plan ${args.estatePlanId}` }
+    );
+
     try {
       // Fetch intake data
       const intakeSections = await ctx.runQuery(
@@ -475,6 +356,11 @@ export const generateDocument = action({
       );
 
       if (!intakeSections || intakeSections.length === 0) {
+        await ctx.runMutation(internal.mutations.updateRun, {
+          runId,
+          status: "failed",
+          error: "No intake data found",
+        });
         return {
           success: false,
           error: "No intake data found. Please complete the intake questionnaire first.",
@@ -484,470 +370,104 @@ export const generateDocument = action({
       // Parse intake data
       const intake = parseIntakeData(intakeSections as IntakeSection[]);
 
-      // Import and generate document based on type
-      let content: string;
-      let title: string;
+      // Update status to running
+      await ctx.runMutation(internal.mutations.updateRun, {
+        runId,
+        status: "running",
+      });
 
-      // Dynamic import of templates (these are Node.js modules)
-      // Note: In a real implementation, you'd import these at the top
-      // For now, we'll generate the content inline based on the type
+      // Build the prompt for Claude Code
+      const prompt = buildDocumentGenerationPrompt(args.documentType, intake);
 
-      switch (args.documentType) {
-        case "will": {
-          const willData = transformToWillData(intake);
-          // We'll call Claude to generate the will if useAI is true
-          if (args.useAI) {
-            content = await generateWithClaude(args.documentType, willData, intake);
-          } else {
-            // Use template directly - in production, import the actual template
-            content = generateWillContent(willData);
-          }
-          title = "Last Will and Testament";
-          break;
-        }
+      // Call the Next.js API route for E2B execution
+      const apiUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+      const response = await fetch(`${apiUrl}/api/e2b/execute`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          prompt,
+          outputFile: `${args.documentType}.md`,
+          timeoutMs: 240000,
+        }),
+      });
 
-        case "trust": {
-          const trustData = transformToTrustData(intake);
-          if (args.useAI) {
-            content = await generateWithClaude(args.documentType, trustData, intake);
-          } else {
-            content = generateTrustContent(trustData);
-          }
-          title = "Revocable Living Trust";
-          break;
-        }
-
-        case "poa_financial": {
-          const poaData = transformToFinancialPOAData(intake);
-          if (args.useAI) {
-            content = await generateWithClaude(args.documentType, poaData, intake);
-          } else {
-            content = generateFinancialPOAContent(poaData);
-          }
-          title = "Durable Power of Attorney for Finances";
-          break;
-        }
-
-        case "poa_healthcare": {
-          const hcPoaData = transformToHealthcarePOAData(intake);
-          if (args.useAI) {
-            content = await generateWithClaude(args.documentType, hcPoaData, intake);
-          } else {
-            content = generateHealthcarePOAContent(hcPoaData);
-          }
-          title = "Healthcare Power of Attorney";
-          break;
-        }
-
-        case "healthcare_directive": {
-          const directiveData = transformToHealthcareDirectiveData(intake);
-          if (args.useAI) {
-            content = await generateWithClaude(args.documentType, directiveData, intake);
-          } else {
-            content = generateHealthcareDirectiveContent(directiveData);
-          }
-          title = "Healthcare Directive (Living Will)";
-          break;
-        }
-
-        case "hipaa": {
-          content = generateHIPAAContent(intake);
-          title = "HIPAA Authorization";
-          break;
-        }
-
-        default:
-          return {
-            success: false,
-            error: `Document type '${args.documentType}' is not yet supported.`,
-          };
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`API call failed: ${response.status} ${errorText}`);
       }
 
-      // Save the document
-      const documentId = await ctx.runMutation(internal.documentGeneration.saveGeneratedDocument, {
-        estatePlanId: args.estatePlanId,
-        type: args.documentType,
-        title,
-        content,
-        format: "markdown",
+      const result = await response.json();
+
+      if (!result.success) {
+        throw new Error(result.error || "E2B execution failed");
+      }
+
+      const output = `STDOUT:\n${result.stdout}\n\nSTDERR:\n${result.stderr || "(none)"}`;
+
+      // Get content from file or parse from stdout
+      let content = result.fileContent || "";
+
+      if (!content || content.trim().length < 100) {
+        // Try to extract content from stdout
+        const markdownMatch = result.stdout?.match(/```markdown\n([\s\S]*?)\n```/);
+        if (markdownMatch) {
+          content = markdownMatch[1];
+        } else {
+          // Look for content after "# " (markdown header)
+          const headerMatch = result.stdout?.match(/(# [A-Z][\s\S]*)/);
+          if (headerMatch) {
+            content = headerMatch[1];
+          }
+        }
+      }
+
+      if (!content || content.trim().length < 100) {
+        throw new Error("Claude Code did not generate sufficient document content");
+      }
+
+      // Save the document to the database
+      const documentId = await ctx.runMutation(
+        internal.documentGenerationMutations.saveGeneratedDocument,
+        {
+          estatePlanId: args.estatePlanId,
+          type: args.documentType,
+          title: documentTitles[args.documentType] || "Legal Document",
+          content,
+          format: "markdown",
+        }
+      );
+
+      // Update run as completed
+      await ctx.runMutation(internal.mutations.updateRun, {
+        runId,
+        status: "completed",
+        output,
       });
 
       return {
         success: true,
         documentId: documentId as string,
         content,
+        runId: runId as string,
       };
-    } catch (error) {
-      console.error("Document generation error:", error);
+    } catch (err: unknown) {
+      const error = err as Error & { stdout?: string; stderr?: string };
+      const errorOutput = `Error: ${error.message}\nStdout: ${error.stdout || ""}\nStderr: ${error.stderr || ""}`;
+
+      await ctx.runMutation(internal.mutations.updateRun, {
+        runId,
+        status: "failed",
+        output: errorOutput,
+        error: error.message,
+      });
+
       return {
         success: false,
-        error: error instanceof Error ? error.message : "Failed to generate document",
+        error: error.message,
+        runId: runId as string,
       };
     }
   },
 });
-
-// Claude-enhanced generation
-async function generateWithClaude(
-  documentType: string,
-  templateData: Record<string, unknown>,
-  intake: ReturnType<typeof parseIntakeData>
-): Promise<string> {
-  const anthropic = new Anthropic();
-
-  const prompts: Record<string, string> = {
-    will: `Generate a comprehensive Last Will and Testament based on the following information.
-Use proper legal language while keeping it readable. Include all standard sections (declaration,
-revocation, family status, property distribution, executor appointment, powers, and signature blocks).
-
-User Information:
-${JSON.stringify(templateData, null, 2)}
-
-State: ${intake.personal.state || "California"}
-
-Important:
-- Include a prominent disclaimer that this is a draft for review
-- Use clear, unambiguous language
-- Include all necessary legal clauses (survivorship, severability, no-contest if applicable)
-- Format in markdown with clear section headers`,
-
-    trust: `Generate a comprehensive Revocable Living Trust document based on the following information.
-Include all standard sections (declaration, trustees, powers, incapacity provisions, distribution,
-and execution blocks).
-
-User Information:
-${JSON.stringify(templateData, null, 2)}
-
-State: ${intake.personal.state || "California"}
-
-Important:
-- Include a prominent disclaimer that this is a draft for review
-- Include Schedule A for trust property
-- Include provisions for incapacity management
-- Format in markdown with clear section headers`,
-
-    poa_financial: `Generate a comprehensive Durable Power of Attorney for Finances based on the following information.
-Include all standard sections (designation, powers, limitations, duties, and signature blocks).
-
-User Information:
-${JSON.stringify(templateData, null, 2)}
-
-State: ${intake.personal.state || "California"}
-
-Important:
-- Include a prominent disclaimer that this is a draft for review
-- Make it a "durable" power of attorney that survives incapacity
-- Include comprehensive powers listing
-- Format in markdown with clear section headers`,
-
-    poa_healthcare: `Generate a comprehensive Healthcare Power of Attorney based on the following information.
-Include sections for agent designation, authority, and medical decision-making preferences.
-
-User Information:
-${JSON.stringify(templateData, null, 2)}
-
-State: ${intake.personal.state || "California"}
-
-Important:
-- Include a prominent disclaimer that this is a draft for review
-- Include HIPAA authorization language
-- Format in markdown with clear section headers`,
-
-    healthcare_directive: `Generate a comprehensive Healthcare Directive (Living Will) based on the following information.
-Include sections for treatment preferences, comfort care, and end-of-life wishes.
-
-User Information:
-${JSON.stringify(templateData, null, 2)}
-
-State: ${intake.personal.state || "California"}
-
-Important:
-- Include a prominent disclaimer that this is a draft for review
-- Include clear treatment choice tables
-- Format in markdown with clear section headers`,
-  };
-
-  const message = await anthropic.messages.create({
-    model: "claude-sonnet-4-20250514",
-    max_tokens: 8000,
-    messages: [
-      {
-        role: "user",
-        content: prompts[documentType] || prompts.will,
-      },
-    ],
-  });
-
-  const textContent = message.content.find((block) => block.type === "text");
-  return textContent ? textContent.text : "Error generating document";
-}
-
-// Fallback content generators (simplified versions)
-function generateWillContent(data: ReturnType<typeof transformToWillData>): string {
-  return `
-# LAST WILL AND TESTAMENT
-
-## OF ${data.testatorFullName.toUpperCase()}
-
----
-
-**IMPORTANT NOTICE:** This document is a DRAFT for review purposes only.
-
----
-
-## PART 1: DECLARATION
-
-I, **${data.testatorFullName}**, a resident of ${data.testatorCity}, ${data.testatorCounty} County, ${data.testatorState}, being of sound mind, declare this to be my Last Will and Testament.
-
-## PART 2: REVOCATION
-
-I revoke all previous wills and codicils.
-
-## PART 3: FAMILY
-
-Marital Status: ${data.maritalStatus}
-${data.spouseName ? `Spouse: ${data.spouseName}` : ""}
-${data.children.length > 0 ? `Children: ${data.children.map(c => c.name).join(", ")}` : "No children"}
-
-## PART 4: RESIDUARY ESTATE
-
-I give all remaining property to **${data.residuaryBeneficiary}** (${data.residuaryBeneficiaryRelationship || "beneficiary"}).
-
-## PART 5: EXECUTOR
-
-I appoint **${data.executorName}** as Executor.
-${data.alternateExecutorName ? `Alternate: ${data.alternateExecutorName}` : ""}
-
-## SIGNATURE
-
-Date: ____________________
-
-_______________________________
-${data.testatorFullName}
-
-## WITNESSES
-
-Witness 1: _______________________ Date: ________
-Witness 2: _______________________ Date: ________
-`;
-}
-
-function generateTrustContent(data: ReturnType<typeof transformToTrustData>): string {
-  return `
-# REVOCABLE LIVING TRUST
-
-## ${data.trustName.toUpperCase()}
-
----
-
-**IMPORTANT NOTICE:** This document is a DRAFT for review purposes only.
-
----
-
-## DECLARATION
-
-I, **${data.grantorFullName}**, create this revocable living trust.
-
-## TRUSTEE
-
-Initial Trustee: ${data.grantorFullName}
-Successor Trustee: ${data.successorTrusteeName}
-
-## BENEFICIARIES
-
-Residuary Beneficiary: ${data.residuaryBeneficiary}
-
-## SCHEDULE A: TRUST PROPERTY
-
-${data.trustProperty.map((p, i) => `${i + 1}. ${p.description} (${p.type})`).join("\n")}
-
-## SIGNATURE
-
-Date: ____________________
-
-_______________________________
-${data.grantorFullName}, Grantor
-
-[NOTARY ACKNOWLEDGMENT]
-`;
-}
-
-function generateFinancialPOAContent(data: ReturnType<typeof transformToFinancialPOAData>): string {
-  return `
-# DURABLE POWER OF ATTORNEY FOR FINANCES
-
----
-
-**IMPORTANT NOTICE:** This document is a DRAFT for review purposes only.
-
----
-
-## PRINCIPAL
-
-I, **${data.principalFullName}**, appoint:
-
-## AGENT
-
-**${data.agentName}**${data.agentRelationship ? ` (${data.agentRelationship})` : ""}
-
-## POWERS GRANTED
-
-${data.powers.allPowers ? "All financial powers are granted." : "Specific powers as marked."}
-
-## EFFECTIVE DATE
-
-${data.springingPOA ? "This POA becomes effective upon my incapacity." : "This POA is effective immediately."}
-
-## SIGNATURE
-
-Date: ____________________
-
-_______________________________
-${data.principalFullName}
-
-[NOTARY ACKNOWLEDGMENT]
-`;
-}
-
-function generateHealthcarePOAContent(data: ReturnType<typeof transformToHealthcarePOAData>): string {
-  return `
-# HEALTHCARE POWER OF ATTORNEY
-
----
-
-**IMPORTANT NOTICE:** This document is a DRAFT for review purposes only.
-
----
-
-## PRINCIPAL
-
-I, **${data.principalFullName}**, designate:
-
-## HEALTHCARE AGENT
-
-**${data.agentName}**${data.agentRelationship ? ` (${data.agentRelationship})` : ""}
-
-## AUTHORITY
-
-My agent may make all healthcare decisions for me when I cannot make them myself.
-
-## SIGNATURE
-
-Date: ____________________
-
-_______________________________
-${data.principalFullName}
-
-## WITNESSES
-
-Witness 1: _______________________ Date: ________
-Witness 2: _______________________ Date: ________
-`;
-}
-
-function generateHealthcareDirectiveContent(data: ReturnType<typeof transformToHealthcareDirectiveData>): string {
-  return `
-# HEALTHCARE DIRECTIVE (LIVING WILL)
-
----
-
-**IMPORTANT NOTICE:** This document is a DRAFT for review purposes only.
-
----
-
-## DECLARATION
-
-I, **${data.principalFullName}**, make this directive about my healthcare.
-
-## CONDITIONS
-
-This directive applies when I have a terminal illness or am permanently unconscious.
-
-## TREATMENT PREFERENCES
-
-- CPR: ${data.lifeSustainingTreatment.cardiopulmonaryResuscitation}
-- Mechanical Ventilation: ${data.lifeSustainingTreatment.mechanicalVentilation}
-- Artificial Nutrition: ${data.lifeSustainingTreatment.artificialNutrition}
-
-## COMFORT CARE
-
-I always want comfort care to relieve pain and suffering.
-
-## ORGAN DONATION
-
-Preference: ${data.organDonation}
-
-## SIGNATURE
-
-Date: ____________________
-
-_______________________________
-${data.principalFullName}
-
-## WITNESSES
-
-Witness 1: _______________________ Date: ________
-Witness 2: _______________________ Date: ________
-`;
-}
-
-function generateHIPAAContent(intake: ReturnType<typeof parseIntakeData>): string {
-  const fullName = `${intake.personal.firstName || ""} ${intake.personal.lastName || ""}`.trim() || "[Your Name]";
-  const agent = intake.family.healthcareAgent || "[Healthcare Agent]";
-
-  return `
-# HIPAA AUTHORIZATION
-
-## Authorization for Release of Health Information
-
----
-
-**IMPORTANT NOTICE:** This document is a DRAFT for review purposes only.
-
----
-
-## PATIENT INFORMATION
-
-Name: **${fullName}**
-Date of Birth: ${intake.personal.dateOfBirth || "[DOB]"}
-Address: ${intake.personal.address || "[Address]"}, ${intake.personal.city || "[City]"}, ${intake.personal.state || "[State]"}
-
-## AUTHORIZED PERSON
-
-I authorize my healthcare providers to release my protected health information to:
-
-**${agent}**
-
-## SCOPE OF AUTHORIZATION
-
-This authorization covers all of my medical records, including but not limited to:
-- Medical history and physical examinations
-- Test results and diagnostic imaging
-- Treatment plans and progress notes
-- Mental health records
-- HIV/AIDS-related information
-- Substance abuse treatment records
-
-## PURPOSE
-
-This information may be used for healthcare decision-making and coordination of care.
-
-## EXPIRATION
-
-This authorization does not expire unless revoked in writing.
-
-## SIGNATURE
-
-Date: ____________________
-
-_______________________________
-${fullName}
-
----
-
-**Note:** You have the right to revoke this authorization at any time by providing written notice to your healthcare providers.
-`;
-}
-
-// Internal query for intake data
-// This needs to be added to queries.ts as an internal query

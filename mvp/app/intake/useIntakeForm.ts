@@ -39,6 +39,16 @@ interface ExtractedDataRecord {
   status: string;
 }
 
+// Helper to get current year for dynamic placeholders
+export function getCurrentYear(): number {
+  return new Date().getFullYear();
+}
+
+// Helper to get example year (current year - 1 for "recent" examples)
+export function getExampleYear(): string {
+  return String(new Date().getFullYear() - 1);
+}
+
 export function useIntakeForm<T extends object>(
   step: IntakeStep,
   defaultData: T
@@ -377,3 +387,30 @@ export const US_STATES = [
   { value: "WY", label: "Wyoming" },
   { value: "DC", label: "District of Columbia" },
 ];
+
+// Hook to fetch data from another intake section
+export function useOtherSectionData<T>(
+  estatePlanId: string | null,
+  section: Section
+): { data: T | null; isLoading: boolean } {
+  const sectionData = useQuery(
+    api.queries.getIntakeSection,
+    estatePlanId
+      ? { estatePlanId: estatePlanId as Id<"estatePlans">, section }
+      : "skip"
+  );
+
+  if (sectionData === undefined) {
+    return { data: null, isLoading: true };
+  }
+
+  if (!sectionData?.data) {
+    return { data: null, isLoading: false };
+  }
+
+  try {
+    return { data: JSON.parse(sectionData.data) as T, isLoading: false };
+  } catch {
+    return { data: null, isLoading: false };
+  }
+}

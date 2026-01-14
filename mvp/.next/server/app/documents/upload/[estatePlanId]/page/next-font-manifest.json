@@ -1,0 +1,12 @@
+{
+  "pages": {},
+  "app": {
+    "[project]/app/documents/upload/[estatePlanId]/page": [
+      "static/media/fba5a26ea33df6a3-s.p.1bbdebe6.woff2",
+      "static/media/99e609270109b47d-s.p.64b9304e.woff2",
+      "static/media/effe91970fc4db64-s.p.19510058.woff2"
+    ]
+  },
+  "appUsingSizeAdjust": true,
+  "pagesUsingSizeAdjust": false
+}
