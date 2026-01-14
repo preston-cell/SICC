@@ -1,4 +1,5 @@
 # EstateAI: AI-Powered Estate Planning Assistant
+<!-- Last updated: 2026-01-09 -->
 
 > **Draft Documents Only** - This tool generates draft legal documents for informational purposes only. All generated documents should be reviewed by a licensed attorney before use. This is not a substitute for professional legal advice.
 
