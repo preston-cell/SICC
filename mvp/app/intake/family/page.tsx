@@ -289,7 +289,7 @@ function FamilyFormContent() {
             <div className="mt-4 space-y-4">
               {formData.children.map((child, index) => (
                 <div
-                  key={child.id}
+                  key={child.id || `child-${index}`}
                   className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg space-y-4"
                 >
                   <div className="flex items-center justify-between">
