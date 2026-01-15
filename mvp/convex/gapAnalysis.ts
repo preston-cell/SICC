@@ -127,21 +127,23 @@ export const runGapAnalysis = action({
         estatePlanId,
         runId,
         score: analysisResult.score || 50,
-        estateComplexity: analysisResult.estateComplexity || undefined,
-        estimatedEstateTax: analysisResult.estimatedEstateTax
-          ? JSON.stringify(analysisResult.estimatedEstateTax)
+        estateComplexity: analysisResult.estateComplexity
+          ? JSON.stringify(analysisResult.estateComplexity)
+          : undefined,
+        estimatedEstateTax: (analysisResult.estimatedEstateTax || analysisResult.financialExposure?.estimatedEstateTax)
+          ? JSON.stringify(analysisResult.estimatedEstateTax || analysisResult.financialExposure?.estimatedEstateTax)
           : undefined,
         missingDocuments: JSON.stringify(analysisResult.missingDocuments || []),
         outdatedDocuments: JSON.stringify(analysisResult.outdatedDocuments || []),
         inconsistencies: JSON.stringify(analysisResult.inconsistencies || []),
-        taxOptimization: analysisResult.taxOptimization
-          ? JSON.stringify(analysisResult.taxOptimization)
+        taxOptimization: (analysisResult.taxOptimization || analysisResult.taxStrategies)
+          ? JSON.stringify(analysisResult.taxOptimization || analysisResult.taxStrategies)
           : undefined,
         medicaidPlanning: analysisResult.medicaidPlanning
           ? JSON.stringify(analysisResult.medicaidPlanning)
           : undefined,
-        recommendations: JSON.stringify(analysisResult.recommendations || []),
-        stateSpecificNotes: JSON.stringify(analysisResult.stateSpecificNotes || []),
+        recommendations: JSON.stringify(analysisResult.recommendations || analysisResult.prioritizedRecommendations || []),
+        stateSpecificNotes: JSON.stringify(analysisResult.stateSpecificNotes || analysisResult.stateSpecificConsiderations || []),
         rawAnalysis: analysisResult.rawAnalysis || output,
       });
 
