@@ -127,6 +127,8 @@ export default defineSchema({
     estateComplexity: v.optional(v.string()),
     // Estimated estate tax (JSON object with state, federal, notes)
     estimatedEstateTax: v.optional(v.string()),
+    // JSON array of common issues found
+    commonIssues: v.optional(v.string()),
     // JSON array of missing documents
     missingDocuments: v.string(),
     // JSON array of outdated documents
