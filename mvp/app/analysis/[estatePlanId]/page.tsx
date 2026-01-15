@@ -12,32 +12,64 @@ import Button from "../../components/ui/Button";
 import GapAnalysisCard, { ScoreRing, DOCUMENT_TYPE_NAMES } from "../../components/GapAnalysisCard";
 
 interface MissingDocument {
-  type: string;
-  priority: "high" | "medium" | "low";
-  reason: string;
+  // New API fields
+  document?: string;
+  priority?: "critical" | "high" | "medium" | "low";
+  urgency?: string;
+  reason?: string;
+  consequences?: string;
+  estimatedCostToCreate?: { low: number; high: number };
+  stateRequirements?: string;
+  // Legacy fields for backward compatibility
+  type?: string;
 }
 
 interface OutdatedDocument {
-  type: string;
-  issue: string;
-  recommendation: string;
+  document?: string;
+  type?: string;
+  issue?: string;
+  risk?: string;
+  recommendation?: string;
+  lastUpdated?: string;
+  yearsOld?: number;
+  estimatedUpdateCost?: { low: number; high: number };
 }
 
 interface Inconsistency {
-  issue: string;
-  details: string;
-  recommendation: string;
+  type?: string;
+  severity?: "critical" | "high" | "medium" | "low";
+  issue?: string;
+  details?: string;
+  potentialConsequence?: string;
+  resolution?: string;
+  recommendation?: string;
+  estimatedResolutionCost?: { low: number; high: number };
 }
 
 interface Recommendation {
-  action: string;
-  priority: "high" | "medium" | "low";
-  reason: string;
+  rank?: number;
+  action?: string;
+  category?: string;
+  priority?: "critical" | "high" | "medium" | "low";
+  timeline?: string;
+  estimatedCost?: { low: number; high: number };
+  estimatedBenefit?: string;
+  detailedSteps?: string[];
+  professionalNeeded?: string;
+  riskOfDelay?: string;
+  // Legacy fields
+  reason?: string;
 }
 
 interface StateNote {
-  note: string;
-  relevance: string;
+  topic?: string;
+  rule?: string;
+  impact?: string;
+  action?: string;
+  citation?: string;
+  // Legacy fields
+  note?: string;
+  relevance?: string;
 }
 
 // Score interpretation helper
@@ -99,15 +131,28 @@ export default function AnalysisPage() {
 
     try {
       // Build intake data object for the API
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const rawIntakeData = intakeData as any;
+      console.log("Raw intakeData from Convex:", rawIntakeData);
+
+      const intakeArray = rawIntakeData?.intakeData || rawIntakeData?.intake || [];
+      console.log("Intake array:", intakeArray);
+      console.log("Available sections:", intakeArray.map?.((i: { section: string }) => i.section) || "none");
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const beneficiaries = rawIntakeData?.beneficiaryDesignations || [];
+
       const apiIntakeData = {
         estatePlan: { stateOfResidence: estatePlan?.stateOfResidence },
-        personal: intakeData?.intake?.find((i: { section: string }) => i.section === "personal"),
-        family: intakeData?.intake?.find((i: { section: string }) => i.section === "family"),
-        assets: intakeData?.intake?.find((i: { section: string }) => i.section === "assets"),
-        existingDocuments: intakeData?.intake?.find((i: { section: string }) => i.section === "existing_documents"),
-        goals: intakeData?.intake?.find((i: { section: string }) => i.section === "goals"),
-        beneficiaryDesignations: intakeData?.beneficiaryDesignations || [],
+        personal: intakeArray?.find((i: { section: string }) => i.section === "personal"),
+        family: intakeArray?.find((i: { section: string }) => i.section === "family"),
+        assets: intakeArray?.find((i: { section: string }) => i.section === "assets"),
+        existingDocuments: intakeArray?.find((i: { section: string }) => i.section === "existing_documents"),
+        goals: intakeArray?.find((i: { section: string }) => i.section === "goals"),
+        beneficiaryDesignations: beneficiaries,
       };
+
+      console.log("Built apiIntakeData:", JSON.stringify(apiIntakeData, null, 2));
 
       // Call the API route directly (bypasses Convex timeout issues)
       const response = await fetch("/api/gap-analysis", {
@@ -123,25 +168,56 @@ export default function AnalysisPage() {
         return;
       }
 
+      // Debug: Log what we received from the API
+      console.log("Gap analysis API response:", {
+        success: result.success,
+        hasAnalysisResult: !!result.analysisResult,
+        score: result.analysisResult?.score,
+        overallScore: result.analysisResult?.overallScore,
+        missingDocsCount: result.analysisResult?.missingDocuments?.length || 0,
+        recommendationsCount: (result.analysisResult?.recommendations || result.analysisResult?.prioritizedRecommendations)?.length || 0,
+        stateNotesCount: (result.analysisResult?.stateSpecificNotes || result.analysisResult?.stateSpecificConsiderations)?.length || 0,
+      });
+
+      // Validate we got meaningful data
+      const missingDocs = result.analysisResult?.missingDocuments || [];
+      const recommendations = result.analysisResult?.recommendations || result.analysisResult?.prioritizedRecommendations || [];
+      const stateNotes = result.analysisResult?.stateSpecificNotes || result.analysisResult?.stateSpecificConsiderations || [];
+
+      if (missingDocs.length === 0 && recommendations.length === 0) {
+        console.warn("WARNING: API returned empty analysis data - possible parsing issue");
+        console.warn("Full result structure:", JSON.stringify(result.analysisResult, null, 2).slice(0, 1000));
+      }
+
+      // Log what we're about to save
+      console.log("Saving to Convex:", {
+        score: result.analysisResult?.score || 50,
+        missingDocsCount: missingDocs.length,
+        recommendationsCount: recommendations.length,
+        stateNotesCount: stateNotes.length,
+      });
+
       // Save results to Convex
       await saveGapAnalysis({
         estatePlanId,
         score: result.analysisResult.score || 50,
-        estateComplexity: result.analysisResult.estateComplexity || undefined,
-        estimatedEstateTax: result.analysisResult.estimatedEstateTax
-          ? JSON.stringify(result.analysisResult.estimatedEstateTax)
+        estateComplexity: result.analysisResult.estateComplexity
+          ? JSON.stringify(result.analysisResult.estateComplexity)
+          : undefined,
+        estimatedEstateTax: (result.analysisResult.estimatedEstateTax || result.analysisResult.financialExposure?.estimatedEstateTax)
+          ? JSON.stringify(result.analysisResult.estimatedEstateTax || result.analysisResult.financialExposure?.estimatedEstateTax)
           : undefined,
         missingDocuments: JSON.stringify(result.analysisResult.missingDocuments || []),
         outdatedDocuments: JSON.stringify(result.analysisResult.outdatedDocuments || []),
         inconsistencies: JSON.stringify(result.analysisResult.inconsistencies || []),
-        taxOptimization: result.analysisResult.taxOptimization
-          ? JSON.stringify(result.analysisResult.taxOptimization)
+        taxOptimization: (result.analysisResult.taxOptimization || result.analysisResult.taxStrategies)
+          ? JSON.stringify(result.analysisResult.taxOptimization || result.analysisResult.taxStrategies)
           : undefined,
         medicaidPlanning: result.analysisResult.medicaidPlanning
           ? JSON.stringify(result.analysisResult.medicaidPlanning)
           : undefined,
-        recommendations: JSON.stringify(result.analysisResult.recommendations || []),
-        stateSpecificNotes: JSON.stringify(result.analysisResult.stateSpecificNotes || []),
+        recommendations: JSON.stringify(result.analysisResult.recommendations || result.analysisResult.prioritizedRecommendations || []),
+        stateSpecificNotes: JSON.stringify(result.analysisResult.stateSpecificNotes || result.analysisResult.stateSpecificConsiderations || []),
         rawAnalysis: result.analysisResult.rawAnalysis || result.stdout,
       });
 
@@ -506,12 +582,12 @@ export default function AnalysisPage() {
                                 <li key={`doc-${idx}`} className="flex items-start gap-2 text-sm">
                                   <Badge variant="error" size="sm">Missing</Badge>
                                   <span className="text-gray-700 dark:text-gray-300">
-                                    {DOCUMENT_TYPE_NAMES[doc.type] || doc.type}
+                                    {DOCUMENT_TYPE_NAMES[doc.document || doc.type || ""] || doc.document || doc.type || "Document"}
                                   </span>
                                 </li>
                               ))}
                             {recommendations
-                              .filter((r) => r.priority === "high")
+                              .filter((r) => r.priority === "high" || r.priority === "critical")
                               .slice(0, 2)
                               .map((rec, idx) => (
                                 <li key={`rec-${idx}`} className="flex items-start gap-2 text-sm">
@@ -583,39 +659,46 @@ export default function AnalysisPage() {
                 <TabPanel tabId="missing">
                   <div className="p-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {missingDocs.map((doc, idx) => (
-                        <div
-                          key={idx}
-                          className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4"
-                        >
-                          <div className="flex items-start justify-between mb-2">
-                            <h4 className="font-semibold text-gray-900 dark:text-white">
-                              {DOCUMENT_TYPE_NAMES[doc.type] || doc.type}
-                            </h4>
-                            <Badge
-                              variant={
-                                doc.priority === "high"
-                                  ? "error"
-                                  : doc.priority === "medium"
-                                    ? "warning"
-                                    : "success"
-                              }
-                              size="sm"
-                            >
-                              {doc.priority}
-                            </Badge>
-                          </div>
-                          <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                            {doc.reason}
-                          </p>
-                          <Link
-                            href={`/documents/generate/${estatePlanId}?type=${doc.type}`}
-                            className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-700"
+                      {missingDocs.map((doc, idx) => {
+                        const docName = doc.document || doc.type || "Unknown Document";
+                        const docType = doc.type || doc.document?.toLowerCase().replace(/\s+/g, "_") || "";
+                        const priority = doc.priority || "medium";
+                        const priorityVariant = priority === "critical" || priority === "high" ? "error" : priority === "medium" ? "warning" : "success";
+                        return (
+                          <div
+                            key={idx}
+                            className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4"
                           >
-                            Generate Document →
-                          </Link>
-                        </div>
-                      ))}
+                            <div className="flex items-start justify-between mb-2">
+                              <h4 className="font-semibold text-gray-900 dark:text-white">
+                                {DOCUMENT_TYPE_NAMES[docType] || docName}
+                              </h4>
+                              <Badge variant={priorityVariant} size="sm">
+                                {priority}
+                              </Badge>
+                            </div>
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                              {doc.reason || "This document is recommended for your estate plan."}
+                            </p>
+                            {doc.consequences && (
+                              <p className="text-sm text-red-600 dark:text-red-400 mb-2">
+                                <strong>Without it:</strong> {doc.consequences}
+                              </p>
+                            )}
+                            {doc.estimatedCostToCreate && (
+                              <p className="text-xs text-gray-500 dark:text-gray-500 mb-4">
+                                Est. cost: ${doc.estimatedCostToCreate.low.toLocaleString()} - ${doc.estimatedCostToCreate.high.toLocaleString()}
+                              </p>
+                            )}
+                            <Link
+                              href={`/documents/generate/${estatePlanId}?type=${docType}`}
+                              className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-700"
+                            >
+                              Generate Document →
+                            </Link>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 </TabPanel>
@@ -633,14 +716,22 @@ export default function AnalysisPage() {
                           Outdated Documents ({outdatedDocs.length})
                         </h3>
                         <div className="space-y-3">
-                          {outdatedDocs.map((doc, idx) => (
-                            <GapAnalysisCard
-                              key={idx}
-                              type="outdated"
-                              title={DOCUMENT_TYPE_NAMES[doc.type] || doc.type}
-                              description={`${doc.issue}. ${doc.recommendation}`}
-                            />
-                          ))}
+                          {outdatedDocs.map((doc, idx) => {
+                            const docName = doc.document || doc.type || "Document";
+                            const description = [
+                              doc.issue,
+                              doc.risk && `Risk: ${doc.risk}`,
+                              doc.recommendation
+                            ].filter(Boolean).join(". ");
+                            return (
+                              <GapAnalysisCard
+                                key={idx}
+                                type="outdated"
+                                title={DOCUMENT_TYPE_NAMES[docName] || docName}
+                                description={description || "This document may need review."}
+                              />
+                            );
+                          })}
                         </div>
                       </div>
                     )}
@@ -655,14 +746,24 @@ export default function AnalysisPage() {
                           Inconsistencies ({inconsistencies.length})
                         </h3>
                         <div className="space-y-3">
-                          {inconsistencies.map((item, idx) => (
-                            <GapAnalysisCard
-                              key={idx}
-                              type="inconsistency"
-                              title={item.issue}
-                              description={`${item.details}. Recommendation: ${item.recommendation}`}
-                            />
-                          ))}
+                          {inconsistencies.map((item, idx) => {
+                            const title = item.issue || item.type || "Inconsistency Found";
+                            const description = [
+                              item.details || item.potentialConsequence,
+                              (item.resolution || item.recommendation) && `Resolution: ${item.resolution || item.recommendation}`
+                            ].filter(Boolean).join(". ");
+                            // Map "critical" to "high" for component compatibility
+                            const mappedPriority = item.severity === "critical" ? "high" : item.severity;
+                            return (
+                              <GapAnalysisCard
+                                key={idx}
+                                type="inconsistency"
+                                title={title}
+                                description={description || "Please review this inconsistency."}
+                                priority={mappedPriority}
+                              />
+                            );
+                          })}
                         </div>
                       </div>
                     )}
@@ -672,16 +773,64 @@ export default function AnalysisPage() {
                 {/* Recommendations Tab */}
                 <TabPanel tabId="recommendations">
                   <div className="p-6">
-                    <div className="space-y-3">
-                      {recommendations.map((rec, idx) => (
-                        <GapAnalysisCard
-                          key={idx}
-                          type="recommendation"
-                          title={rec.action}
-                          description={rec.reason}
-                          priority={rec.priority}
-                        />
-                      ))}
+                    <div className="space-y-4">
+                      {recommendations.map((rec, idx) => {
+                        const title = rec.action || "Recommendation";
+                        const priority = rec.priority || "medium";
+                        const description = rec.reason || rec.riskOfDelay || rec.estimatedBenefit || "";
+                        return (
+                          <div
+                            key={idx}
+                            className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4"
+                          >
+                            <div className="flex items-start justify-between mb-2">
+                              <div className="flex items-center gap-2">
+                                {rec.rank && (
+                                  <span className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 text-xs font-bold">
+                                    {rec.rank}
+                                  </span>
+                                )}
+                                <h4 className="font-semibold text-gray-900 dark:text-white">{title}</h4>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                {rec.timeline && (
+                                  <Badge variant="default" size="sm">{rec.timeline}</Badge>
+                                )}
+                                <Badge
+                                  variant={priority === "critical" || priority === "high" ? "error" : priority === "medium" ? "warning" : "success"}
+                                  size="sm"
+                                >
+                                  {priority}
+                                </Badge>
+                              </div>
+                            </div>
+                            {description && (
+                              <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">{description}</p>
+                            )}
+                            {rec.detailedSteps && rec.detailedSteps.length > 0 && (
+                              <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
+                                <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Steps:</p>
+                                <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                                  {rec.detailedSteps.slice(0, 3).map((step, i) => (
+                                    <li key={i} className="flex items-start gap-2">
+                                      <span className="text-gray-400">•</span>
+                                      <span>{step}</span>
+                                    </li>
+                                  ))}
+                                  {rec.detailedSteps.length > 3 && (
+                                    <li className="text-gray-400 text-xs">+ {rec.detailedSteps.length - 3} more steps...</li>
+                                  )}
+                                </ul>
+                              </div>
+                            )}
+                            {rec.estimatedCost && (
+                              <p className="text-xs text-gray-500 dark:text-gray-500 mt-2">
+                                Est. cost: ${rec.estimatedCost.low?.toLocaleString()} - ${rec.estimatedCost.high?.toLocaleString()}
+                              </p>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 </TabPanel>
@@ -689,15 +838,37 @@ export default function AnalysisPage() {
                 {/* State Notes Tab */}
                 <TabPanel tabId="state">
                   <div className="p-6">
-                    <div className="space-y-3">
-                      {stateNotes.map((note, idx) => (
-                        <GapAnalysisCard
-                          key={idx}
-                          type="note"
-                          title={note.note}
-                          description={note.relevance}
-                        />
-                      ))}
+                    <div className="space-y-4">
+                      {stateNotes.map((note, idx) => {
+                        const title = note.topic || note.note || "State Consideration";
+                        const description = [
+                          note.rule,
+                          note.impact,
+                          note.action && `Action: ${note.action}`,
+                          note.relevance
+                        ].filter(Boolean).join(". ");
+                        return (
+                          <div
+                            key={idx}
+                            className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4"
+                          >
+                            <h4 className="font-semibold text-gray-900 dark:text-white mb-2">{title}</h4>
+                            {description && (
+                              <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">{description}</p>
+                            )}
+                            {note.citation && (
+                              <p className="text-xs text-blue-600 dark:text-blue-400 font-mono">
+                                {note.citation}
+                              </p>
+                            )}
+                          </div>
+                        );
+                      })}
+                      {stateNotes.length === 0 && (
+                        <p className="text-gray-500 dark:text-gray-400 text-center py-8">
+                          No state-specific considerations found. This may be due to limited state information provided.
+                        </p>
+                      )}
                     </div>
                   </div>
                 </TabPanel>
@@ -782,41 +953,58 @@ function PrintSection({ title, items, type }: PrintSectionProps) {
       <ul className="space-y-2">
         {items.map((item, idx) => (
           <li key={idx} className="text-sm">
-            {type === "missing" && (
-              <>
-                <strong>{DOCUMENT_TYPE_NAMES[(item as MissingDocument).type] || (item as MissingDocument).type}</strong>
-                {" - "}
-                {(item as MissingDocument).reason}
-              </>
-            )}
-            {type === "outdated" && (
-              <>
-                <strong>{DOCUMENT_TYPE_NAMES[(item as OutdatedDocument).type] || (item as OutdatedDocument).type}</strong>
-                {" - "}
-                {(item as OutdatedDocument).issue}. {(item as OutdatedDocument).recommendation}
-              </>
-            )}
-            {type === "inconsistency" && (
-              <>
-                <strong>{(item as Inconsistency).issue}</strong>
-                {" - "}
-                {(item as Inconsistency).details}. {(item as Inconsistency).recommendation}
-              </>
-            )}
-            {type === "recommendation" && (
-              <>
-                <strong>{(item as Recommendation).action}</strong>
-                {" - "}
-                {(item as Recommendation).reason}
-              </>
-            )}
-            {type === "note" && (
-              <>
-                <strong>{(item as StateNote).note}</strong>
-                {" - "}
-                {(item as StateNote).relevance}
-              </>
-            )}
+            {type === "missing" && (() => {
+              const doc = item as MissingDocument;
+              const docName = doc.document || doc.type || "Document";
+              return (
+                <>
+                  <strong>{DOCUMENT_TYPE_NAMES[docName] || docName}</strong>
+                  {" - "}
+                  {doc.reason || doc.consequences || "Recommended for your estate plan"}
+                </>
+              );
+            })()}
+            {type === "outdated" && (() => {
+              const doc = item as OutdatedDocument;
+              const docName = doc.document || doc.type || "Document";
+              return (
+                <>
+                  <strong>{DOCUMENT_TYPE_NAMES[docName] || docName}</strong>
+                  {" - "}
+                  {doc.issue}. {doc.recommendation}
+                </>
+              );
+            })()}
+            {type === "inconsistency" && (() => {
+              const inc = item as Inconsistency;
+              return (
+                <>
+                  <strong>{inc.issue || inc.type || "Inconsistency"}</strong>
+                  {" - "}
+                  {inc.details || inc.potentialConsequence || ""}. {inc.recommendation || inc.resolution || ""}
+                </>
+              );
+            })()}
+            {type === "recommendation" && (() => {
+              const rec = item as Recommendation;
+              return (
+                <>
+                  <strong>{rec.action || "Recommendation"}</strong>
+                  {" - "}
+                  {rec.reason || rec.riskOfDelay || rec.estimatedBenefit || ""}
+                </>
+              );
+            })()}
+            {type === "note" && (() => {
+              const note = item as StateNote;
+              return (
+                <>
+                  <strong>{note.topic || note.note || "State Consideration"}</strong>
+                  {" - "}
+                  {note.rule || note.impact || note.relevance || ""}
+                </>
+              );
+            })()}
           </li>
         ))}
       </ul>

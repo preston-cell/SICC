@@ -2774,6 +2774,7 @@ const DEFAULT_DATA = {
     state: "",
     zipCode: "",
     maritalStatus: "",
+    taxFilingStatus: "",
     citizenship: "us_citizen"
 };
 const MARITAL_STATUS_OPTIONS = [
@@ -2806,6 +2807,33 @@ const MARITAL_STATUS_OPTIONS = [
         value: "domestic_partnership",
         label: "Domestic Partnership",
         description: "Registered domestic partnership"
+    }
+];
+const TAX_FILING_STATUS_OPTIONS = [
+    {
+        value: "single",
+        label: "Single",
+        description: "Unmarried or legally separated"
+    },
+    {
+        value: "married_filing_jointly",
+        label: "Married Filing Jointly",
+        description: "Filing together with your spouse"
+    },
+    {
+        value: "married_filing_separately",
+        label: "Married Filing Separately",
+        description: "Filing separate returns from your spouse"
+    },
+    {
+        value: "head_of_household",
+        label: "Head of Household",
+        description: "Unmarried and paying more than half the cost of keeping up a home for a qualifying person"
+    },
+    {
+        value: "qualifying_surviving_spouse",
+        label: "Qualifying Surviving Spouse",
+        description: "Widow(er) with a dependent child within two years of spouse's death"
     }
 ];
 const SUFFIX_OPTIONS = [
@@ -2857,12 +2885,12 @@ function PersonalFormContent() {
                             d: "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                         }, void 0, false, {
                             fileName: "[project]/app/intake/personal/page.tsx",
-                            lineNumber: 91,
+                            lineNumber: 101,
                             columnNumber: 13
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/app/intake/personal/page.tsx",
-                        lineNumber: 90,
+                        lineNumber: 100,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h2", {
@@ -2870,7 +2898,7 @@ function PersonalFormContent() {
                         children: "No Estate Plan Found"
                     }, void 0, false, {
                         fileName: "[project]/app/intake/personal/page.tsx",
-                        lineNumber: 93,
+                        lineNumber: 103,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -2878,7 +2906,7 @@ function PersonalFormContent() {
                         children: "Please start from the beginning to create your estate plan."
                     }, void 0, false, {
                         fileName: "[project]/app/intake/personal/page.tsx",
-                        lineNumber: 96,
+                        lineNumber: 106,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("a", {
@@ -2887,18 +2915,18 @@ function PersonalFormContent() {
                         children: "Start New Estate Plan"
                     }, void 0, false, {
                         fileName: "[project]/app/intake/personal/page.tsx",
-                        lineNumber: 99,
+                        lineNumber: 109,
                         columnNumber: 11
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/app/intake/personal/page.tsx",
-                lineNumber: 89,
+                lineNumber: 99,
                 columnNumber: 9
             }, this)
         }, void 0, false, {
             fileName: "[project]/app/intake/personal/page.tsx",
-            lineNumber: 88,
+            lineNumber: 98,
             columnNumber: 7
         }, this);
     }
@@ -2910,25 +2938,25 @@ function PersonalFormContent() {
                     className: "h-20 bg-gray-100 dark:bg-gray-800 rounded-lg animate-pulse"
                 }, void 0, false, {
                     fileName: "[project]/app/intake/personal/page.tsx",
-                    lineNumber: 113,
+                    lineNumber: 123,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                     className: "bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6",
                     children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$ui$2f$Skeleton$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["SkeletonForm"], {}, void 0, false, {
                         fileName: "[project]/app/intake/personal/page.tsx",
-                        lineNumber: 115,
+                        lineNumber: 125,
                         columnNumber: 11
                     }, this)
                 }, void 0, false, {
                     fileName: "[project]/app/intake/personal/page.tsx",
-                    lineNumber: 114,
+                    lineNumber: 124,
                     columnNumber: 9
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/app/intake/personal/page.tsx",
-            lineNumber: 112,
+            lineNumber: 122,
             columnNumber: 7
         }, this);
     }
@@ -2941,7 +2969,7 @@ function PersonalFormContent() {
                 estatePlanId: estatePlanId
             }, void 0, false, {
                 fileName: "[project]/app/intake/personal/page.tsx",
-                lineNumber: 124,
+                lineNumber: 134,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2951,7 +2979,7 @@ function PersonalFormContent() {
                         children: "Personal Information"
                     }, void 0, false, {
                         fileName: "[project]/app/intake/personal/page.tsx",
-                        lineNumber: 132,
+                        lineNumber: 142,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -2959,25 +2987,25 @@ function PersonalFormContent() {
                         children: "Let's start with your basic information. This will be used to personalize your estate planning documents."
                     }, void 0, false, {
                         fileName: "[project]/app/intake/personal/page.tsx",
-                        lineNumber: 135,
+                        lineNumber: 145,
                         columnNumber: 9
                     }, this),
                     hasExtractedData && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                         className: "mt-4",
                         children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$ExtractedBadge$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["ExtractedDataBanner"], {}, void 0, false, {
                             fileName: "[project]/app/intake/personal/page.tsx",
-                            lineNumber: 140,
+                            lineNumber: 150,
                             columnNumber: 13
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/app/intake/personal/page.tsx",
-                        lineNumber: 139,
+                        lineNumber: 149,
                         columnNumber: 11
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/app/intake/personal/page.tsx",
-                lineNumber: 131,
+                lineNumber: 141,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2996,13 +3024,13 @@ function PersonalFormContent() {
                                             "First Name ",
                                             isFieldExtracted("firstName") && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$ExtractedBadge$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["ExtractedBadge"], {}, void 0, false, {
                                                 fileName: "[project]/app/intake/personal/page.tsx",
-                                                lineNumber: 154,
+                                                lineNumber: 164,
                                                 columnNumber: 109
                                             }, void 0)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/app/intake/personal/page.tsx",
-                                        lineNumber: 154,
+                                        lineNumber: 164,
                                         columnNumber: 22
                                     }, void 0),
                                     required: true,
@@ -3013,12 +3041,12 @@ function PersonalFormContent() {
                                         autoComplete: "given-name"
                                     }, void 0, false, {
                                         fileName: "[project]/app/intake/personal/page.tsx",
-                                        lineNumber: 157,
+                                        lineNumber: 167,
                                         columnNumber: 15
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/app/intake/personal/page.tsx",
-                                    lineNumber: 153,
+                                    lineNumber: 163,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["FormField"], {
@@ -3031,12 +3059,12 @@ function PersonalFormContent() {
                                         autoComplete: "additional-name"
                                     }, void 0, false, {
                                         fileName: "[project]/app/intake/personal/page.tsx",
-                                        lineNumber: 165,
+                                        lineNumber: 175,
                                         columnNumber: 15
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/app/intake/personal/page.tsx",
-                                    lineNumber: 164,
+                                    lineNumber: 174,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["FormField"], {
@@ -3046,13 +3074,13 @@ function PersonalFormContent() {
                                             "Last Name ",
                                             isFieldExtracted("lastName") && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$ExtractedBadge$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["ExtractedBadge"], {}, void 0, false, {
                                                 fileName: "[project]/app/intake/personal/page.tsx",
-                                                lineNumber: 173,
+                                                lineNumber: 183,
                                                 columnNumber: 107
                                             }, void 0)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/app/intake/personal/page.tsx",
-                                        lineNumber: 173,
+                                        lineNumber: 183,
                                         columnNumber: 22
                                     }, void 0),
                                     required: true,
@@ -3063,12 +3091,12 @@ function PersonalFormContent() {
                                         autoComplete: "family-name"
                                     }, void 0, false, {
                                         fileName: "[project]/app/intake/personal/page.tsx",
-                                        lineNumber: 176,
+                                        lineNumber: 186,
                                         columnNumber: 15
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/app/intake/personal/page.tsx",
-                                    lineNumber: 172,
+                                    lineNumber: 182,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["FormField"], {
@@ -3081,23 +3109,23 @@ function PersonalFormContent() {
                                         placeholder: "Select suffix (if any)"
                                     }, void 0, false, {
                                         fileName: "[project]/app/intake/personal/page.tsx",
-                                        lineNumber: 184,
+                                        lineNumber: 194,
                                         columnNumber: 15
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/app/intake/personal/page.tsx",
-                                    lineNumber: 183,
+                                    lineNumber: 193,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/app/intake/personal/page.tsx",
-                            lineNumber: 152,
+                            lineNumber: 162,
                             columnNumber: 11
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/app/intake/personal/page.tsx",
-                        lineNumber: 148,
+                        lineNumber: 158,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["FormSection"], {
@@ -3114,22 +3142,22 @@ function PersonalFormContent() {
                                     onChange: (v)=>updateField("dateOfBirth", v)
                                 }, void 0, false, {
                                     fileName: "[project]/app/intake/personal/page.tsx",
-                                    lineNumber: 201,
+                                    lineNumber: 211,
                                     columnNumber: 15
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/app/intake/personal/page.tsx",
-                                lineNumber: 200,
+                                lineNumber: 210,
                                 columnNumber: 13
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/app/intake/personal/page.tsx",
-                            lineNumber: 199,
+                            lineNumber: 209,
                             columnNumber: 11
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/app/intake/personal/page.tsx",
-                        lineNumber: 195,
+                        lineNumber: 205,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["FormSection"], {
@@ -3150,12 +3178,12 @@ function PersonalFormContent() {
                                         inputMode: "email"
                                     }, void 0, false, {
                                         fileName: "[project]/app/intake/personal/page.tsx",
-                                        lineNumber: 217,
+                                        lineNumber: 227,
                                         columnNumber: 15
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/app/intake/personal/page.tsx",
-                                    lineNumber: 216,
+                                    lineNumber: 226,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["FormField"], {
@@ -3169,23 +3197,23 @@ function PersonalFormContent() {
                                         inputMode: "tel"
                                     }, void 0, false, {
                                         fileName: "[project]/app/intake/personal/page.tsx",
-                                        lineNumber: 227,
+                                        lineNumber: 237,
                                         columnNumber: 15
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/app/intake/personal/page.tsx",
-                                    lineNumber: 226,
+                                    lineNumber: 236,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/app/intake/personal/page.tsx",
-                            lineNumber: 215,
+                            lineNumber: 225,
                             columnNumber: 11
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/app/intake/personal/page.tsx",
-                        lineNumber: 211,
+                        lineNumber: 221,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["FormSection"], {
@@ -3201,12 +3229,12 @@ function PersonalFormContent() {
                                     autoComplete: "street-address"
                                 }, void 0, false, {
                                     fileName: "[project]/app/intake/personal/page.tsx",
-                                    lineNumber: 245,
+                                    lineNumber: 255,
                                     columnNumber: 13
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/app/intake/personal/page.tsx",
-                                lineNumber: 244,
+                                lineNumber: 254,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3221,12 +3249,12 @@ function PersonalFormContent() {
                                             autoComplete: "address-level2"
                                         }, void 0, false, {
                                             fileName: "[project]/app/intake/personal/page.tsx",
-                                            lineNumber: 254,
+                                            lineNumber: 264,
                                             columnNumber: 15
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/app/intake/personal/page.tsx",
-                                        lineNumber: 253,
+                                        lineNumber: 263,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["FormField"], {
@@ -3236,13 +3264,13 @@ function PersonalFormContent() {
                                                 "State ",
                                                 isFieldExtracted("state") && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$ExtractedBadge$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["ExtractedBadge"], {}, void 0, false, {
                                                     fileName: "[project]/app/intake/personal/page.tsx",
-                                                    lineNumber: 262,
+                                                    lineNumber: 272,
                                                     columnNumber: 100
                                                 }, void 0)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/app/intake/personal/page.tsx",
-                                            lineNumber: 262,
+                                            lineNumber: 272,
                                             columnNumber: 22
                                         }, void 0),
                                         required: true,
@@ -3254,12 +3282,12 @@ function PersonalFormContent() {
                                             placeholder: "Select state"
                                         }, void 0, false, {
                                             fileName: "[project]/app/intake/personal/page.tsx",
-                                            lineNumber: 266,
+                                            lineNumber: 276,
                                             columnNumber: 15
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/app/intake/personal/page.tsx",
-                                        lineNumber: 261,
+                                        lineNumber: 271,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["FormField"], {
@@ -3273,24 +3301,24 @@ function PersonalFormContent() {
                                             maxLength: 10
                                         }, void 0, false, {
                                             fileName: "[project]/app/intake/personal/page.tsx",
-                                            lineNumber: 274,
+                                            lineNumber: 284,
                                             columnNumber: 15
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/app/intake/personal/page.tsx",
-                                        lineNumber: 273,
+                                        lineNumber: 283,
                                         columnNumber: 13
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/app/intake/personal/page.tsx",
-                                lineNumber: 252,
+                                lineNumber: 262,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/intake/personal/page.tsx",
-                        lineNumber: 240,
+                        lineNumber: 250,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["FormSection"], {
@@ -3304,13 +3332,13 @@ function PersonalFormContent() {
                                         "Current Marital Status ",
                                         isFieldExtracted("maritalStatus") && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$ExtractedBadge$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["ExtractedBadge"], {}, void 0, false, {
                                             fileName: "[project]/app/intake/personal/page.tsx",
-                                            lineNumber: 292,
+                                            lineNumber: 302,
                                             columnNumber: 123
                                         }, void 0)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/app/intake/personal/page.tsx",
-                                    lineNumber: 292,
+                                    lineNumber: 302,
                                     columnNumber: 20
                                 }, void 0),
                                 required: true,
@@ -3322,12 +3350,12 @@ function PersonalFormContent() {
                                     columns: 2
                                 }, void 0, false, {
                                     fileName: "[project]/app/intake/personal/page.tsx",
-                                    lineNumber: 295,
+                                    lineNumber: 305,
                                     columnNumber: 13
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/app/intake/personal/page.tsx",
-                                lineNumber: 291,
+                                lineNumber: 301,
                                 columnNumber: 11
                             }, this),
                             formData.maritalStatus === "married" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["InfoBox"], {
@@ -3336,19 +3364,71 @@ function PersonalFormContent() {
                                 children: "In the next section, we'll ask about your spouse. Many estate planning documents require spousal information, and some states have community property laws that affect asset distribution."
                             }, void 0, false, {
                                 fileName: "[project]/app/intake/personal/page.tsx",
-                                lineNumber: 305,
+                                lineNumber: 315,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/intake/personal/page.tsx",
-                        lineNumber: 287,
+                        lineNumber: 297,
+                        columnNumber: 9
+                    }, this),
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["FormSection"], {
+                        title: "Tax Filing Status",
+                        description: "Your tax filing status helps us understand your financial situation for estate planning purposes",
+                        children: [
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["FormField"], {
+                                label: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                    className: "flex items-center gap-2",
+                                    children: [
+                                        "Federal Tax Filing Status ",
+                                        isFieldExtracted("taxFilingStatus") && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$ExtractedBadge$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["ExtractedBadge"], {}, void 0, false, {
+                                            fileName: "[project]/app/intake/personal/page.tsx",
+                                            lineNumber: 327,
+                                            columnNumber: 128
+                                        }, void 0)
+                                    ]
+                                }, void 0, true, {
+                                    fileName: "[project]/app/intake/personal/page.tsx",
+                                    lineNumber: 327,
+                                    columnNumber: 20
+                                }, void 0),
+                                helpText: "Select the filing status you use on your federal income tax return",
+                                children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["RadioGroup"], {
+                                    name: "taxFilingStatus",
+                                    value: formData.taxFilingStatus,
+                                    onChange: (v)=>updateField("taxFilingStatus", v),
+                                    options: TAX_FILING_STATUS_OPTIONS,
+                                    columns: 2
+                                }, void 0, false, {
+                                    fileName: "[project]/app/intake/personal/page.tsx",
+                                    lineNumber: 330,
+                                    columnNumber: 13
+                                }, this)
+                            }, void 0, false, {
+                                fileName: "[project]/app/intake/personal/page.tsx",
+                                lineNumber: 326,
+                                columnNumber: 11
+                            }, this),
+                            formData.taxFilingStatus === "married_filing_separately" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["InfoBox"], {
+                                type: "warning",
+                                title: "Filing Separately",
+                                children: "Filing separately may have implications for certain estate planning strategies, particularly regarding gift tax exemptions and estate tax portability. We'll take this into account when preparing your documents."
+                            }, void 0, false, {
+                                fileName: "[project]/app/intake/personal/page.tsx",
+                                lineNumber: 340,
+                                columnNumber: 13
+                            }, this)
+                        ]
+                    }, void 0, true, {
+                        fileName: "[project]/app/intake/personal/page.tsx",
+                        lineNumber: 322,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/app/intake/personal/page.tsx",
-                lineNumber: 146,
+                lineNumber: 156,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$IntakeNavigation$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
@@ -3363,13 +3443,13 @@ function PersonalFormContent() {
                 nextStepLabel: nextStepLabel
             }, void 0, false, {
                 fileName: "[project]/app/intake/personal/page.tsx",
-                lineNumber: 313,
+                lineNumber: 348,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/app/intake/personal/page.tsx",
-        lineNumber: 122,
+        lineNumber: 132,
         columnNumber: 5
     }, this);
 }
@@ -3388,35 +3468,35 @@ function PersonalPage() {
                     className: "h-20 bg-gray-100 dark:bg-gray-800 rounded-lg animate-pulse"
                 }, void 0, false, {
                     fileName: "[project]/app/intake/personal/page.tsx",
-                    lineNumber: 333,
+                    lineNumber: 368,
                     columnNumber: 11
                 }, void 0),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                     className: "bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6",
                     children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$ui$2f$Skeleton$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["SkeletonForm"], {}, void 0, false, {
                         fileName: "[project]/app/intake/personal/page.tsx",
-                        lineNumber: 335,
+                        lineNumber: 370,
                         columnNumber: 13
                     }, void 0)
                 }, void 0, false, {
                     fileName: "[project]/app/intake/personal/page.tsx",
-                    lineNumber: 334,
+                    lineNumber: 369,
                     columnNumber: 11
                 }, void 0)
             ]
         }, void 0, true, {
             fileName: "[project]/app/intake/personal/page.tsx",
-            lineNumber: 332,
+            lineNumber: 367,
             columnNumber: 9
         }, void 0),
         children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(PersonalFormContent, {}, void 0, false, {
             fileName: "[project]/app/intake/personal/page.tsx",
-            lineNumber: 340,
+            lineNumber: 375,
             columnNumber: 7
         }, this)
     }, void 0, false, {
         fileName: "[project]/app/intake/personal/page.tsx",
-        lineNumber: 330,
+        lineNumber: 365,
         columnNumber: 5
     }, this);
 }
