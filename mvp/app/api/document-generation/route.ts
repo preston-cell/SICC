@@ -20,7 +20,27 @@ interface IntakeData {
     spouseName?: string;
   };
   family?: {
-    children?: Array<{ name: string; isMinor?: boolean }>;
+    // Children from form (firstName/lastName format)
+    hasChildren?: boolean;
+    children?: Array<{
+      firstName?: string;
+      lastName?: string;
+      name?: string; // Legacy format
+      dateOfBirth?: string;
+      relationship?: string;
+      isMinor?: boolean;
+      hasSpecialNeeds?: boolean;
+      specialNeedsDetails?: string;
+    }>;
+    // Spouse info
+    hasSpouse?: boolean;
+    spouseFirstName?: string;
+    spouseLastName?: string;
+    // Guardian info
+    guardianName?: string;
+    guardianRelationship?: string;
+    alternateGuardianName?: string;
+    // Legacy fields
     primaryBeneficiary?: string;
     primaryBeneficiaryRelationship?: string;
     alternateBeneficiary?: string;
@@ -32,12 +52,12 @@ interface IntakeData {
     financialAgent?: string;
   };
   assets?: {
-    realEstate?: Array<{ name: string; value?: number }>;
-    bankAccounts?: Array<{ name: string }>;
-    investments?: Array<{ name: string }>;
-    retirementAccounts?: Array<{ name: string }>;
-    lifeInsurance?: Array<{ name: string }>;
-    businessInterests?: Array<{ name: string }>;
+    realEstate?: Array<{ name?: string; address?: string; value?: number; estimatedValue?: number }>;
+    bankAccounts?: Array<{ name?: string; institution?: string; accountType?: string }>;
+    investments?: Array<{ name?: string; institution?: string; accountType?: string }>;
+    retirementAccounts?: Array<{ name?: string; institution?: string; accountType?: string }>;
+    lifeInsurance?: Array<{ name?: string; company?: string; policyType?: string; deathBenefit?: number }>;
+    businessInterests?: Array<{ name?: string; businessName?: string; ownershipPercentage?: number }>;
     estimatedTotalValue?: number;
   };
   goals?: {
@@ -50,13 +70,30 @@ interface IntakeData {
   };
 }
 
+// State code to full name mapping
+const STATE_NAMES: Record<string, string> = {
+  AL: "Alabama", AK: "Alaska", AZ: "Arizona", AR: "Arkansas", CA: "California",
+  CO: "Colorado", CT: "Connecticut", DE: "Delaware", FL: "Florida", GA: "Georgia",
+  HI: "Hawaii", ID: "Idaho", IL: "Illinois", IN: "Indiana", IA: "Iowa",
+  KS: "Kansas", KY: "Kentucky", LA: "Louisiana", ME: "Maine", MD: "Maryland",
+  MA: "Massachusetts", MI: "Michigan", MN: "Minnesota", MS: "Mississippi", MO: "Missouri",
+  MT: "Montana", NE: "Nebraska", NV: "Nevada", NH: "New Hampshire", NJ: "New Jersey",
+  NM: "New Mexico", NY: "New York", NC: "North Carolina", ND: "North Dakota", OH: "Ohio",
+  OK: "Oklahoma", OR: "Oregon", PA: "Pennsylvania", RI: "Rhode Island", SC: "South Carolina",
+  SD: "South Dakota", TN: "Tennessee", TX: "Texas", UT: "Utah", VT: "Vermont",
+  VA: "Virginia", WA: "Washington", WV: "West Virginia", WI: "Wisconsin", WY: "Wyoming",
+  DC: "District of Columbia",
+};
+
 // Build document generation prompt
 function buildDocumentGenerationPrompt(
   documentType: string,
   intake: IntakeData
 ): string {
   const { personal = {}, family = {}, assets = {}, goals = {} } = intake;
-  const state = personal.state || "California";
+  // Convert 2-letter state code to full name, fallback to the value itself if it's already a full name
+  const stateCode = personal.state || "";
+  const state = STATE_NAMES[stateCode] || stateCode || "California";
   const fullName = `${personal.firstName || ""} ${personal.middleName || ""} ${personal.lastName || ""}`.trim() || "[Client Name]";
 
   const documentTypePrompts: Record<string, string> = {
@@ -165,16 +202,26 @@ You are an expert estate planning attorney assistant. Generate a high-quality le
 
 PERSONAL:
 - Full Name: ${fullName}
-- Address: ${personal.address || "[Address]"}, ${personal.city || "[City]"}, ${personal.state || "[State]"} ${personal.zipCode || "[ZIP]"}
+- Address: ${personal.address || "[Address]"}, ${personal.city || "[City]"}, ${state} ${personal.zipCode || "[ZIP]"}
 - County: ${personal.county || "[County]"}
 - Date of Birth: ${personal.dateOfBirth || "[DOB]"}
 - Marital Status: ${personal.maritalStatus || "single"}
 ${personal.spouseName ? `- Spouse: ${personal.spouseName}` : ""}
 
 FAMILY:
+${family.hasSpouse && (family.spouseFirstName || family.spouseLastName)
+  ? `- Spouse: ${family.spouseFirstName || ""} ${family.spouseLastName || ""}`.trim()
+  : ""}
 ${family.children && family.children.length > 0
-  ? `- Children: ${family.children.map(c => `${c.name}${c.isMinor ? " (minor)" : ""}`).join(", ")}`
+  ? `- Children: ${family.children.map(c => {
+      const childName = c.name || `${c.firstName || ""} ${c.lastName || ""}`.trim() || "[Name]";
+      const minorStatus = c.isMinor ? " (minor)" : "";
+      const specialNeeds = c.hasSpecialNeeds ? " (special needs)" : "";
+      return `${childName}${minorStatus}${specialNeeds}`;
+    }).join(", ")}`
   : "- No children"}
+${family.guardianName ? `- Guardian for minors: ${family.guardianName}${family.guardianRelationship ? ` (${family.guardianRelationship})` : ""}` : ""}
+${family.alternateGuardianName ? `- Alternate Guardian: ${family.alternateGuardianName}` : ""}
 - Primary Beneficiary: ${family.primaryBeneficiary || "[Not specified]"} (${family.primaryBeneficiaryRelationship || "relationship"})
 - Alternate Beneficiary: ${family.alternateBeneficiary || "[Not specified]"}
 - Executor: ${family.executor || "[Not specified]"} (${family.executorRelationship || "relationship"})
@@ -212,6 +259,28 @@ ${documentTypePrompts[documentType] || documentTypePrompts.will}
 4. Include all necessary signature blocks, witness lines, and notary acknowledgments
 5. Fill in all available information from above; use [PLACEHOLDER] for missing required info
 6. CRITICAL: Use the Write tool to save the document to: /home/user/generated/${documentType}.md
+
+=== FORMATTING REQUIREMENTS ===
+
+CRITICAL - DO NOT USE:
+- Horizontal rules (---, ***, ___) - NEVER use these
+- HTML tags like <br>, <hr>, or any other HTML
+- Tables or table-like formatting
+- Any markdown that creates lines across the page
+
+INSTEAD USE:
+- Blank lines between sections for visual separation
+- Proper heading hierarchy (# for title, ## for major sections, ### for subsections)
+- For signature lines, use this exact format with text labels:
+
+Signature: ________________________________________
+
+Print Name: ________________________________________
+
+Date: ________________________________________
+
+- Always have TWO blank lines before major section headings
+- Keep the document clean and professional with no decorative lines
 
 Generate the document now and save it using the Write tool.`;
 }
