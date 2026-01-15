@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server";
+import { executeInE2B } from "@/lib/e2b-executor";
 
 // Extend Vercel function timeout
 export const maxDuration = 300;
-
-const E2B_API_URL = "/api/e2b/execute";
 
 interface IntakeData {
   estatePlan: { stateOfResidence?: string };
@@ -403,24 +402,6 @@ IMPORTANT:
 Now perform the comprehensive analysis and save the results.`;
 }
 
-async function callE2B(prompt: string, baseUrl: string, outputFile: string): Promise<{ success: boolean; stdout?: string; fileContent?: string; error?: string }> {
-  const response = await fetch(`${baseUrl}${E2B_API_URL}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      prompt,
-      outputFile,
-      timeoutMs: 240000,
-    }),
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    return { success: false, error: `E2B API call failed: ${response.status} ${errorText}` };
-  }
-
-  return response.json();
-}
 
 function extractJSON(result: { stdout?: string; fileContent?: string }): Record<string, unknown> | null {
   // Try file content first (most reliable)
@@ -473,13 +454,13 @@ export async function POST(req: Request) {
     // Build comprehensive prompt
     const prompt = buildComprehensivePrompt(parsed);
 
-    // Get base URL
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL ||
-                    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
-
-    // Execute main analysis via Claude Code in E2B
+    // Execute main analysis via Claude Code in E2B (direct call, no HTTP)
     console.log("Starting comprehensive gap analysis...");
-    const result = await callE2B(prompt, baseUrl, "analysis.json");
+    const result = await executeInE2B({
+      prompt,
+      outputFile: "analysis.json",
+      timeoutMs: 0, // Use max timeout for comprehensive analysis
+    });
 
     if (!result.success) {
       throw new Error(result.error || "E2B execution failed");
