@@ -121,11 +121,11 @@ function IntakeLandingContent() {
           <Check className="w-8 h-8" style={{ color: GREEN }} />
         </div>
 
-        <h1 className="text-2xl font-semibold text-white">
+        <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
           Intake Complete
         </h1>
 
-        <p className="text-[#9D918A]">
+        <p className="text-gray-600 dark:text-[#9D918A]">
           You&apos;ve provided all the information we need. Let&apos;s analyze your estate planning situation.
         </p>
 
@@ -139,7 +139,7 @@ function IntakeLandingContent() {
           </Link>
           <Link
             href={`/intake/personal?planId=${planId}`}
-            className="px-5 py-2.5 border border-white/[0.1] text-white rounded-lg font-medium text-sm hover:bg-white/[0.04] transition-colors"
+            className="px-5 py-2.5 border border-gray-300 dark:border-white/[0.1] text-gray-700 dark:text-white rounded-lg font-medium text-sm hover:bg-gray-100 dark:hover:bg-white/[0.04] transition-colors"
           >
             Review Answers
           </Link>
@@ -156,10 +156,10 @@ function IntakeLandingContent() {
     return (
       <div className="max-w-xl mx-auto space-y-6">
         <div>
-          <h1 className="text-2xl font-semibold text-white">
+          <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
             {existingPlan.name || "Your Estate Plan"}
           </h1>
-          <p className="text-[#9D918A] mt-1">
+          <p className="text-gray-600 dark:text-[#9D918A] mt-1">
             Continue where you left off
           </p>
         </div>
@@ -190,7 +190,7 @@ function IntakeLandingContent() {
         {!hasUploadedDocs && (
           <Link
             href={`/intake/upload?planId=${planId}`}
-            className="block bg-[#1A1A1A] border border-white/[0.08] rounded-lg p-4 hover:border-white/[0.12] transition-colors group"
+            className="block bg-gray-100 dark:bg-[#1A1A1A] border border-gray-200 dark:border-white/[0.08] rounded-lg p-4 hover:border-gray-300 dark:hover:border-white/[0.12] transition-colors group"
           >
             <div className="flex items-center gap-3">
               <div
@@ -200,14 +200,14 @@ function IntakeLandingContent() {
                 <Upload className="w-5 h-5" style={{ color: CORAL }} />
               </div>
               <div className="flex-1">
-                <p className="font-medium text-white text-sm">
+                <p className="font-medium text-gray-900 dark:text-white text-sm">
                   Have existing documents?
                 </p>
-                <p className="text-sm text-[#73655C]">
+                <p className="text-sm text-gray-500 dark:text-[#73655C]">
                   Upload to auto-fill your questionnaire
                 </p>
               </div>
-              <ChevronRight className="w-5 h-5 text-[#73655C] group-hover:text-white group-hover:translate-x-0.5 transition-all" />
+              <ChevronRight className="w-5 h-5 text-gray-400 dark:text-[#73655C] group-hover:text-gray-600 dark:group-hover:text-white group-hover:translate-x-0.5 transition-all" />
             </div>
           </Link>
         )}
@@ -216,9 +216,9 @@ function IntakeLandingContent() {
         <SaveProgressPrompt completedSections={completedSections} showAfterSections={2} />
 
         {/* Progress Overview */}
-        <div className="bg-[#1A1A1A] border border-white/[0.08] rounded-lg p-5">
+        <div className="bg-gray-100 dark:bg-[#1A1A1A] border border-gray-200 dark:border-white/[0.08] rounded-lg p-5">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-medium text-white">
+            <h2 className="text-sm font-medium text-gray-900 dark:text-white">
               Progress
             </h2>
             <span className="text-xl font-semibold" style={{ color: CORAL }}>
@@ -226,7 +226,7 @@ function IntakeLandingContent() {
             </span>
           </div>
 
-          <div className="w-full bg-white/[0.04] rounded-full h-1.5 mb-5">
+          <div className="w-full bg-gray-200 dark:bg-white/[0.04] rounded-full h-1.5 mb-5">
             <div
               className="h-1.5 rounded-full transition-all duration-300"
               style={{ width: `${intakeProgress.percentComplete}%`, backgroundColor: CORAL }}
@@ -261,7 +261,7 @@ function IntakeLandingContent() {
                       ? "bg-[#19A582]/[0.08] hover:bg-[#19A582]/[0.12]"
                       : status.exists
                         ? "bg-[#E68A00]/[0.08] hover:bg-[#E68A00]/[0.12]"
-                        : "bg-white/[0.02] hover:bg-white/[0.04]"
+                        : "bg-gray-50 dark:bg-white/[0.02] hover:bg-gray-100 dark:hover:bg-white/[0.04]"
                     }
                   `}
                 >
@@ -273,7 +273,7 @@ function IntakeLandingContent() {
                           ? "bg-[#19A582]"
                           : status.exists
                             ? "bg-[#E68A00]"
-                            : "border border-white/[0.2]"
+                            : "border border-gray-300 dark:border-white/[0.2]"
                         }
                       `}
                     >
@@ -283,7 +283,7 @@ function IntakeLandingContent() {
                         <span className="text-[10px] text-white">...</span>
                       ) : null}
                     </div>
-                    <span className="font-medium text-white text-sm">
+                    <span className="font-medium text-gray-900 dark:text-white text-sm">
                       {sectionNames[section]}
                     </span>
                   </div>
@@ -294,7 +294,7 @@ function IntakeLandingContent() {
                         ? "text-[#19A582]"
                         : status.exists
                           ? "text-[#E68A00]"
-                          : "text-[#73655C]"
+                          : "text-gray-500 dark:text-[#73655C]"
                       }
                     `}
                   >
@@ -331,7 +331,7 @@ function IntakeLandingContent() {
               localStorage.removeItem("estatePlanSessionId");
               router.push("/intake");
             }}
-            className="px-5 py-2.5 border border-white/[0.1] text-white rounded-lg font-medium text-sm hover:bg-white/[0.04] transition-colors"
+            className="px-5 py-2.5 border border-gray-300 dark:border-white/[0.1] text-gray-700 dark:text-white rounded-lg font-medium text-sm hover:bg-gray-100 dark:hover:bg-white/[0.04] transition-colors"
           >
             Start New Plan
           </button>
