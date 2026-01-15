@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server";
+import { executeInE2B } from "@/lib/e2b-executor";
 
 // Extend Vercel function timeout
 export const maxDuration = 300;
-
-const E2B_API_URL = "/api/e2b/execute";
 
 interface IntakeData {
   estatePlan: { stateOfResidence?: string };
@@ -181,29 +180,12 @@ export async function POST(req: Request) {
     // Build the prompt
     const prompt = buildAnalysisPrompt(intakeData);
 
-    // Get the base URL for the E2B API
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL ||
-                    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
-
-    // Call the E2B execute endpoint
-    const response = await fetch(`${baseUrl}${E2B_API_URL}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        prompt,
-        outputFile: "analysis.json",
-        timeoutMs: 240000,
-      }),
+    // Execute directly via shared E2B module (no HTTP fetch)
+    const result = await executeInE2B({
+      prompt,
+      outputFile: "analysis.json",
+      timeoutMs: 0, // Use max timeout for comprehensive analysis
     });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`E2B API call failed: ${response.status} ${errorText}`);
-    }
-
-    const result = await response.json();
 
     if (!result.success) {
       throw new Error(result.error || "E2B execution failed");
