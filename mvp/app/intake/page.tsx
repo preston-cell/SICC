@@ -351,10 +351,10 @@ function IntakeLandingContent() {
         >
           <FileText className="w-7 h-7" style={{ color: CORAL }} />
         </div>
-        <h1 className="text-2xl font-semibold text-white">
+        <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
           Estate Plan Intake
         </h1>
-        <p className="text-[#9D918A] max-w-md mx-auto">
+        <p className="text-gray-600 dark:text-[#9D918A] max-w-md mx-auto">
           Upload your existing documents or start with a blank questionnaire.
         </p>
       </div>
@@ -383,17 +383,17 @@ function IntakeLandingContent() {
 
         {/* Benefits */}
         <div className="grid grid-cols-3 gap-2 text-sm">
-          <div className="flex flex-col items-center gap-2 p-3 bg-[#1A1A1A] border border-white/[0.08] rounded-lg">
+          <div className="flex flex-col items-center gap-2 p-3 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-200 dark:border-white/[0.08] rounded-lg">
             <Clock className="w-4 h-4" style={{ color: GREEN }} />
-            <span className="text-[#9D918A] text-xs">Save 15+ min</span>
+            <span className="text-gray-600 dark:text-[#9D918A] text-xs">Save 15+ min</span>
           </div>
-          <div className="flex flex-col items-center gap-2 p-3 bg-[#1A1A1A] border border-white/[0.08] rounded-lg">
+          <div className="flex flex-col items-center gap-2 p-3 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-200 dark:border-white/[0.08] rounded-lg">
             <CheckCircle2 className="w-4 h-4 text-[#3B82F6]" />
-            <span className="text-[#9D918A] text-xs">Auto-fill forms</span>
+            <span className="text-gray-600 dark:text-[#9D918A] text-xs">Auto-fill forms</span>
           </div>
-          <div className="flex flex-col items-center gap-2 p-3 bg-[#1A1A1A] border border-white/[0.08] rounded-lg">
+          <div className="flex flex-col items-center gap-2 p-3 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-200 dark:border-white/[0.08] rounded-lg">
             <Sparkles className="w-4 h-4" style={{ color: CORAL }} />
-            <span className="text-[#9D918A] text-xs">AI analysis</span>
+            <span className="text-gray-600 dark:text-[#9D918A] text-xs">AI analysis</span>
           </div>
         </div>
       </div>
@@ -407,8 +407,8 @@ function IntakeLandingContent() {
       )}
 
       {/* Supported Document Types */}
-      <div className="bg-[#1A1A1A] border border-white/[0.08] rounded-xl p-5">
-        <h2 className="text-xs font-medium text-[#73655C] uppercase tracking-wide mb-4 flex items-center gap-2">
+      <div className="bg-gray-100 dark:bg-[#1A1A1A] border border-gray-200 dark:border-white/[0.08] rounded-xl p-5">
+        <h2 className="text-xs font-medium text-gray-500 dark:text-[#73655C] uppercase tracking-wide mb-4 flex items-center gap-2">
           <FileText className="w-3.5 h-3.5" />
           Supported Documents
         </h2>
@@ -424,7 +424,7 @@ function IntakeLandingContent() {
             "Property Deeds",
             "Insurance Policies",
           ].map((doc) => (
-            <div key={doc} className="flex items-center gap-2 text-[#9D918A]">
+            <div key={doc} className="flex items-center gap-2 text-gray-600 dark:text-[#9D918A]">
               <Check className="w-3.5 h-3.5 flex-shrink-0" style={{ color: GREEN }} />
               <span>{doc}</span>
             </div>
@@ -433,8 +433,8 @@ function IntakeLandingContent() {
       </div>
 
       {/* Secondary Option - Start Fresh */}
-      <div className="pt-4 border-t border-white/[0.06] text-center">
-        <p className="text-sm text-[#73655C] mb-2">
+      <div className="pt-4 border-t border-gray-200 dark:border-white/[0.06] text-center">
+        <p className="text-sm text-gray-500 dark:text-[#73655C] mb-2">
           Don&apos;t have documents yet?
         </p>
         <button
@@ -446,7 +446,7 @@ function IntakeLandingContent() {
           Start with blank questionnaire
           <ChevronRight className="w-4 h-4" />
         </button>
-        <p className="text-xs text-[#564C45] mt-1">
+        <p className="text-xs text-gray-400 dark:text-[#564C45] mt-1">
           Takes about 15-20 minutes
         </p>
       </div>
