@@ -2,7 +2,7 @@
 
 import { forwardRef, HTMLAttributes, ReactNode } from "react";
 
-type CardVariant = "default" | "elevated" | "outlined";
+type CardVariant = "default" | "elevated" | "outlined" | "feature";
 
 interface CardProps extends HTMLAttributes<HTMLDivElement> {
   variant?: CardVariant;
@@ -20,18 +20,21 @@ interface CardFooterProps extends HTMLAttributes<HTMLDivElement> {
   bordered?: boolean;
 }
 
+// Cohere-style card variants - soft shadows, hover lift
 const variantStyles: Record<CardVariant, string> = {
   default:
-    "bg-white dark:bg-gray-800 shadow-sm",
+    "bg-white border border-[var(--border-light)] rounded-[var(--radius-lg)]",
   elevated:
-    "bg-white dark:bg-gray-800 shadow-lg",
+    "bg-white rounded-[var(--radius-lg)] shadow-[var(--shadow-md)]",
   outlined:
-    "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700",
+    "bg-white border border-[var(--border)] rounded-[var(--radius-lg)]",
+  feature:
+    "bg-white border border-[var(--border-light)] rounded-[var(--radius-lg)] hover:border-[var(--coral)]",
 };
 
 const paddingStyles = {
   none: "",
-  sm: "p-4",
+  sm: "p-5",
   md: "p-6",
   lg: "p-8",
 };
@@ -52,11 +55,10 @@ const Card = forwardRef<HTMLDivElement, CardProps>(
       <div
         ref={ref}
         className={`
-          rounded-xl
-          transition-all duration-200
+          transition-all duration-[400ms] ease-[cubic-bezier(0.16,1,0.3,1)]
           ${variantStyles[variant]}
           ${paddingStyles[padding]}
-          ${interactive ? "cursor-pointer hover:shadow-md hover:-translate-y-0.5 active:translate-y-0" : ""}
+          ${interactive ? "cursor-pointer hover:-translate-y-1 hover:shadow-[var(--shadow-hover)]" : ""}
           ${className}
         `}
         {...props}
@@ -80,12 +82,12 @@ const CardHeader = forwardRef<HTMLDivElement, CardHeaderProps>(
         {(title || description) ? (
           <div className="flex-1 min-w-0">
             {title && (
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white truncate">
+              <h4 className="text-lg font-medium text-[var(--text-primary)] truncate">
                 {title}
-              </h3>
+              </h4>
             )}
             {description && (
-              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              <p className="mt-1 text-sm text-[var(--text-secondary)]">
                 {description}
               </p>
             )}
@@ -118,7 +120,7 @@ const CardFooter = forwardRef<HTMLDivElement, CardFooterProps>(
         ref={ref}
         className={`
           mt-4 pt-4 flex items-center gap-3
-          ${bordered ? "border-t border-gray-200 dark:border-gray-700" : ""}
+          ${bordered ? "border-t border-[var(--border-light)]" : ""}
           ${className}
         `}
         {...props}

@@ -2,7 +2,7 @@
 
 import { HTMLAttributes } from "react";
 
-type BlobVariant = "purple" | "blue" | "coral" | "pink";
+type BlobVariant = "coral" | "lavender" | "sage" | "quartz";
 
 interface BlobProps extends HTMLAttributes<HTMLDivElement> {
   variant?: BlobVariant;
@@ -13,18 +13,19 @@ interface BlobProps extends HTMLAttributes<HTMLDivElement> {
   delay?: number;
 }
 
+// Cohere-style organic blob colors - warm, natural tones
 const variantGradients: Record<BlobVariant, string> = {
-  purple: "from-[#7B68EE] to-[#5B4ACE]",
-  blue: "from-[#4169E1] to-[#1E40AF]",
-  coral: "from-[#E86C5F] to-[#DC2626]",
-  pink: "from-[#F472B6] to-[#DB2777]",
+  coral: "from-[var(--coral)] to-[var(--coral-light)]",
+  lavender: "from-[var(--soft-lavender)] to-[var(--quartz)]",
+  sage: "from-[var(--sage-green)] to-[#C8DED1]",
+  quartz: "from-[var(--quartz)] to-[var(--quartz-dark)]",
 };
 
 export default function Blob({
-  variant = "purple",
+  variant = "coral",
   size = 300,
-  blur = 40,
-  opacity = 0.7,
+  blur = 60,
+  opacity = 0.5,
   animated = true,
   delay = 0,
   className = "",

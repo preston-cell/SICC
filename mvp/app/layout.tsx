@@ -2,23 +2,18 @@ import "./globals.css";
 import { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import ConvexClientProvider from "./ConvexClientProvider";
-import { Inter, IBM_Plex_Mono, Source_Serif_4 } from "next/font/google";
+import { DM_Sans, JetBrains_Mono } from "next/font/google";
 
-const inter = Inter({
+// Primary font - DM Sans (Cohere-style)
+const dmSans = DM_Sans({
   subsets: ["latin"],
   weight: ["400", "500", "600"],
-  variable: "--font-inter",
+  variable: "--font-dm-sans",
   display: "swap",
 });
 
-const sourceSerif = Source_Serif_4({
-  subsets: ["latin"],
-  weight: ["400", "600"],
-  variable: "--font-serif",
-  display: "swap",
-});
-
-const ibmPlexMono = IBM_Plex_Mono({
+// Monospace font
+const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
   weight: ["400", "500"],
   variable: "--font-mono",
@@ -39,8 +34,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   const content = (
-    <html lang="en" className={`${inter.variable} ${sourceSerif.variable} ${ibmPlexMono.variable}`}>
-      <body className={inter.className}>
+    <html lang="en" className={`${dmSans.variable} ${jetbrainsMono.variable}`}>
+      <body className={dmSans.className}>
         <ConvexClientProvider>
           {children}
         </ConvexClientProvider>

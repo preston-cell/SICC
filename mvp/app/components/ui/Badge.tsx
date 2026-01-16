@@ -2,7 +2,7 @@
 
 import { forwardRef, HTMLAttributes } from "react";
 
-type BadgeVariant = "default" | "success" | "warning" | "error" | "info";
+type BadgeVariant = "default" | "success" | "warning" | "error" | "info" | "accent";
 type BadgeSize = "sm" | "md";
 
 interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
@@ -11,30 +11,34 @@ interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
   dot?: boolean;
 }
 
+// Cohere-style badge variants - warm colors, pill-shaped
 const variantStyles: Record<BadgeVariant, string> = {
   default:
-    "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300",
+    "bg-[var(--cream)] text-[var(--text-secondary)]",
   success:
-    "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
+    "bg-[var(--success-muted)] text-[var(--success)]",
   warning:
-    "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300",
+    "bg-[var(--warning-muted)] text-[var(--warning)]",
   error:
-    "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
+    "bg-[var(--error-muted)] text-[var(--error)]",
   info:
-    "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
+    "bg-[var(--info-muted)] text-[var(--info)]",
+  accent:
+    "bg-[var(--coral-muted)] text-[var(--coral)]",
 };
 
 const dotColors: Record<BadgeVariant, string> = {
-  default: "bg-gray-500",
-  success: "bg-green-500",
-  warning: "bg-amber-500",
-  error: "bg-red-500",
-  info: "bg-blue-500",
+  default: "bg-[var(--mushroom-grey)]",
+  success: "bg-[var(--success)]",
+  warning: "bg-[var(--warning)]",
+  error: "bg-[var(--error)]",
+  info: "bg-[var(--info)]",
+  accent: "bg-[var(--coral)]",
 };
 
 const sizeStyles: Record<BadgeSize, string> = {
-  sm: "px-2 py-0.5 text-xs",
-  md: "px-2.5 py-1 text-sm",
+  sm: "px-2.5 py-1 text-xs",
+  md: "px-3 py-1.5 text-sm",
 };
 
 const dotSizes: Record<BadgeSize, string> = {
@@ -81,8 +85,8 @@ Badge.displayName = "Badge";
 
 export default Badge;
 
-// Tag component for filtering and categories
-type TagVariant = "outline" | "filled" | "neutral";
+// Tag component for filtering and categories - Cohere style pill tags
+type TagVariant = "outline" | "filled" | "muted";
 type TagSize = "sm" | "md";
 
 interface TagProps extends HTMLAttributes<HTMLButtonElement> {
@@ -93,14 +97,14 @@ interface TagProps extends HTMLAttributes<HTMLButtonElement> {
 }
 
 const tagVariantStyles: Record<TagVariant, string> = {
-  outline: "border border-[var(--accent-purple)] text-[var(--accent-purple)] hover:bg-[var(--accent-purple)] hover:text-white",
-  filled: "bg-[var(--accent-purple)] text-white",
-  neutral: "border border-[var(--light-gray)] text-[var(--medium-gray)] hover:border-[var(--medium-gray)] hover:text-[var(--dark-gray)]",
+  outline: "border border-[var(--coral)] text-[var(--coral)] hover:bg-[var(--coral)] hover:text-white",
+  filled: "bg-[var(--coral)] text-white",
+  muted: "bg-[var(--cream)] text-[var(--text-secondary)] hover:bg-[var(--stone-grey)] hover:text-[var(--text-primary)]",
 };
 
 const tagSizeStyles: Record<TagSize, string> = {
-  sm: "px-3 py-1 text-xs",
-  md: "px-4 py-1.5 text-sm",
+  sm: "px-4 py-1.5 text-xs",
+  md: "px-5 py-2 text-sm",
 };
 
 export const Tag = forwardRef<HTMLButtonElement, TagProps>(
@@ -115,7 +119,7 @@ export const Tag = forwardRef<HTMLButtonElement, TagProps>(
     },
     ref
   ) => {
-    const activeStyles = active ? "bg-[var(--accent-purple)] text-white border-[var(--accent-purple)]" : "";
+    const activeStyles = active ? "bg-[var(--coral)] text-white border-[var(--coral)]" : "";
 
     return (
       <button
@@ -123,7 +127,7 @@ export const Tag = forwardRef<HTMLButtonElement, TagProps>(
         className={`
           inline-flex items-center justify-center
           font-medium rounded-full
-          transition-all duration-200
+          transition-all duration-[150ms] ease-out
           cursor-pointer
           ${tagVariantStyles[variant]}
           ${tagSizeStyles[size]}

@@ -511,7 +511,7 @@ export default function AnalysisPage() {
                 <div className="mt-8 flex flex-wrap justify-center gap-4">
                   <Link
                     href={`/analysis/${estatePlanId}/visualization`}
-                    className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-all"
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-[#FF7759] hover:bg-[#E85A3C] text-white font-medium rounded-full shadow-md hover:shadow-lg transition-all"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
@@ -521,7 +521,7 @@ export default function AnalysisPage() {
                   </Link>
                   <Link
                     href={`/analysis/${estatePlanId}/reminders`}
-                    className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-violet-500 to-purple-500 hover:from-violet-600 hover:to-purple-600 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-all"
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-[#1D1D1B] hover:bg-[#2D2D2B] text-white font-medium rounded-full shadow-md hover:shadow-lg transition-all"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />

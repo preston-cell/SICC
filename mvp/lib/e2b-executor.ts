@@ -212,15 +212,19 @@ ls -la ${OUTPUT_DIR}/ 2>/dev/null || echo "(none)"
     await sandbox.files.write("/tmp/run_claude.sh", wrapperScript);
     await sandbox.commands.run("chmod +x /tmp/run_claude.sh");
 
-    // Run Claude Code with very long timeout
-    const result = await sandbox.commands.run("bash /tmp/run_claude.sh", {
+    // Run Claude Code - use passed timeout (0 means use max timeout for comprehensive analysis)
+    const commandOptions: { envs: Record<string, string>; timeoutMs: number } = {
       envs: {
         ANTHROPIC_API_KEY,
         HOME: "/home/user",
         CI: "true",
       },
-      timeoutMs: 900000, // 15 minutes per command
-    });
+      // Use very large timeout (25 minutes) when timeoutMs is 0 or not specified
+      // This allows comprehensive analysis to complete
+      timeoutMs: timeoutMs === 0 ? 1500000 : (timeoutMs || 900000),
+    };
+
+    const result = await sandbox.commands.run("bash /tmp/run_claude.sh", commandOptions);
 
     // Try to read output file if specified
     let fileContent = "";
