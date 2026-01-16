@@ -1,153 +1,107 @@
 # Delaware
 
 ## Key Differences from Other States
-- No state estate tax
+- No state estate tax (repealed 2018)
 - No state inheritance tax
 - Common law property state
-- **Premier trust jurisdiction** - very favorable trust laws
-- Directed trusts, dynasty trusts, asset protection trusts
-- No rule against perpetuities for trusts
+- **Premier trust jurisdiction** - #1 in United States
+- Dynasty trusts (no rule against perpetuities)
+- Directed trusts with separated authority
+- Asset protection trusts (DAPTs)
+- Quiet trusts (limited beneficiary disclosure)
 - No state income tax on trust income (with qualifications)
+- Specialized Chancery Court
 
 ## Will Requirements
 **Statutory Basis**: Delaware Code Title 12
 
-### Execution Requirements
-- Testator must be 18+ years old
-- Must be of sound mind
-- Must be in writing
-- Must be signed by testator
-- Must be signed by at least **2 witnesses** (credible witnesses)
+### Execution Requirements (12 Del. C. § 1304)
+- Testator must be **18+ years old**
+- Must be of **sound mind**
+- Must be **in writing**
+- Must be **signed by testator**
+- Must be signed by at least **2 credible witnesses**
 
-### Self-Proving Affidavit
-- Available under 12 Del. C. § 1305
-- Recommended for smooth probate
+### Self-Proving Affidavit (12 Del. C. § 1305)
+- Available and recommended
 
 ### Holographic Wills
-- **Not recognized** in Delaware
+- **NOT recognized** in Delaware
 
-## Trust Requirements
-- Delaware Trust Act is very favorable
-- Permits dynasty trusts (no perpetuities)
-- Permits directed trusts
-- Asset protection trusts available
+## Trust Requirements - PREMIER JURISDICTION
+**Statutory Basis**: Delaware Trust Act (12 Del. C. §§ 3101-3341)
 
-### Delaware Dynasty Trusts
-- No rule against perpetuities
-- Trusts can last indefinitely
-- Popular for multi-generational wealth
+### Dynasty Trusts (12 Del. C. § 3103)
+- **No rule against perpetuities**
+- Trusts can continue indefinitely
+- Multi-generational wealth transfer
 
-### Delaware Asset Protection Trust (DAPT)
-- Self-settled trusts with creditor protection
-- 4-year statute of limitations
+### Directed Trusts (12 Del. C. §§ 3313-3320)
+- Separates investment from distribution authority
+- Director controls investments
+- Trustee handles distributions
+- Reduces trustee liability
+
+### Asset Protection Trusts (12 Del. C. §§ 3570-3574)
+- Self-settled spendthrift trusts allowed
+- **4-year statute of limitations** for creditor claims
 - Must have Delaware trustee
+- Settlor can be beneficiary
 
-### Directed Trusts
-- Investment direction can be separated from distribution
-- Trust protector provisions allowed
-- Flexibility in trust administration
+### Quiet Trusts (12 Del. C. § 3313)
+- Beneficiaries need not be informed of trust
+- Limited disclosure requirements
+
+### Trust Decanting (12 Del. C. § 3528)
+- Modify irrevocable trusts without court approval
+
+### Trust Protectors
+- Can modify trust terms
+- Can change trustees
 
 ## Power of Attorney
 **Statutory Basis**: 12 Del. C. Chapter 49A
 
-### Requirements
-- Must be signed by principal
-- Must be witnessed by **2 adults**
-- Must be notarized
-- Durable if includes durability language
+### Execution Requirements
+- Must be **signed by principal**
+- Must be **witnessed by 2 adults**
+- Notarized for real estate
 
 ## Healthcare Directive
 **Statutory Basis**: 16 Del. C. Chapter 25
 
-### Requirements
-- Advance Health Care Directive
-- Must be signed and witnessed by **2 adults**
-- Or notarized
-- Includes healthcare agent designation and living will
+### Execution Requirements
+- Must be **signed by principal**
+- **Witnessed by 2 adults** OR **notarized**
 
 ## Estate and Inheritance Tax
 - **No state estate tax** (repealed 2018)
 - **No state inheritance tax**
-- Only federal estate tax applies
+- No state income tax on trust income (with Delaware trustee)
 
-## Medicaid Planning (Delaware Medicaid)
+## Medicaid Planning
 
 ### Look-Back Period
 - **60 months** (5 years)
 
 ### Asset Limits (2025)
 - Individual: $2,000
-- Married (community spouse): CSRA up to federal maximum
-
-### Exempt Assets
-- Primary residence
-- One vehicle
-- Personal belongings
-- Prepaid burial
+- Married: CSRA up to federal maximum
 
 ## Homestead Protection
-- Very limited homestead exemption
-- Up to $125,000 for home
-- Must be head of household
+- **$125,000** for head of household
+- Limited compared to other states
 
-## Trust Jurisdiction Advantages
-
-### No State Income Tax on Trusts
-- Delaware does not tax trust income if:
-  - No Delaware beneficiaries receive distributions
-  - Trustee is Delaware resident or trust company
-- Attractive for out-of-state settlors
-
-### Trust Decanting
-- Allows modifying irrevocable trusts
-- Transfer to new trust with different terms
-- Flexibility for changing circumstances
-
-### Quiet Trusts
-- Beneficiaries need not be informed of trust
-- Until certain age or event
-- Privacy for settlors
-
-### Trust Protectors
-- Can modify trust terms
-- Can change trustees
-- Can adjust for tax law changes
-
-## Unique State Features
-
-### Business-Friendly Laws
-- Corporation haven
-- Limited liability companies favorable
-- Business succession planning advantages
-
-### Chancery Court
-- Specialized court for business and trust matters
-- Sophisticated judges
+## Chancery Court
+- Specialized court for trust matters
+- Dedicated judges with extensive experience
+- No juries - sophisticated decisions
 - Predictable outcomes
 
-### Planning Considerations
-- **Consider Delaware situs for trusts** even if not Delaware resident
-- Dynasty trusts for multi-generational wealth
-- Directed trusts for sophisticated planning
-- Asset protection trusts for creditor concerns
-- No state estate tax reduces planning urgency
-- Trust income tax planning for high-income families
+## Key Statutory Citations
 
-## Safe Deposit Box Rules
-
-### Access After Death
-- Joint renter has immediate access
-- Without joint renter: letters testamentary from Register of Wills required
-- Bank may permit limited examination with death certificate
-- Register of Wills handles probate administration
-
-### Joint Ownership
-- Surviving joint renter has full access rights
-- No automatic freeze upon death
-- Contents accessible without court involvement
-
-### Best Practices
-- Original will should not be stored in safe deposit box
-- Document box contents with estate planning documents
-- Inform executor of box location
-- Delaware corporate documents often stored - ensure accessibility
+- 12 Del. C. § 1304 (Will execution)
+- 12 Del. C. § 3103 (Dynasty trusts)
+- 12 Del. C. §§ 3313-3320 (Directed trusts)
+- 12 Del. C. §§ 3570-3574 (DAPTs)
+- 12 Del. C. § 3528 (Decanting)
