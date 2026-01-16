@@ -1,167 +1,125 @@
 # Connecticut
 
 ## Key Differences from Other States
-- **Has state estate tax** (matches federal exemption ~$13.99M in 2025)
-- **Has state gift tax** (unified with estate tax)
+- **Has state estate tax** (exemption $13.99M in 2025 - matches federal)
+- **Has state gift tax** (unified with estate tax - one of only 2 states)
 - No state inheritance tax
 - Common law property state
-- Highest estate tax exemption among estate tax states
-- Gift tax is unified with estate tax (lifetime gifts count against exemption)
+- **No portability** for state estate tax (major planning limitation)
+- Flat 12% estate tax rate
+- Limited homestead protection ($250,000)
+- No holographic wills recognized
 
 ## Estate Tax
+**Statutory Basis**: CGS § 12-391
 
 ### Exemption (2025)
 - **$13.99 million** (matches federal exemption)
-- Indexed to federal exemption
-- One of only states with gift tax
+- Indexed to federal exemption for year of death
 
-### Tax Rates
-- Graduated rates from 11.6% to 12%
-- Top rate: **12%** (lowest among estate tax states)
-- Tax capped at $15 million maximum
+### Tax Rate
+- **Flat 12%** on estates exceeding exemption
 
-### Calculation
-- Based on federal taxable estate with Connecticut modifications
-- Add back Connecticut taxable gifts made on or after Jan 1, 2005
-- Add back Connecticut gift tax paid in 3 years before death
+### Critical Feature - NO PORTABILITY
+- Connecticut does **NOT** allow surviving spouse to claim unused exemption
+- Married couples must use credit shelter trusts (A-B trusts)
+- Failure to plan results in permanent loss of first spouse's exemption
 
 ### QTIP Elections
 - Connecticut recognizes separate state QTIP election
-- Can make different election for federal and state purposes
 
 ## Gift Tax
-**Connecticut is one of only two states with a gift tax** (with Minnesota technically having one)
+**Connecticut is one of only two states with a gift tax**
 
 ### Exemption
-- Unified with estate tax exemption ($13.99M in 2025)
+- **Unified with estate tax exemption** ($13.99M in 2025)
 - Lifetime gifts reduce available estate tax exemption
 
 ### Annual Exclusion
-- Follows federal annual exclusion ($18,000 per recipient in 2024)
-- Gifts under annual exclusion not taxable
+- Follows federal annual exclusion ($19,000 per recipient in 2025)
 
-### Filing Requirements
-- Must file Connecticut gift tax return for taxable gifts
-- Due April 15 following year of gift
+### Tax Rate
+- **12%** on gifts exceeding exemption
 
 ## Will Requirements
-**Statutory Basis**: Connecticut General Statutes Chapter 802a
+**Statutory Basis**: CGS § 45a-250 et seq.
 
-### Execution Requirements
-- Testator must be 18+ years old
-- Must be of sound mind
-- Must be in writing
-- Must be signed by testator
+### Execution Requirements (CGS § 45a-251)
+- Testator must be **18+ years old**
+- Must be of **sound mind**
+- Must be **in writing**
+- Must be **signed by testator**
 - Must be signed by at least **2 witnesses**
-- Witnesses must sign in presence of testator
+- Witnesses must be present at time of signing
 
 ### Self-Proving Affidavit
-- Available
-- Recommended for probate efficiency
+- Available and recommended
 
 ### Holographic Wills
-- **Not recognized** in Connecticut
+- **NOT recognized** in Connecticut
 
 ## Trust Requirements
-- No specific statutory formalities
-- Must have identifiable trust property
-- Uniform Trust Code provisions apply
+**Statutory Basis**: CGS §§ 45a-499a to 45a-500s (Connecticut Uniform Trust Code)
+
+### Features
+- Uniform Trust Code adopted (effective Jan 1, 2020)
+- Directed Trust Act provisions
+- Trust Decanting Act
+- Spendthrift protections available
 
 ## Power of Attorney
-**Statutory Basis**: CGS § 1-350 et seq.
+**Statutory Basis**: CGS §§ 1-350 to 1-353b
 
-### Requirements
-- Must be signed by principal
+### Execution Requirements (CGS § 1-350d)
+- Must be **signed by principal**
 - Must be witnessed by **2 adults**
-- Should be acknowledged (notarized) for real property
-- Durable if includes durability language
-
-### Statutory Short Form
-- Connecticut provides statutory short form POA
-- Widely recognized
+- Must be acknowledged before **notary public**
+- Presumed durable after October 1, 2016
 
 ## Healthcare Directive
-**Statutory Basis**: CGS § 19a-570 et seq.
+**Statutory Basis**: CGS § 19a-577 et seq.
 
 ### Requirements
-- Health Care Instructions (Living Will)
 - Appointment of Health Care Representative
-- Must be signed and witnessed by **2 adults**
+- Living Will
+- Must be **witnessed by 2 adults**
 
 ## Medicaid Planning (Connecticut Medicaid)
+
+### Classification - EXPANDED RECOVERY STATE
+- Can pursue **non-probate assets**
+- Can pursue assets held by surviving spouse after spouse dies
 
 ### Look-Back Period
 - **60 months** (5 years)
 
 ### Asset Limits (2025)
-- Individual: $1,600 (lower than federal standard)
+- **Individual: $1,600** (lower than federal standard)
 - Married (community spouse): CSRA up to federal maximum
 
 ### Exempt Assets
-- Primary residence (equity limit applies)
+- Primary residence (NOT exempt from estate recovery at death)
 - One vehicle
 - Personal belongings
 - Prepaid burial
 
-### Connecticut-Specific Considerations
-- Lower individual asset limit than most states
-- Connecticut Home Care Program for Elders
-- Higher cost of care affects planning
+## Homestead Protection (CGS § 52-352b(21))
+- **$250,000** in home equity protected
+- Increased from $75,000 effective October 1, 2021
 
-## Homestead Protection
-- **No homestead exemption** in Connecticut
-- One of few states without homestead protection
-- Creditors can reach home equity
+## Probate Procedures
 
-## Unique State Features
+### Small Estate Threshold (CGS § 45a-273)
+- **$40,000** gross estate value
+- NO real estate owned solely by decedent
 
-### Unified Gift and Estate Tax
-- Unlike most states, Connecticut taxes lifetime gifts
-- Planning must account for gift tax
-- Gifts count against estate tax exemption
+### Elective Share (CGS § 45a-436)
+- Surviving spouse can elect **1/3 life estate** of net estate
 
-### No Homestead Protection
-- Major planning consideration
-- Consider other asset protection strategies
-- Trusts more important for creditor protection
+## Key Statutory Citations
 
-### High Cost of Living
-- Higher nursing home costs
-- Higher penalty divisor for Medicaid
-- May justify more aggressive planning
-
-### Probate Process
-- Each town has probate court
-- Can be efficient for simple estates
-- Fees based on estate value
-
-### Planning Considerations
-- **Account for gift tax** in lifetime planning
-- High exemption means fewer estates subject to tax
-- No homestead - consider trust-based asset protection
-- QTIP elections can be state-specific
-- Coordinate federal and Connecticut planning
-- Annual gift exclusion important for reducing estate
-
-## Safe Deposit Box Rules
-
-### Access After Death
-- Joint renter has immediate access
-- Without joint renter: letters testamentary from probate court required
-- Connecticut allows examination with death certificate to locate will
-- Probate court in town of residence handles administration
-
-### Joint Ownership
-- Surviving joint renter retains full access
-- No automatic freeze upon death
-- Contents accessible without probate involvement
-
-### Estate Tax Considerations
-- Connecticut has estate tax - document valuable contents
-- Contents valued for estate tax purposes
-
-### Best Practices
-- Original will should not be stored in safe deposit box
-- Document contents for estate tax reporting
-- Inform fiduciary of box location
-- Consider estate tax implications of valuable items
+- CGS § 45a-251 (Will execution)
+- CGS § 12-391 (Estate tax)
+- CGS § 1-350 (Power of Attorney)
+- CGS § 19a-577 (Healthcare directive)
+- CGS § 52-352b(21) (Homestead)
