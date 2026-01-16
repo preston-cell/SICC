@@ -619,9 +619,10 @@ export default function Home() {
             initial={{ opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-section text-white mb-4"
+            className="text-section mb-4"
+            style={{ color: "white" }}
           >
-            Get started for free
+            Get started for free:
           </motion.h2>
           <motion.p
             initial={{ opacity: 0, y: 16 }}

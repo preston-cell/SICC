@@ -6,6 +6,7 @@ import { api } from "../../../../convex/_generated/api";
 import { Id } from "../../../../convex/_generated/dataModel";
 import Link from "next/link";
 import { useState, useCallback, useRef } from "react";
+import Button from "../../../components/ui/Button";
 import ReactMarkdown from "react-markdown";
 
 type DocumentType = "will" | "trust" | "poa_financial" | "poa_healthcare" | "healthcare_directive" | "hipaa";
@@ -480,35 +481,19 @@ export default function DocumentGeneratePage() {
                       Est. time: {doc.estimatedTime}
                     </p>
                     <div className="mt-4 flex gap-2">
-                      <button
+                      <Button
+                        variant="primary"
+                        size="sm"
                         onClick={() => handleGenerate(doc.type)}
                         disabled={generationState.isGenerating}
-                        className={`
-                          px-4 py-2 rounded-lg text-sm font-medium transition-colors
-                          ${isGenerating
-                            ? "bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 cursor-wait"
-                            : generationState.isGenerating
-                              ? "bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed"
-                              : "bg-blue-600 hover:bg-blue-700 text-white"
-                          }
-                        `}
+                        isLoading={isGenerating}
                       >
-                        {isGenerating ? (
-                          <span className="flex items-center gap-2">
-                            <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                            </svg>
-                            Generating...
-                          </span>
-                        ) : existingDoc ? (
-                          "Regenerate"
-                        ) : (
-                          "Generate"
-                        )}
-                      </button>
+                        {isGenerating ? "Generating..." : existingDoc ? "Regenerate" : "Generate"}
+                      </Button>
                       {existingDoc && (
-                        <button
+                        <Button
+                          variant="secondary"
+                          size="sm"
                           onClick={() => {
                             setPreviewState({
                               isOpen: true,
@@ -517,10 +502,9 @@ export default function DocumentGeneratePage() {
                               documentId: existingDoc._id,
                             });
                           }}
-                          className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg text-sm font-medium transition-colors"
                         >
                           View Draft
-                        </button>
+                        </Button>
                       )}
                     </div>
                   </div>

@@ -16,7 +16,7 @@ const variantStyles: Record<SectionVariant, string> = {
   default: "bg-white text-[var(--foreground)]",
   cream: "bg-[var(--off-white)] text-[var(--foreground)]",
   lavender: "bg-gradient-to-b from-[var(--lavender)] to-[#A89CF5] text-[var(--foreground)]",
-  dark: "bg-gradient-to-br from-[#1A1A2E] to-[#16213E] text-white",
+  dark: "bg-[#1D1D1F] text-white",
   "deep-purple": "bg-[var(--deep-purple)] text-white",
 };
 
