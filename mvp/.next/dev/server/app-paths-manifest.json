@@ -1,7 +1,0 @@
-{
-  "/analysis/[estatePlanId]/page": "app/analysis/[estatePlanId]/page.js",
-  "/analysis/[estatePlanId]/visualization/page": "app/analysis/[estatePlanId]/visualization/page.js",
-  "/api/gap-analysis/route": "app/api/gap-analysis/route.js",
-  "/intake/page": "app/intake/page.js",
-  "/page": "app/page.js"
-}
