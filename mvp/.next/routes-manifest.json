@@ -98,10 +98,22 @@
       "namedRegex": "^/_not\\-found(?:/)?$"
     },
     {
+      "page": "/api/document-generation",
+      "regex": "^/api/document\\-generation(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/document\\-generation(?:/)?$"
+    },
+    {
       "page": "/api/e2b/execute",
       "regex": "^/api/e2b/execute(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/api/e2b/execute(?:/)?$"
+    },
+    {
+      "page": "/api/gap-analysis",
+      "regex": "^/api/gap\\-analysis(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/gap\\-analysis(?:/)?$"
     },
     {
       "page": "/api/run",

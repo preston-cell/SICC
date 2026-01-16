@@ -669,8 +669,6 @@ function AssetsFormContent() {
                   addBeneficiaryDesignation();
                 }
               }}
-              label="I want to track my beneficiary designations"
-              description="Optional: Track which beneficiaries are on each account"
               label={beneficiariesAlreadyConfirmed
                 ? "I still want to document my beneficiary designations for reference"
                 : "I want to track my beneficiary designations"

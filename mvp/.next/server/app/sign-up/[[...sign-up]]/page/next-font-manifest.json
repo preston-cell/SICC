@@ -2,7 +2,8 @@
   "pages": {},
   "app": {
     "[project]/app/sign-up/[[...sign-up]]/page": [
-      "static/media/fba5a26ea33df6a3-s.p.1bbdebe6.woff2",
+      "static/media/83afe278b6a6bb3c-s.p.3a6ba036.woff2",
+      "static/media/68d403cf9f2c68c5-s.p.f9f15f61.woff2",
       "static/media/99e609270109b47d-s.p.64b9304e.woff2",
       "static/media/effe91970fc4db64-s.p.19510058.woff2"
     ]

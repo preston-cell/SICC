@@ -634,7 +634,7 @@ export default function AnalysisPage() {
                         href={`/documents/generate/${estatePlanId}`}
                         className="flex-1"
                       >
-                        <Button variant="orange" fullWidth>
+                        <Button variant="primary" fullWidth>
                           Generate Documents
                         </Button>
                       </Link>

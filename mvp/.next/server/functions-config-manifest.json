@@ -1,4 +1,14 @@
 {
   "version": 1,
-  "functions": {}
+  "functions": {
+    "/api/document-generation": {
+      "maxDuration": 300
+    },
+    "/api/e2b/execute": {
+      "maxDuration": 300
+    },
+    "/api/gap-analysis": {
+      "maxDuration": 600
+    }
+  }
 }
