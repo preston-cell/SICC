@@ -215,9 +215,9 @@ async function POST(req) {
                 status: 500
             });
         }
-        // Create sandbox
+        // Create sandbox with extended timeout for comprehensive analysis
         const sandbox = await __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$e2b$2f$dist$2f$index$2e$mjs__$5b$app$2d$route$5d$__$28$ecmascript$29$__["Sandbox"].create("base", {
-            timeoutMs: 300000,
+            timeoutMs: 600000,
             apiKey: E2B_API_KEY
         });
         try {

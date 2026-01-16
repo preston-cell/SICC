@@ -1,8 +1,9 @@
 "use client";
 
 import { forwardRef, ButtonHTMLAttributes, ReactNode } from "react";
+import { ArrowRight } from "lucide-react";
 
-type ButtonVariant = "primary" | "secondary" | "outline" | "ghost" | "danger";
+type ButtonVariant = "primary" | "secondary" | "outline" | "ghost" | "danger" | "cta" | "link";
 type ButtonSize = "sm" | "md" | "lg";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -12,25 +13,31 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   leftIcon?: ReactNode;
   rightIcon?: ReactNode;
   fullWidth?: boolean;
+  pill?: boolean;
+  showArrow?: boolean;
 }
 
 const variantStyles: Record<ButtonVariant, string> = {
   primary:
-    "bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800 disabled:bg-blue-300 dark:disabled:bg-blue-800",
+    "bg-[#1D1D1F] text-white relative overflow-hidden hover:-translate-y-[1px] active:translate-y-0 disabled:bg-gray-300 disabled:opacity-100 btn-gradient-primary",
   secondary:
-    "bg-gray-100 text-gray-900 hover:bg-gray-200 active:bg-gray-300 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600 disabled:bg-gray-100 disabled:text-gray-400 dark:disabled:bg-gray-800 dark:disabled:text-gray-600",
+    "bg-transparent text-[#1D1D1F] border border-[var(--light-gray)] relative overflow-hidden hover:-translate-y-[1px] hover:border-transparent active:translate-y-0 disabled:bg-transparent disabled:text-gray-400 disabled:border-gray-200 btn-gradient-secondary",
   outline:
-    "border-2 border-gray-300 text-gray-700 hover:bg-gray-50 active:bg-gray-100 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800 disabled:border-gray-200 disabled:text-gray-400 dark:disabled:border-gray-700 dark:disabled:text-gray-600",
+    "border border-[var(--light-gray)] text-[#1D1D1F] hover:bg-[var(--off-white)] hover:-translate-y-[1px] active:translate-y-0 disabled:border-gray-200 disabled:text-gray-400",
   ghost:
-    "text-gray-700 hover:bg-gray-100 active:bg-gray-200 dark:text-gray-300 dark:hover:bg-gray-800 disabled:text-gray-400 dark:disabled:text-gray-600",
+    "text-[var(--foreground)] hover:bg-[var(--off-white)] hover:-translate-y-[1px] active:translate-y-0 disabled:text-gray-400",
   danger:
-    "bg-red-600 text-white hover:bg-red-700 active:bg-red-800 disabled:bg-red-300 dark:disabled:bg-red-800",
+    "bg-[var(--error)] text-white hover:opacity-90 hover:-translate-y-[1px] active:translate-y-0 disabled:bg-red-300",
+  cta:
+    "bg-[#1D1D1F] text-white relative overflow-hidden hover:-translate-y-[1px] active:translate-y-0 disabled:bg-gray-400 btn-gradient-primary",
+  link:
+    "text-[#1D1D1F] font-medium hover:opacity-70 p-0 bg-transparent",
 };
 
 const sizeStyles: Record<ButtonSize, string> = {
-  sm: "px-3 py-1.5 text-sm gap-1.5",
-  md: "px-4 py-2 text-base gap-2",
-  lg: "px-6 py-3 text-lg gap-2.5",
+  sm: "px-4 py-2 text-sm gap-2",
+  md: "px-6 py-3 text-base gap-2",
+  lg: "px-8 py-4 text-lg gap-3",
 };
 
 const iconSizes: Record<ButtonSize, string> = {
@@ -71,6 +78,8 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       leftIcon,
       rightIcon,
       fullWidth = false,
+      pill = false,
+      showArrow = false,
       disabled,
       className = "",
       children,
@@ -79,6 +88,8 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     ref
   ) => {
     const isDisabled = disabled || isLoading;
+    const isLinkVariant = variant === "link";
+    const showCtaArrow = variant === "cta" && showArrow;
 
     return (
       <button
@@ -86,13 +97,13 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         disabled={isDisabled}
         className={`
           inline-flex items-center justify-center
-          font-medium rounded-lg
-          transition-colors duration-150 ease-in-out
-          focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2
-          dark:focus-visible:ring-offset-gray-900
+          font-medium
+          transition-all duration-200 ease-in-out
+          focus:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2
           disabled:cursor-not-allowed
+          ${pill ? "rounded-[50px]" : "rounded-lg"}
           ${variantStyles[variant]}
-          ${sizeStyles[size]}
+          ${isLinkVariant ? "" : sizeStyles[size]}
           ${fullWidth ? "w-full" : ""}
           ${className}
         `}
@@ -107,6 +118,14 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         {!isLoading && rightIcon && (
           <span className={iconSizes[size]}>{rightIcon}</span>
         )}
+        {!isLoading && showCtaArrow && (
+          <span className="inline-flex items-center justify-center w-7 h-7 bg-white/10 rounded">
+            <ArrowRight className="w-4 h-4" />
+          </span>
+        )}
+        {!isLoading && isLinkVariant && showArrow && (
+          <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+        )}
       </button>
     );
   }
@@ -115,3 +134,28 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 Button.displayName = "Button";
 
 export default Button;
+
+export const LinkButton = forwardRef<
+  HTMLAnchorElement,
+  React.AnchorHTMLAttributes<HTMLAnchorElement> & { showArrow?: boolean }
+>(({ children, className = "", showArrow = true, ...props }, ref) => (
+  <a
+    ref={ref}
+    className={`
+      inline-flex items-center gap-2
+      text-black font-medium
+      transition-all duration-200 ease-in-out
+      hover:gap-3
+      group
+      ${className}
+    `}
+    {...props}
+  >
+    {children}
+    {showArrow && (
+      <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+    )}
+  </a>
+));
+
+LinkButton.displayName = "LinkButton";

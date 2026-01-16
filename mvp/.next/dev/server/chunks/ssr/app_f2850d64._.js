@@ -756,17 +756,26 @@ function AnalysisPage() {
         setError(null);
         try {
             // Build intake data object for the API
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const rawIntakeData = intakeData;
+            console.log("Raw intakeData from Convex:", rawIntakeData);
+            const intakeArray = rawIntakeData?.intakeData || rawIntakeData?.intake || [];
+            console.log("Intake array:", intakeArray);
+            console.log("Available sections:", intakeArray.map?.((i)=>i.section) || "none");
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const beneficiaries = rawIntakeData?.beneficiaryDesignations || [];
             const apiIntakeData = {
                 estatePlan: {
                     stateOfResidence: estatePlan?.stateOfResidence
                 },
-                personal: intakeData?.intake?.find((i)=>i.section === "personal"),
-                family: intakeData?.intake?.find((i)=>i.section === "family"),
-                assets: intakeData?.intake?.find((i)=>i.section === "assets"),
-                existingDocuments: intakeData?.intake?.find((i)=>i.section === "existing_documents"),
-                goals: intakeData?.intake?.find((i)=>i.section === "goals"),
-                beneficiaryDesignations: intakeData?.beneficiaryDesignations || []
+                personal: intakeArray?.find((i)=>i.section === "personal"),
+                family: intakeArray?.find((i)=>i.section === "family"),
+                assets: intakeArray?.find((i)=>i.section === "assets"),
+                existingDocuments: intakeArray?.find((i)=>i.section === "existing_documents"),
+                goals: intakeArray?.find((i)=>i.section === "goals"),
+                beneficiaryDesignations: beneficiaries
             };
+            console.log("Built apiIntakeData:", JSON.stringify(apiIntakeData, null, 2));
             // Call the API route directly (bypasses Convex timeout issues)
             const response = await fetch("/api/gap-analysis", {
                 method: "POST",
@@ -782,19 +791,44 @@ function AnalysisPage() {
                 setError(result.error || "Analysis failed");
                 return;
             }
+            // Debug: Log what we received from the API
+            console.log("Gap analysis API response:", {
+                success: result.success,
+                hasAnalysisResult: !!result.analysisResult,
+                score: result.analysisResult?.score,
+                overallScore: result.analysisResult?.overallScore,
+                missingDocsCount: result.analysisResult?.missingDocuments?.length || 0,
+                recommendationsCount: (result.analysisResult?.recommendations || result.analysisResult?.prioritizedRecommendations)?.length || 0,
+                stateNotesCount: (result.analysisResult?.stateSpecificNotes || result.analysisResult?.stateSpecificConsiderations)?.length || 0
+            });
+            // Validate we got meaningful data
+            const missingDocs = result.analysisResult?.missingDocuments || [];
+            const recommendations = result.analysisResult?.recommendations || result.analysisResult?.prioritizedRecommendations || [];
+            const stateNotes = result.analysisResult?.stateSpecificNotes || result.analysisResult?.stateSpecificConsiderations || [];
+            if (missingDocs.length === 0 && recommendations.length === 0) {
+                console.warn("WARNING: API returned empty analysis data - possible parsing issue");
+                console.warn("Full result structure:", JSON.stringify(result.analysisResult, null, 2).slice(0, 1000));
+            }
+            // Log what we're about to save
+            console.log("Saving to Convex:", {
+                score: result.analysisResult?.score || 50,
+                missingDocsCount: missingDocs.length,
+                recommendationsCount: recommendations.length,
+                stateNotesCount: stateNotes.length
+            });
             // Save results to Convex
             await saveGapAnalysis({
                 estatePlanId,
                 score: result.analysisResult.score || 50,
-                estateComplexity: result.analysisResult.estateComplexity || undefined,
-                estimatedEstateTax: result.analysisResult.estimatedEstateTax ? JSON.stringify(result.analysisResult.estimatedEstateTax) : undefined,
+                estateComplexity: result.analysisResult.estateComplexity ? JSON.stringify(result.analysisResult.estateComplexity) : undefined,
+                estimatedEstateTax: result.analysisResult.estimatedEstateTax || result.analysisResult.financialExposure?.estimatedEstateTax ? JSON.stringify(result.analysisResult.estimatedEstateTax || result.analysisResult.financialExposure?.estimatedEstateTax) : undefined,
                 missingDocuments: JSON.stringify(result.analysisResult.missingDocuments || []),
                 outdatedDocuments: JSON.stringify(result.analysisResult.outdatedDocuments || []),
                 inconsistencies: JSON.stringify(result.analysisResult.inconsistencies || []),
-                taxOptimization: result.analysisResult.taxOptimization ? JSON.stringify(result.analysisResult.taxOptimization) : undefined,
+                taxOptimization: result.analysisResult.taxOptimization || result.analysisResult.taxStrategies ? JSON.stringify(result.analysisResult.taxOptimization || result.analysisResult.taxStrategies) : undefined,
                 medicaidPlanning: result.analysisResult.medicaidPlanning ? JSON.stringify(result.analysisResult.medicaidPlanning) : undefined,
-                recommendations: JSON.stringify(result.analysisResult.recommendations || []),
-                stateSpecificNotes: JSON.stringify(result.analysisResult.stateSpecificNotes || []),
+                recommendations: JSON.stringify(result.analysisResult.recommendations || result.analysisResult.prioritizedRecommendations || []),
+                stateSpecificNotes: JSON.stringify(result.analysisResult.stateSpecificNotes || result.analysisResult.stateSpecificConsiderations || []),
                 rawAnalysis: result.analysisResult.rawAnalysis || result.stdout
             });
         } catch (err) {
@@ -845,12 +879,12 @@ function AnalysisPage() {
                         d: "M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
                     }, void 0, false, {
                         fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                        lineNumber: 190,
+                        lineNumber: 266,
                         columnNumber: 13
                     }, this)
                 }, void 0, false, {
                     fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                    lineNumber: 189,
+                    lineNumber: 265,
                     columnNumber: 11
                 }, this)
             },
@@ -869,12 +903,12 @@ function AnalysisPage() {
                         d: "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                     }, void 0, false, {
                         fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                        lineNumber: 199,
+                        lineNumber: 275,
                         columnNumber: 13
                     }, this)
                 }, void 0, false, {
                     fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                    lineNumber: 198,
+                    lineNumber: 274,
                     columnNumber: 11
                 }, this),
                 disabled: missingDocs.length === 0
@@ -894,12 +928,12 @@ function AnalysisPage() {
                         d: "M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                     }, void 0, false, {
                         fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                        lineNumber: 209,
+                        lineNumber: 285,
                         columnNumber: 13
                     }, this)
                 }, void 0, false, {
                     fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                    lineNumber: 208,
+                    lineNumber: 284,
                     columnNumber: 11
                 }, this),
                 disabled: issuesCount === 0
@@ -919,12 +953,12 @@ function AnalysisPage() {
                         d: "M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
                     }, void 0, false, {
                         fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                        lineNumber: 219,
+                        lineNumber: 295,
                         columnNumber: 13
                     }, this)
                 }, void 0, false, {
                     fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                    lineNumber: 218,
+                    lineNumber: 294,
                     columnNumber: 11
                 }, this),
                 disabled: recommendations.length === 0
@@ -944,12 +978,12 @@ function AnalysisPage() {
                         d: "M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"
                     }, void 0, false, {
                         fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                        lineNumber: 229,
+                        lineNumber: 305,
                         columnNumber: 13
                     }, this)
                 }, void 0, false, {
                     fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                    lineNumber: 228,
+                    lineNumber: 304,
                     columnNumber: 11
                 }, this),
                 disabled: stateNotes.length === 0
@@ -974,7 +1008,7 @@ function AnalysisPage() {
                         className: "animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"
                     }, void 0, false, {
                         fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                        lineNumber: 247,
+                        lineNumber: 323,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -982,18 +1016,18 @@ function AnalysisPage() {
                         children: "Loading..."
                     }, void 0, false, {
                         fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                        lineNumber: 248,
+                        lineNumber: 324,
                         columnNumber: 11
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                lineNumber: 246,
+                lineNumber: 322,
                 columnNumber: 9
             }, this)
         }, void 0, false, {
             fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-            lineNumber: 245,
+            lineNumber: 321,
             columnNumber: 7
         }, this);
     }
@@ -1011,7 +1045,7 @@ function AnalysisPage() {
                             children: "Estate Planning Assistant"
                         }, void 0, false, {
                             fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                            lineNumber: 259,
+                            lineNumber: 335,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1033,18 +1067,18 @@ function AnalysisPage() {
                                             d: "M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
                                         }, void 0, false, {
                                             fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                            lineNumber: 273,
+                                            lineNumber: 349,
                                             columnNumber: 21
                                         }, void 0)
                                     }, void 0, false, {
                                         fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                        lineNumber: 272,
+                                        lineNumber: 348,
                                         columnNumber: 19
                                     }, void 0),
                                     children: "Print Report"
                                 }, void 0, false, {
                                     fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                    lineNumber: 267,
+                                    lineNumber: 343,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$app$2d$dir$2f$link$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -1053,24 +1087,24 @@ function AnalysisPage() {
                                     children: "Back to Intake"
                                 }, void 0, false, {
                                     fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                    lineNumber: 280,
+                                    lineNumber: 356,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                            lineNumber: 265,
+                            lineNumber: 341,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                    lineNumber: 258,
+                    lineNumber: 334,
                     columnNumber: 9
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                lineNumber: 257,
+                lineNumber: 333,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("main", {
@@ -1093,12 +1127,12 @@ function AnalysisPage() {
                                         d: "M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
                                     }, void 0, false, {
                                         fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                        lineNumber: 296,
+                                        lineNumber: 372,
                                         columnNumber: 17
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                    lineNumber: 295,
+                                    lineNumber: 371,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1108,7 +1142,7 @@ function AnalysisPage() {
                                             children: "Intake Incomplete"
                                         }, void 0, false, {
                                             fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                            lineNumber: 299,
+                                            lineNumber: 375,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1122,7 +1156,7 @@ function AnalysisPage() {
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                            lineNumber: 300,
+                                            lineNumber: 376,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$app$2d$dir$2f$link$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -1131,24 +1165,24 @@ function AnalysisPage() {
                                             children: "Complete Intake →"
                                         }, void 0, false, {
                                             fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                            lineNumber: 304,
+                                            lineNumber: 380,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                    lineNumber: 298,
+                                    lineNumber: 374,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                            lineNumber: 294,
+                            lineNumber: 370,
                             columnNumber: 13
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                        lineNumber: 293,
+                        lineNumber: 369,
                         columnNumber: 11
                     }, this),
                     !latestAnalysis && !isRunning && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1168,17 +1202,17 @@ function AnalysisPage() {
                                         d: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
                                     }, void 0, false, {
                                         fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                        lineNumber: 320,
+                                        lineNumber: 396,
                                         columnNumber: 17
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                    lineNumber: 319,
+                                    lineNumber: 395,
                                     columnNumber: 15
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                lineNumber: 318,
+                                lineNumber: 394,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h2", {
@@ -1186,7 +1220,7 @@ function AnalysisPage() {
                                 children: "Ready to Analyze Your Estate Plan"
                             }, void 0, false, {
                                 fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                lineNumber: 323,
+                                lineNumber: 399,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1194,7 +1228,7 @@ function AnalysisPage() {
                                 children: "Our AI will review your intake data and identify gaps, outdated documents, and provide personalized recommendations based on your state's laws."
                             }, void 0, false, {
                                 fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                lineNumber: 326,
+                                lineNumber: 402,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$ui$2f$Button$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -1203,13 +1237,13 @@ function AnalysisPage() {
                                 children: "Run Gap Analysis"
                             }, void 0, false, {
                                 fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                lineNumber: 329,
+                                lineNumber: 405,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                        lineNumber: 317,
+                        lineNumber: 393,
                         columnNumber: 11
                     }, this),
                     isRunning && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1222,20 +1256,20 @@ function AnalysisPage() {
                                         className: "absolute inset-0 rounded-full border-4 border-blue-200 dark:border-blue-900"
                                     }, void 0, false, {
                                         fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                        lineNumber: 339,
+                                        lineNumber: 415,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                         className: "absolute inset-0 rounded-full border-4 border-blue-600 border-t-transparent animate-spin"
                                     }, void 0, false, {
                                         fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                        lineNumber: 340,
+                                        lineNumber: 416,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                lineNumber: 338,
+                                lineNumber: 414,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h2", {
@@ -1243,7 +1277,7 @@ function AnalysisPage() {
                                 children: "Analyzing Your Estate Plan..."
                             }, void 0, false, {
                                 fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                lineNumber: 342,
+                                lineNumber: 418,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1251,13 +1285,13 @@ function AnalysisPage() {
                                 children: "This may take a minute. We're reviewing your information and generating personalized recommendations."
                             }, void 0, false, {
                                 fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                lineNumber: 345,
+                                lineNumber: 421,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                        lineNumber: 337,
+                        lineNumber: 413,
                         columnNumber: 11
                     }, this),
                     error && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1277,12 +1311,12 @@ function AnalysisPage() {
                                         d: "M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                                     }, void 0, false, {
                                         fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                        lineNumber: 356,
+                                        lineNumber: 432,
                                         columnNumber: 17
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                    lineNumber: 355,
+                                    lineNumber: 431,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1292,7 +1326,7 @@ function AnalysisPage() {
                                             children: "Analysis Failed"
                                         }, void 0, false, {
                                             fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                            lineNumber: 359,
+                                            lineNumber: 435,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1300,7 +1334,7 @@ function AnalysisPage() {
                                             children: error
                                         }, void 0, false, {
                                             fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                            lineNumber: 360,
+                                            lineNumber: 436,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -1309,24 +1343,24 @@ function AnalysisPage() {
                                             children: "Try Again"
                                         }, void 0, false, {
                                             fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                            lineNumber: 361,
+                                            lineNumber: 437,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                    lineNumber: 358,
+                                    lineNumber: 434,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                            lineNumber: 354,
+                            lineNumber: 430,
                             columnNumber: 13
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                        lineNumber: 353,
+                        lineNumber: 429,
                         columnNumber: 11
                     }, this),
                     latestAnalysis && !isRunning && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1346,7 +1380,7 @@ function AnalysisPage() {
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                lineNumber: 379,
+                                                lineNumber: 455,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1356,12 +1390,12 @@ function AnalysisPage() {
                                                     size: "lg"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                    lineNumber: 385,
+                                                    lineNumber: 461,
                                                     columnNumber: 19
                                                 }, this)
                                             }, void 0, false, {
                                                 fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                lineNumber: 384,
+                                                lineNumber: 460,
                                                 columnNumber: 17
                                             }, this),
                                             scoreInfo && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1372,7 +1406,7 @@ function AnalysisPage() {
                                                         children: scoreInfo.label
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                        lineNumber: 391,
+                                                        lineNumber: 467,
                                                         columnNumber: 21
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1380,13 +1414,13 @@ function AnalysisPage() {
                                                         children: scoreInfo.description
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                        lineNumber: 394,
+                                                        lineNumber: 470,
                                                         columnNumber: 21
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                lineNumber: 390,
+                                                lineNumber: 466,
                                                 columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1408,17 +1442,17 @@ function AnalysisPage() {
                                                                 d: "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                                lineNumber: 408,
+                                                                lineNumber: 484,
                                                                 columnNumber: 25
                                                             }, void 0)
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                            lineNumber: 407,
+                                                            lineNumber: 483,
                                                             columnNumber: 23
                                                         }, void 0)
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                        lineNumber: 402,
+                                                        lineNumber: 478,
                                                         columnNumber: 19
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(StatCard, {
@@ -1437,17 +1471,17 @@ function AnalysisPage() {
                                                                 d: "M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                                lineNumber: 418,
+                                                                lineNumber: 494,
                                                                 columnNumber: 25
                                                             }, void 0)
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                            lineNumber: 417,
+                                                            lineNumber: 493,
                                                             columnNumber: 23
                                                         }, void 0)
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                        lineNumber: 412,
+                                                        lineNumber: 488,
                                                         columnNumber: 19
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(StatCard, {
@@ -1466,23 +1500,23 @@ function AnalysisPage() {
                                                                 d: "M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                                lineNumber: 428,
+                                                                lineNumber: 504,
                                                                 columnNumber: 25
                                                             }, void 0)
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                            lineNumber: 427,
+                                                            lineNumber: 503,
                                                             columnNumber: 23
                                                         }, void 0)
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                        lineNumber: 422,
+                                                        lineNumber: 498,
                                                         columnNumber: 19
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                lineNumber: 401,
+                                                lineNumber: 477,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1505,7 +1539,7 @@ function AnalysisPage() {
                                                                         d: "M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                                        lineNumber: 441,
+                                                                        lineNumber: 517,
                                                                         columnNumber: 23
                                                                     }, this),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("path", {
@@ -1515,20 +1549,20 @@ function AnalysisPage() {
                                                                         d: "M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                                        lineNumber: 442,
+                                                                        lineNumber: 518,
                                                                         columnNumber: 23
                                                                     }, this)
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                                lineNumber: 440,
+                                                                lineNumber: 516,
                                                                 columnNumber: 21
                                                             }, this),
                                                             "View Estate Distribution"
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                        lineNumber: 436,
+                                                        lineNumber: 512,
                                                         columnNumber: 19
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$app$2d$dir$2f$link$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -1547,31 +1581,31 @@ function AnalysisPage() {
                                                                     d: "M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                                    lineNumber: 451,
+                                                                    lineNumber: 527,
                                                                     columnNumber: 23
                                                                 }, this)
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                                lineNumber: 450,
+                                                                lineNumber: 526,
                                                                 columnNumber: 21
                                                             }, this),
                                                             "Reminders & Life Events"
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                        lineNumber: 446,
+                                                        lineNumber: 522,
                                                         columnNumber: 19
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                lineNumber: 435,
+                                                lineNumber: 511,
                                                 columnNumber: 17
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                        lineNumber: 378,
+                                        lineNumber: 454,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1585,7 +1619,7 @@ function AnalysisPage() {
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                lineNumber: 460,
+                                                lineNumber: 536,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -1605,31 +1639,31 @@ function AnalysisPage() {
                                                             d: "M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                            lineNumber: 469,
+                                                            lineNumber: 545,
                                                             columnNumber: 21
                                                         }, this)
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                        lineNumber: 468,
+                                                        lineNumber: 544,
                                                         columnNumber: 19
                                                     }, this),
                                                     "Re-run Analysis"
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                lineNumber: 463,
+                                                lineNumber: 539,
                                                 columnNumber: 17
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                        lineNumber: 459,
+                                        lineNumber: 535,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                lineNumber: 376,
+                                lineNumber: 452,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1669,19 +1703,19 @@ function AnalysisPage() {
                                                                                         d: "M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                                                                                     }, void 0, false, {
                                                                                         fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                                                        lineNumber: 495,
+                                                                                        lineNumber: 571,
                                                                                         columnNumber: 29
                                                                                     }, this)
                                                                                 }, void 0, false, {
                                                                                     fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                                                    lineNumber: 494,
+                                                                                    lineNumber: 570,
                                                                                     columnNumber: 27
                                                                                 }, this),
                                                                                 "Priority Actions"
                                                                             ]
                                                                         }, void 0, true, {
                                                                             fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                                            lineNumber: 493,
+                                                                            lineNumber: 569,
                                                                             columnNumber: 25
                                                                         }, this),
                                                                         missingDocs.filter((d)=>d.priority === "high").length > 0 || recommendations.filter((r)=>r.priority === "high").length > 0 ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("ul", {
@@ -1696,24 +1730,24 @@ function AnalysisPage() {
                                                                                                 children: "Missing"
                                                                                             }, void 0, false, {
                                                                                                 fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                                                                lineNumber: 507,
+                                                                                                lineNumber: 583,
                                                                                                 columnNumber: 35
                                                                                             }, this),
                                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                                                                 className: "text-gray-700 dark:text-gray-300",
-                                                                                                children: __TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$GapAnalysisCard$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["DOCUMENT_TYPE_NAMES"][doc.type] || doc.type
+                                                                                                children: __TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$GapAnalysisCard$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["DOCUMENT_TYPE_NAMES"][doc.document || doc.type || ""] || doc.document || doc.type || "Document"
                                                                                             }, void 0, false, {
                                                                                                 fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                                                                lineNumber: 508,
+                                                                                                lineNumber: 584,
                                                                                                 columnNumber: 35
                                                                                             }, this)
                                                                                         ]
                                                                                     }, `doc-${idx}`, true, {
                                                                                         fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                                                        lineNumber: 506,
+                                                                                        lineNumber: 582,
                                                                                         columnNumber: 33
                                                                                     }, this)),
-                                                                                recommendations.filter((r)=>r.priority === "high").slice(0, 2).map((rec, idx)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
+                                                                                recommendations.filter((r)=>r.priority === "high" || r.priority === "critical").slice(0, 2).map((rec, idx)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
                                                                                         className: "flex items-start gap-2 text-sm",
                                                                                         children: [
                                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$ui$2f$Badge$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -1722,7 +1756,7 @@ function AnalysisPage() {
                                                                                                 children: "Action"
                                                                                             }, void 0, false, {
                                                                                                 fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                                                                lineNumber: 518,
+                                                                                                lineNumber: 594,
                                                                                                 columnNumber: 35
                                                                                             }, this),
                                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1730,32 +1764,32 @@ function AnalysisPage() {
                                                                                                 children: rec.action
                                                                                             }, void 0, false, {
                                                                                                 fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                                                                lineNumber: 519,
+                                                                                                lineNumber: 595,
                                                                                                 columnNumber: 35
                                                                                             }, this)
                                                                                         ]
                                                                                     }, `rec-${idx}`, true, {
                                                                                         fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                                                        lineNumber: 517,
+                                                                                        lineNumber: 593,
                                                                                         columnNumber: 33
                                                                                     }, this))
                                                                             ]
                                                                         }, void 0, true, {
                                                                             fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                                            lineNumber: 501,
+                                                                            lineNumber: 577,
                                                                             columnNumber: 27
                                                                         }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                                                             className: "text-sm text-gray-500 dark:text-gray-400",
                                                                             children: "No high-priority actions needed."
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                                            lineNumber: 524,
+                                                                            lineNumber: 600,
                                                                             columnNumber: 27
                                                                         }, this)
                                                                     ]
                                                                 }, void 0, true, {
                                                                     fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                                    lineNumber: 492,
+                                                                    lineNumber: 568,
                                                                     columnNumber: 23
                                                                 }, this),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1776,19 +1810,19 @@ function AnalysisPage() {
                                                                                         d: "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                                                                                     }, void 0, false, {
                                                                                         fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                                                        lineNumber: 534,
+                                                                                        lineNumber: 610,
                                                                                         columnNumber: 29
                                                                                     }, this)
                                                                                 }, void 0, false, {
                                                                                     fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                                                    lineNumber: 533,
+                                                                                    lineNumber: 609,
                                                                                     columnNumber: 27
                                                                                 }, this),
                                                                                 "Document Status"
                                                                             ]
                                                                         }, void 0, true, {
                                                                             fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                                            lineNumber: 532,
+                                                                            lineNumber: 608,
                                                                             columnNumber: 25
                                                                         }, this),
                                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1802,7 +1836,7 @@ function AnalysisPage() {
                                                                                             children: "Missing"
                                                                                         }, void 0, false, {
                                                                                             fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                                                            lineNumber: 540,
+                                                                                            lineNumber: 616,
                                                                                             columnNumber: 29
                                                                                         }, this),
                                                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1810,13 +1844,13 @@ function AnalysisPage() {
                                                                                             children: missingDocs.length
                                                                                         }, void 0, false, {
                                                                                             fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                                                            lineNumber: 541,
+                                                                                            lineNumber: 617,
                                                                                             columnNumber: 29
                                                                                         }, this)
                                                                                     ]
                                                                                 }, void 0, true, {
                                                                                     fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                                                    lineNumber: 539,
+                                                                                    lineNumber: 615,
                                                                                     columnNumber: 27
                                                                                 }, this),
                                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1827,7 +1861,7 @@ function AnalysisPage() {
                                                                                             children: "Outdated"
                                                                                         }, void 0, false, {
                                                                                             fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                                                            lineNumber: 544,
+                                                                                            lineNumber: 620,
                                                                                             columnNumber: 29
                                                                                         }, this),
                                                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1835,13 +1869,13 @@ function AnalysisPage() {
                                                                                             children: outdatedDocs.length
                                                                                         }, void 0, false, {
                                                                                             fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                                                            lineNumber: 545,
+                                                                                            lineNumber: 621,
                                                                                             columnNumber: 29
                                                                                         }, this)
                                                                                     ]
                                                                                 }, void 0, true, {
                                                                                     fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                                                    lineNumber: 543,
+                                                                                    lineNumber: 619,
                                                                                     columnNumber: 27
                                                                                 }, this),
                                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1852,7 +1886,7 @@ function AnalysisPage() {
                                                                                             children: "Inconsistencies"
                                                                                         }, void 0, false, {
                                                                                             fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                                                            lineNumber: 548,
+                                                                                            lineNumber: 624,
                                                                                             columnNumber: 29
                                                                                         }, this),
                                                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1860,31 +1894,31 @@ function AnalysisPage() {
                                                                                             children: inconsistencies.length
                                                                                         }, void 0, false, {
                                                                                             fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                                                            lineNumber: 549,
+                                                                                            lineNumber: 625,
                                                                                             columnNumber: 29
                                                                                         }, this)
                                                                                     ]
                                                                                 }, void 0, true, {
                                                                                     fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                                                    lineNumber: 547,
+                                                                                    lineNumber: 623,
                                                                                     columnNumber: 27
                                                                                 }, this)
                                                                             ]
                                                                         }, void 0, true, {
                                                                             fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                                            lineNumber: 538,
+                                                                            lineNumber: 614,
                                                                             columnNumber: 25
                                                                         }, this)
                                                                     ]
                                                                 }, void 0, true, {
                                                                     fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                                    lineNumber: 531,
+                                                                    lineNumber: 607,
                                                                     columnNumber: 23
                                                                 }, this)
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                            lineNumber: 490,
+                                                            lineNumber: 566,
                                                             columnNumber: 21
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1899,12 +1933,12 @@ function AnalysisPage() {
                                                                         children: "Generate Documents"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                                        lineNumber: 561,
+                                                                        lineNumber: 637,
                                                                         columnNumber: 25
                                                                     }, this)
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                                    lineNumber: 557,
+                                                                    lineNumber: 633,
                                                                     columnNumber: 23
                                                                 }, this),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$app$2d$dir$2f$link$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -1916,12 +1950,12 @@ function AnalysisPage() {
                                                                         children: "Upload & Analyze"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                                        lineNumber: 569,
+                                                                        lineNumber: 645,
                                                                         columnNumber: 25
                                                                     }, this)
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                                    lineNumber: 565,
+                                                                    lineNumber: 641,
                                                                     columnNumber: 23
                                                                 }, this),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$app$2d$dir$2f$link$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -1933,29 +1967,29 @@ function AnalysisPage() {
                                                                         children: "Update Information"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                                        lineNumber: 574,
+                                                                        lineNumber: 650,
                                                                         columnNumber: 25
                                                                     }, this)
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                                    lineNumber: 573,
+                                                                    lineNumber: 649,
                                                                     columnNumber: 23
                                                                 }, this)
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                            lineNumber: 556,
+                                                            lineNumber: 632,
                                                             columnNumber: 21
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                    lineNumber: 488,
+                                                    lineNumber: 564,
                                                     columnNumber: 19
                                                 }, this)
                                             }, void 0, false, {
                                                 fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                lineNumber: 487,
+                                                lineNumber: 563,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$ui$2f$Tabs$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["TabPanel"], {
@@ -1964,7 +1998,12 @@ function AnalysisPage() {
                                                     className: "p-6",
                                                     children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                         className: "grid grid-cols-1 md:grid-cols-2 gap-4",
-                                                        children: missingDocs.map((doc, idx)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                        children: missingDocs.map((doc, idx)=>{
+                                                            const docName = doc.document || doc.type || "Unknown Document";
+                                                            const docType = doc.type || doc.document?.toLowerCase().replace(/\s+/g, "_") || "";
+                                                            const priority = doc.priority || "medium";
+                                                            const priorityVariant = priority === "critical" || priority === "high" ? "error" : priority === "medium" ? "warning" : "success";
+                                                            return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                                 className: "bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4",
                                                                 children: [
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1972,63 +2011,95 @@ function AnalysisPage() {
                                                                         children: [
                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h4", {
                                                                                 className: "font-semibold text-gray-900 dark:text-white",
-                                                                                children: __TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$GapAnalysisCard$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["DOCUMENT_TYPE_NAMES"][doc.type] || doc.type
+                                                                                children: __TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$GapAnalysisCard$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["DOCUMENT_TYPE_NAMES"][docType] || docName
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                                                lineNumber: 592,
-                                                                                columnNumber: 29
+                                                                                lineNumber: 673,
+                                                                                columnNumber: 31
                                                                             }, this),
                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$ui$2f$Badge$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
-                                                                                variant: doc.priority === "high" ? "error" : doc.priority === "medium" ? "warning" : "success",
+                                                                                variant: priorityVariant,
                                                                                 size: "sm",
-                                                                                children: doc.priority
+                                                                                children: priority
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                                                lineNumber: 595,
-                                                                                columnNumber: 29
+                                                                                lineNumber: 676,
+                                                                                columnNumber: 31
                                                                             }, this)
                                                                         ]
                                                                     }, void 0, true, {
                                                                         fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                                        lineNumber: 591,
-                                                                        columnNumber: 27
+                                                                        lineNumber: 672,
+                                                                        columnNumber: 29
                                                                     }, this),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                                                        className: "text-sm text-gray-600 dark:text-gray-400 mb-4",
-                                                                        children: doc.reason
+                                                                        className: "text-sm text-gray-600 dark:text-gray-400 mb-2",
+                                                                        children: doc.reason || "This document is recommended for your estate plan."
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                                        lineNumber: 608,
-                                                                        columnNumber: 27
+                                                                        lineNumber: 680,
+                                                                        columnNumber: 29
+                                                                    }, this),
+                                                                    doc.consequences && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                                        className: "text-sm text-red-600 dark:text-red-400 mb-2",
+                                                                        children: [
+                                                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("strong", {
+                                                                                children: "Without it:"
+                                                                            }, void 0, false, {
+                                                                                fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
+                                                                                lineNumber: 685,
+                                                                                columnNumber: 33
+                                                                            }, this),
+                                                                            " ",
+                                                                            doc.consequences
+                                                                        ]
+                                                                    }, void 0, true, {
+                                                                        fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
+                                                                        lineNumber: 684,
+                                                                        columnNumber: 31
+                                                                    }, this),
+                                                                    doc.estimatedCostToCreate && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                                        className: "text-xs text-gray-500 dark:text-gray-500 mb-4",
+                                                                        children: [
+                                                                            "Est. cost: $",
+                                                                            doc.estimatedCostToCreate.low.toLocaleString(),
+                                                                            " - $",
+                                                                            doc.estimatedCostToCreate.high.toLocaleString()
+                                                                        ]
+                                                                    }, void 0, true, {
+                                                                        fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
+                                                                        lineNumber: 689,
+                                                                        columnNumber: 31
                                                                     }, this),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$app$2d$dir$2f$link$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
-                                                                        href: `/documents/generate/${estatePlanId}?type=${doc.type}`,
+                                                                        href: `/documents/generate/${estatePlanId}?type=${docType}`,
                                                                         className: "inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-700",
                                                                         children: "Generate Document →"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                                        lineNumber: 611,
-                                                                        columnNumber: 27
+                                                                        lineNumber: 693,
+                                                                        columnNumber: 29
                                                                     }, this)
                                                                 ]
                                                             }, idx, true, {
                                                                 fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                                lineNumber: 587,
-                                                                columnNumber: 25
-                                                            }, this))
+                                                                lineNumber: 668,
+                                                                columnNumber: 27
+                                                            }, this);
+                                                        })
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                        lineNumber: 585,
+                                                        lineNumber: 661,
                                                         columnNumber: 21
                                                     }, this)
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                    lineNumber: 584,
+                                                    lineNumber: 660,
                                                     columnNumber: 19
                                                 }, this)
                                             }, void 0, false, {
                                                 fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                lineNumber: 583,
+                                                lineNumber: 659,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$ui$2f$Tabs$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["TabPanel"], {
@@ -2053,12 +2124,12 @@ function AnalysisPage() {
                                                                                 d: "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                                                lineNumber: 631,
+                                                                                lineNumber: 714,
                                                                                 columnNumber: 29
                                                                             }, this)
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                                            lineNumber: 630,
+                                                                            lineNumber: 713,
                                                                             columnNumber: 27
                                                                         }, this),
                                                                         "Outdated Documents (",
@@ -2067,29 +2138,37 @@ function AnalysisPage() {
                                                                     ]
                                                                 }, void 0, true, {
                                                                     fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                                    lineNumber: 629,
+                                                                    lineNumber: 712,
                                                                     columnNumber: 25
                                                                 }, this),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                                     className: "space-y-3",
-                                                                    children: outdatedDocs.map((doc, idx)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$GapAnalysisCard$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
+                                                                    children: outdatedDocs.map((doc, idx)=>{
+                                                                        const docName = doc.document || doc.type || "Document";
+                                                                        const description = [
+                                                                            doc.issue,
+                                                                            doc.risk && `Risk: ${doc.risk}`,
+                                                                            doc.recommendation
+                                                                        ].filter(Boolean).join(". ");
+                                                                        return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$GapAnalysisCard$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
                                                                             type: "outdated",
-                                                                            title: __TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$GapAnalysisCard$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["DOCUMENT_TYPE_NAMES"][doc.type] || doc.type,
-                                                                            description: `${doc.issue}. ${doc.recommendation}`
+                                                                            title: __TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$GapAnalysisCard$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["DOCUMENT_TYPE_NAMES"][docName] || docName,
+                                                                            description: description || "This document may need review."
                                                                         }, idx, false, {
                                                                             fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                                            lineNumber: 637,
-                                                                            columnNumber: 29
-                                                                        }, this))
+                                                                            lineNumber: 727,
+                                                                            columnNumber: 31
+                                                                        }, this);
+                                                                    })
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                                    lineNumber: 635,
+                                                                    lineNumber: 718,
                                                                     columnNumber: 25
                                                                 }, this)
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                            lineNumber: 628,
+                                                            lineNumber: 711,
                                                             columnNumber: 23
                                                         }, this),
                                                         inconsistencies.length > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2109,12 +2188,12 @@ function AnalysisPage() {
                                                                                 d: "M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                                                lineNumber: 653,
+                                                                                lineNumber: 744,
                                                                                 columnNumber: 29
                                                                             }, this)
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                                            lineNumber: 652,
+                                                                            lineNumber: 743,
                                                                             columnNumber: 27
                                                                         }, this),
                                                                         "Inconsistencies (",
@@ -2123,40 +2202,50 @@ function AnalysisPage() {
                                                                     ]
                                                                 }, void 0, true, {
                                                                     fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                                    lineNumber: 651,
+                                                                    lineNumber: 742,
                                                                     columnNumber: 25
                                                                 }, this),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                                     className: "space-y-3",
-                                                                    children: inconsistencies.map((item, idx)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$GapAnalysisCard$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
+                                                                    children: inconsistencies.map((item, idx)=>{
+                                                                        const title = item.issue || item.type || "Inconsistency Found";
+                                                                        const description = [
+                                                                            item.details || item.potentialConsequence,
+                                                                            (item.resolution || item.recommendation) && `Resolution: ${item.resolution || item.recommendation}`
+                                                                        ].filter(Boolean).join(". ");
+                                                                        // Map "critical" to "high" for component compatibility
+                                                                        const mappedPriority = item.severity === "critical" ? "high" : item.severity;
+                                                                        return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$GapAnalysisCard$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
                                                                             type: "inconsistency",
-                                                                            title: item.issue,
-                                                                            description: `${item.details}. Recommendation: ${item.recommendation}`
+                                                                            title: title,
+                                                                            description: description || "Please review this inconsistency.",
+                                                                            priority: mappedPriority
                                                                         }, idx, false, {
                                                                             fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                                            lineNumber: 659,
-                                                                            columnNumber: 29
-                                                                        }, this))
+                                                                            lineNumber: 758,
+                                                                            columnNumber: 31
+                                                                        }, this);
+                                                                    })
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                                    lineNumber: 657,
+                                                                    lineNumber: 748,
                                                                     columnNumber: 25
                                                                 }, this)
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                            lineNumber: 650,
+                                                            lineNumber: 741,
                                                             columnNumber: 23
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                    lineNumber: 625,
+                                                    lineNumber: 708,
                                                     columnNumber: 19
                                                 }, this)
                                             }, void 0, false, {
                                                 fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                lineNumber: 624,
+                                                lineNumber: 707,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$ui$2f$Tabs$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["TabPanel"], {
@@ -2164,30 +2253,178 @@ function AnalysisPage() {
                                                 children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                     className: "p-6",
                                                     children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                        className: "space-y-3",
-                                                        children: recommendations.map((rec, idx)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$GapAnalysisCard$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
-                                                                type: "recommendation",
-                                                                title: rec.action,
-                                                                description: rec.reason,
-                                                                priority: rec.priority
-                                                            }, idx, false, {
+                                                        className: "space-y-4",
+                                                        children: recommendations.map((rec, idx)=>{
+                                                            const title = rec.action || "Recommendation";
+                                                            const priority = rec.priority || "medium";
+                                                            const description = rec.reason || rec.riskOfDelay || rec.estimatedBenefit || "";
+                                                            return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                                className: "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4",
+                                                                children: [
+                                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                                        className: "flex items-start justify-between mb-2",
+                                                                        children: [
+                                                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                                                className: "flex items-center gap-2",
+                                                                                children: [
+                                                                                    rec.rank && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                                                        className: "flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 text-xs font-bold",
+                                                                                        children: rec.rank
+                                                                                    }, void 0, false, {
+                                                                                        fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
+                                                                                        lineNumber: 789,
+                                                                                        columnNumber: 35
+                                                                                    }, this),
+                                                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h4", {
+                                                                                        className: "font-semibold text-gray-900 dark:text-white",
+                                                                                        children: title
+                                                                                    }, void 0, false, {
+                                                                                        fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
+                                                                                        lineNumber: 793,
+                                                                                        columnNumber: 33
+                                                                                    }, this)
+                                                                                ]
+                                                                            }, void 0, true, {
+                                                                                fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
+                                                                                lineNumber: 787,
+                                                                                columnNumber: 31
+                                                                            }, this),
+                                                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                                                className: "flex items-center gap-2",
+                                                                                children: [
+                                                                                    rec.timeline && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$ui$2f$Badge$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
+                                                                                        variant: "default",
+                                                                                        size: "sm",
+                                                                                        children: rec.timeline
+                                                                                    }, void 0, false, {
+                                                                                        fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
+                                                                                        lineNumber: 797,
+                                                                                        columnNumber: 35
+                                                                                    }, this),
+                                                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$ui$2f$Badge$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
+                                                                                        variant: priority === "critical" || priority === "high" ? "error" : priority === "medium" ? "warning" : "success",
+                                                                                        size: "sm",
+                                                                                        children: priority
+                                                                                    }, void 0, false, {
+                                                                                        fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
+                                                                                        lineNumber: 799,
+                                                                                        columnNumber: 33
+                                                                                    }, this)
+                                                                                ]
+                                                                            }, void 0, true, {
+                                                                                fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
+                                                                                lineNumber: 795,
+                                                                                columnNumber: 31
+                                                                            }, this)
+                                                                        ]
+                                                                    }, void 0, true, {
+                                                                        fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
+                                                                        lineNumber: 786,
+                                                                        columnNumber: 29
+                                                                    }, this),
+                                                                    description && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                                        className: "text-sm text-gray-600 dark:text-gray-400 mb-3",
+                                                                        children: description
+                                                                    }, void 0, false, {
+                                                                        fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
+                                                                        lineNumber: 808,
+                                                                        columnNumber: 31
+                                                                    }, this),
+                                                                    rec.detailedSteps && rec.detailedSteps.length > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                                        className: "mt-3 pt-3 border-t border-gray-100 dark:border-gray-700",
+                                                                        children: [
+                                                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                                                className: "text-xs font-medium text-gray-500 dark:text-gray-400 mb-2",
+                                                                                children: "Steps:"
+                                                                            }, void 0, false, {
+                                                                                fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
+                                                                                lineNumber: 812,
+                                                                                columnNumber: 33
+                                                                            }, this),
+                                                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("ul", {
+                                                                                className: "text-sm text-gray-600 dark:text-gray-400 space-y-1",
+                                                                                children: [
+                                                                                    rec.detailedSteps.slice(0, 3).map((step, i)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
+                                                                                            className: "flex items-start gap-2",
+                                                                                            children: [
+                                                                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                                                                    className: "text-gray-400",
+                                                                                                    children: "•"
+                                                                                                }, void 0, false, {
+                                                                                                    fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
+                                                                                                    lineNumber: 816,
+                                                                                                    columnNumber: 39
+                                                                                                }, this),
+                                                                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                                                                    children: step
+                                                                                                }, void 0, false, {
+                                                                                                    fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
+                                                                                                    lineNumber: 817,
+                                                                                                    columnNumber: 39
+                                                                                                }, this)
+                                                                                            ]
+                                                                                        }, i, true, {
+                                                                                            fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
+                                                                                            lineNumber: 815,
+                                                                                            columnNumber: 37
+                                                                                        }, this)),
+                                                                                    rec.detailedSteps.length > 3 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
+                                                                                        className: "text-gray-400 text-xs",
+                                                                                        children: [
+                                                                                            "+ ",
+                                                                                            rec.detailedSteps.length - 3,
+                                                                                            " more steps..."
+                                                                                        ]
+                                                                                    }, void 0, true, {
+                                                                                        fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
+                                                                                        lineNumber: 821,
+                                                                                        columnNumber: 37
+                                                                                    }, this)
+                                                                                ]
+                                                                            }, void 0, true, {
+                                                                                fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
+                                                                                lineNumber: 813,
+                                                                                columnNumber: 33
+                                                                            }, this)
+                                                                        ]
+                                                                    }, void 0, true, {
+                                                                        fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
+                                                                        lineNumber: 811,
+                                                                        columnNumber: 31
+                                                                    }, this),
+                                                                    rec.estimatedCost && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                                        className: "text-xs text-gray-500 dark:text-gray-500 mt-2",
+                                                                        children: [
+                                                                            "Est. cost: $",
+                                                                            rec.estimatedCost.low?.toLocaleString(),
+                                                                            " - $",
+                                                                            rec.estimatedCost.high?.toLocaleString()
+                                                                        ]
+                                                                    }, void 0, true, {
+                                                                        fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
+                                                                        lineNumber: 827,
+                                                                        columnNumber: 31
+                                                                    }, this)
+                                                                ]
+                                                            }, idx, true, {
                                                                 fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                                lineNumber: 677,
-                                                                columnNumber: 25
-                                                            }, this))
+                                                                lineNumber: 782,
+                                                                columnNumber: 27
+                                                            }, this);
+                                                        })
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                        lineNumber: 675,
+                                                        lineNumber: 776,
                                                         columnNumber: 21
                                                     }, this)
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                    lineNumber: 674,
+                                                    lineNumber: 775,
                                                     columnNumber: 19
                                                 }, this)
                                             }, void 0, false, {
                                                 fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                lineNumber: 673,
+                                                lineNumber: 774,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$ui$2f$Tabs$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["TabPanel"], {
@@ -2195,35 +2432,78 @@ function AnalysisPage() {
                                                 children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                     className: "p-6",
                                                     children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                        className: "space-y-3",
-                                                        children: stateNotes.map((note, idx)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$GapAnalysisCard$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
-                                                                type: "note",
-                                                                title: note.note,
-                                                                description: note.relevance
-                                                            }, idx, false, {
+                                                        className: "space-y-4",
+                                                        children: [
+                                                            stateNotes.map((note, idx)=>{
+                                                                const title = note.topic || note.note || "State Consideration";
+                                                                const description = [
+                                                                    note.rule,
+                                                                    note.impact,
+                                                                    note.action && `Action: ${note.action}`,
+                                                                    note.relevance
+                                                                ].filter(Boolean).join(". ");
+                                                                return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                                    className: "bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4",
+                                                                    children: [
+                                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h4", {
+                                                                            className: "font-semibold text-gray-900 dark:text-white mb-2",
+                                                                            children: title
+                                                                        }, void 0, false, {
+                                                                            fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
+                                                                            lineNumber: 855,
+                                                                            columnNumber: 29
+                                                                        }, this),
+                                                                        description && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                                            className: "text-sm text-gray-600 dark:text-gray-400 mb-2",
+                                                                            children: description
+                                                                        }, void 0, false, {
+                                                                            fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
+                                                                            lineNumber: 857,
+                                                                            columnNumber: 31
+                                                                        }, this),
+                                                                        note.citation && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                                            className: "text-xs text-blue-600 dark:text-blue-400 font-mono",
+                                                                            children: note.citation
+                                                                        }, void 0, false, {
+                                                                            fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
+                                                                            lineNumber: 860,
+                                                                            columnNumber: 31
+                                                                        }, this)
+                                                                    ]
+                                                                }, idx, true, {
+                                                                    fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
+                                                                    lineNumber: 851,
+                                                                    columnNumber: 27
+                                                                }, this);
+                                                            }),
+                                                            stateNotes.length === 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                                className: "text-gray-500 dark:text-gray-400 text-center py-8",
+                                                                children: "No state-specific considerations found. This may be due to limited state information provided."
+                                                            }, void 0, false, {
                                                                 fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                                lineNumber: 694,
+                                                                lineNumber: 868,
                                                                 columnNumber: 25
-                                                            }, this))
-                                                    }, void 0, false, {
+                                                            }, this)
+                                                        ]
+                                                    }, void 0, true, {
                                                         fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                        lineNumber: 692,
+                                                        lineNumber: 841,
                                                         columnNumber: 21
                                                     }, this)
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                    lineNumber: 691,
+                                                    lineNumber: 840,
                                                     columnNumber: 19
                                                 }, this)
                                             }, void 0, false, {
                                                 fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                lineNumber: 690,
+                                                lineNumber: 839,
                                                 columnNumber: 17
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                        lineNumber: 478,
+                                        lineNumber: 554,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2235,7 +2515,7 @@ function AnalysisPage() {
                                                 type: "missing"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                lineNumber: 708,
+                                                lineNumber: 879,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(PrintSection, {
@@ -2244,7 +2524,7 @@ function AnalysisPage() {
                                                 type: "outdated"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                lineNumber: 709,
+                                                lineNumber: 880,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(PrintSection, {
@@ -2253,7 +2533,7 @@ function AnalysisPage() {
                                                 type: "inconsistency"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                lineNumber: 710,
+                                                lineNumber: 881,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(PrintSection, {
@@ -2262,7 +2542,7 @@ function AnalysisPage() {
                                                 type: "recommendation"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                lineNumber: 711,
+                                                lineNumber: 882,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(PrintSection, {
@@ -2271,19 +2551,19 @@ function AnalysisPage() {
                                                 type: "note"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                                lineNumber: 712,
+                                                lineNumber: 883,
                                                 columnNumber: 17
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                        lineNumber: 707,
+                                        lineNumber: 878,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                lineNumber: 477,
+                                lineNumber: 553,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2295,37 +2575,37 @@ function AnalysisPage() {
                                             children: "Disclaimer:"
                                         }, void 0, false, {
                                             fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                            lineNumber: 719,
+                                            lineNumber: 890,
                                             columnNumber: 17
                                         }, this),
                                         " This analysis is for informational purposes only and does not constitute legal advice. Please consult with a licensed attorney in your state to review your specific situation and any documents before signing."
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                    lineNumber: 718,
+                                    lineNumber: 889,
                                     columnNumber: 15
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                lineNumber: 717,
+                                lineNumber: 888,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                        lineNumber: 374,
+                        lineNumber: 450,
                         columnNumber: 11
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                lineNumber: 290,
+                lineNumber: 366,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-        lineNumber: 255,
+        lineNumber: 331,
         columnNumber: 5
     }, this);
 }
@@ -2344,7 +2624,7 @@ function StatCard({ label, value, color, icon }) {
                 children: icon
             }, void 0, false, {
                 fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                lineNumber: 748,
+                lineNumber: 919,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2352,7 +2632,7 @@ function StatCard({ label, value, color, icon }) {
                 children: value
             }, void 0, false, {
                 fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                lineNumber: 753,
+                lineNumber: 924,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2360,13 +2640,13 @@ function StatCard({ label, value, color, icon }) {
                 children: label
             }, void 0, false, {
                 fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                lineNumber: 754,
+                lineNumber: 925,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-        lineNumber: 747,
+        lineNumber: 918,
         columnNumber: 5
     }, this);
 }
@@ -2380,7 +2660,7 @@ function PrintSection({ title, items, type }) {
                 children: title
             }, void 0, false, {
                 fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                lineNumber: 781,
+                lineNumber: 952,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("ul", {
@@ -2388,90 +2668,107 @@ function PrintSection({ title, items, type }) {
                 children: items.map((item, idx)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
                         className: "text-sm",
                         children: [
-                            type === "missing" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Fragment"], {
-                                children: [
-                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("strong", {
-                                        children: __TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$GapAnalysisCard$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["DOCUMENT_TYPE_NAMES"][item.type] || item.type
-                                    }, void 0, false, {
-                                        fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                        lineNumber: 787,
-                                        columnNumber: 17
-                                    }, this),
-                                    " - ",
-                                    item.reason
-                                ]
-                            }, void 0, true),
-                            type === "outdated" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Fragment"], {
-                                children: [
-                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("strong", {
-                                        children: __TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$GapAnalysisCard$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["DOCUMENT_TYPE_NAMES"][item.type] || item.type
-                                    }, void 0, false, {
-                                        fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                        lineNumber: 794,
-                                        columnNumber: 17
-                                    }, this),
-                                    " - ",
-                                    item.issue,
-                                    ". ",
-                                    item.recommendation
-                                ]
-                            }, void 0, true),
-                            type === "inconsistency" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Fragment"], {
-                                children: [
-                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("strong", {
-                                        children: item.issue
-                                    }, void 0, false, {
-                                        fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                        lineNumber: 801,
-                                        columnNumber: 17
-                                    }, this),
-                                    " - ",
-                                    item.details,
-                                    ". ",
-                                    item.recommendation
-                                ]
-                            }, void 0, true),
-                            type === "recommendation" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Fragment"], {
-                                children: [
-                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("strong", {
-                                        children: item.action
-                                    }, void 0, false, {
-                                        fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                        lineNumber: 808,
-                                        columnNumber: 17
-                                    }, this),
-                                    " - ",
-                                    item.reason
-                                ]
-                            }, void 0, true),
-                            type === "note" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Fragment"], {
-                                children: [
-                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("strong", {
-                                        children: item.note
-                                    }, void 0, false, {
-                                        fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                                        lineNumber: 815,
-                                        columnNumber: 17
-                                    }, this),
-                                    " - ",
-                                    item.relevance
-                                ]
-                            }, void 0, true)
+                            type === "missing" && (()=>{
+                                const doc = item;
+                                const docName = doc.document || doc.type || "Document";
+                                return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Fragment"], {
+                                    children: [
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("strong", {
+                                            children: __TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$GapAnalysisCard$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["DOCUMENT_TYPE_NAMES"][docName] || docName
+                                        }, void 0, false, {
+                                            fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
+                                            lineNumber: 961,
+                                            columnNumber: 19
+                                        }, this),
+                                        " - ",
+                                        doc.reason || doc.consequences || "Recommended for your estate plan"
+                                    ]
+                                }, void 0, true);
+                            })(),
+                            type === "outdated" && (()=>{
+                                const doc = item;
+                                const docName = doc.document || doc.type || "Document";
+                                return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Fragment"], {
+                                    children: [
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("strong", {
+                                            children: __TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$GapAnalysisCard$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["DOCUMENT_TYPE_NAMES"][docName] || docName
+                                        }, void 0, false, {
+                                            fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
+                                            lineNumber: 972,
+                                            columnNumber: 19
+                                        }, this),
+                                        " - ",
+                                        doc.issue,
+                                        ". ",
+                                        doc.recommendation
+                                    ]
+                                }, void 0, true);
+                            })(),
+                            type === "inconsistency" && (()=>{
+                                const inc = item;
+                                return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Fragment"], {
+                                    children: [
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("strong", {
+                                            children: inc.issue || inc.type || "Inconsistency"
+                                        }, void 0, false, {
+                                            fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
+                                            lineNumber: 982,
+                                            columnNumber: 19
+                                        }, this),
+                                        " - ",
+                                        inc.details || inc.potentialConsequence || "",
+                                        ". ",
+                                        inc.recommendation || inc.resolution || ""
+                                    ]
+                                }, void 0, true);
+                            })(),
+                            type === "recommendation" && (()=>{
+                                const rec = item;
+                                return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Fragment"], {
+                                    children: [
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("strong", {
+                                            children: rec.action || "Recommendation"
+                                        }, void 0, false, {
+                                            fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
+                                            lineNumber: 992,
+                                            columnNumber: 19
+                                        }, this),
+                                        " - ",
+                                        rec.reason || rec.riskOfDelay || rec.estimatedBenefit || ""
+                                    ]
+                                }, void 0, true);
+                            })(),
+                            type === "note" && (()=>{
+                                const note = item;
+                                return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Fragment"], {
+                                    children: [
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("strong", {
+                                            children: note.topic || note.note || "State Consideration"
+                                        }, void 0, false, {
+                                            fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
+                                            lineNumber: 1002,
+                                            columnNumber: 19
+                                        }, this),
+                                        " - ",
+                                        note.rule || note.impact || note.relevance || ""
+                                    ]
+                                }, void 0, true);
+                            })()
                         ]
                     }, idx, true, {
                         fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                        lineNumber: 784,
+                        lineNumber: 955,
                         columnNumber: 11
                     }, this))
             }, void 0, false, {
                 fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-                lineNumber: 782,
+                lineNumber: 953,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/app/analysis/[estatePlanId]/page.tsx",
-        lineNumber: 780,
+        lineNumber: 951,
         columnNumber: 5
     }, this);
 }

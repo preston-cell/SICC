@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { executeInE2B } from "@/lib/e2b-executor";
 
-// Extend Vercel function timeout
-export const maxDuration = 300;
+// Extend Vercel function timeout (3 phases x 2 min each + buffer)
+export const maxDuration = 600;
 
 interface IntakeData {
   estatePlan: { stateOfResidence?: string };
@@ -68,15 +68,27 @@ function parseIntakeData(intakeData: IntakeData): ParsedIntake {
   };
 }
 
+// Helper to normalize yes/no/true/false to boolean
+function toBool(value: unknown): boolean {
+  if (typeof value === 'boolean') return value;
+  if (typeof value === 'string') {
+    const lower = value.toLowerCase();
+    return lower === 'yes' || lower === 'true' || lower === '1';
+  }
+  return !!value;
+}
+
 // Sophisticated scoring system based on multiple weighted criteria
 function calculateScore(parsed: ParsedIntake, analysisResult: Record<string, unknown>): number {
   let score = 100; // Start with perfect score and deduct
 
-  const hasWill = (parsed.existingDocs as { hasWill?: boolean })?.hasWill;
-  const hasTrust = (parsed.existingDocs as { hasTrust?: boolean })?.hasTrust;
-  const hasPOAFinancial = (parsed.existingDocs as { hasPOAFinancial?: boolean })?.hasPOAFinancial;
-  const hasPOAHealthcare = (parsed.existingDocs as { hasPOAHealthcare?: boolean })?.hasPOAHealthcare;
-  const hasHealthcareDirective = (parsed.existingDocs as { hasHealthcareDirective?: boolean })?.hasHealthcareDirective;
+  // Handle both boolean and string "yes"/"no" values
+  const existingDocs = parsed.existingDocs as Record<string, unknown>;
+  const hasWill = toBool(existingDocs?.hasWill);
+  const hasTrust = toBool(existingDocs?.hasTrust);
+  const hasPOAFinancial = toBool(existingDocs?.hasPOAFinancial);
+  const hasPOAHealthcare = toBool(existingDocs?.hasPOAHealthcare);
+  const hasHealthcareDirective = toBool(existingDocs?.hasHealthcareDirective);
 
   const hasMinorChildren = (parsed.family as { children?: Array<{ isMinor?: boolean }> })?.children?.some(c => c.isMinor);
   const estimatedValue = (parsed.assets as { estimatedTotalValue?: number })?.estimatedTotalValue || 0;
@@ -130,286 +142,217 @@ function calculateScore(parsed: ParsedIntake, analysisResult: Record<string, unk
   return Math.max(0, Math.min(100, Math.round(score)));
 }
 
-// Build comprehensive multi-pass prompt for autonomous Claude Code execution
-function buildComprehensivePrompt(parsed: ParsedIntake): string {
-  return `You are an elite estate planning analyst with expertise in tax law, elder law, and wealth transfer strategies. You have access to skill files that contain state-specific legal requirements.
+// Helper to get parsed client info for prompts
+function getClientContext(parsed: ParsedIntake): {
+  hasWill: boolean;
+  hasTrust: boolean;
+  hasPOAFinancial: boolean;
+  hasPOAHealthcare: boolean;
+  hasMinorChildren: boolean;
+  estimatedValue: number;
+  isMarried: boolean;
+} {
+  const existingDocs = parsed.existingDocs as Record<string, unknown>;
+  const hasWill = toBool(existingDocs?.hasWill);
+  const hasTrust = toBool(existingDocs?.hasTrust);
+  const hasPOAFinancial = toBool(existingDocs?.hasPOAFinancial);
+  const hasPOAHealthcare = toBool(existingDocs?.hasPOAHealthcare);
+  const hasMinorChildren = !!(parsed.family as { children?: Array<{ isMinor?: boolean }> })?.children?.some(c => c.isMinor);
 
-CRITICAL INSTRUCTIONS:
-1. First, read the skill file at /home/user/.claude/skills/us-estate-planning-analyzer/SKILL.md
-2. If available, also read /home/user/.claude/skills/us-estate-planning-analyzer/references/${parsed.state.toLowerCase().replace(' ', '-')}.md for state-specific rules
-3. Perform a COMPREHENSIVE multi-dimensional analysis
-4. You MUST save your output as valid JSON to /home/user/generated/analysis.json using the Write tool
+  let estimatedValue = 0;
+  const assetsData = parsed.assets as Record<string, unknown>;
+  const rawValue = assetsData?.estimatedTotalValue || assetsData?.totalEstateValue;
+  if (typeof rawValue === 'number') {
+    estimatedValue = rawValue;
+  } else if (typeof rawValue === 'string') {
+    const valueMap: Record<string, number> = {
+      'under_100k': 50000, '100k_500k': 300000, '500k_1m': 750000,
+      '1m_2m': 1500000, '2m_5m': 3500000, '5m_plus': 7500000
+    };
+    estimatedValue = valueMap[rawValue] || parseInt(rawValue.replace(/[^0-9]/g, '')) || 0;
+  }
 
-=== CLIENT PROFILE ===
+  const isMarried = (parsed.personal as { maritalStatus?: string })?.maritalStatus === "married";
 
-STATE OF RESIDENCE: ${parsed.state}
+  return { hasWill, hasTrust, hasPOAFinancial, hasPOAHealthcare, hasMinorChildren, estimatedValue, isMarried };
+}
 
-PERSONAL INFORMATION:
-${JSON.stringify(parsed.personal, null, 2)}
+// Single comprehensive prompt - runs in one sandbox session
+function buildAnalysisPrompt(parsed: ParsedIntake): string {
+  const ctx = getClientContext(parsed);
 
-FAMILY STRUCTURE:
-${JSON.stringify(parsed.family, null, 2)}
+  return `You are an expert ${parsed.state} estate planning attorney. Analyze this client and write a comprehensive JSON report.
 
-ASSET INVENTORY:
-${JSON.stringify(parsed.assets, null, 2)}
+## CLIENT PROFILE
+- State: ${parsed.state}
+- Marital Status: ${ctx.isMarried ? "Married" : "Single"}
+- Estate Value: $${ctx.estimatedValue.toLocaleString()}
+- Minor Children: ${ctx.hasMinorChildren ? "Yes" : "No"}
 
-EXISTING ESTATE PLANNING DOCUMENTS:
-${JSON.stringify(parsed.existingDocs, null, 2)}
+## CURRENT DOCUMENTS
+- Will: ${ctx.hasWill ? "YES" : "NO - CRITICAL GAP"}
+- Trust: ${ctx.hasTrust ? "YES" : "NO"}
+- Financial POA: ${ctx.hasPOAFinancial ? "YES" : "NO - CRITICAL GAP"}
+- Healthcare POA: ${ctx.hasPOAHealthcare ? "YES" : "NO - CRITICAL GAP"}
 
-BENEFICIARY DESIGNATIONS ON FILE:
-${parsed.beneficiaries.length > 0 ? JSON.stringify(parsed.beneficiaries, null, 2) : "NONE TRACKED - This is a significant gap"}
+## CLIENT DATA
+${JSON.stringify({ personal: parsed.personal, family: parsed.family, assets: parsed.assets, goals: parsed.goals }, null, 2)}
 
-STATED GOALS AND WISHES:
-${JSON.stringify(parsed.goals, null, 2)}
-
-=== ANALYSIS FRAMEWORK ===
-
-You must analyze this estate plan across ALL of the following dimensions:
-
-**DIMENSION 1: DOCUMENT COMPLETENESS ANALYSIS**
-- Identify ALL missing essential documents
-- Assess document currency (anything > 3-5 years old needs review)
-- Check for proper execution (witnesses, notarization as required by state)
-- Evaluate document coordination (do they work together?)
-
-**DIMENSION 2: FAMILY PROTECTION ANALYSIS**
-- Minor children: guardian nominations, trusts for inheritance
-- Disabled dependents: special needs trust requirements
-- Blended families: QTIP trusts, separate property protection
-- Aging parents: elder care planning considerations
-
-**DIMENSION 3: ASSET PROTECTION & TRANSFER ANALYSIS**
-- Probate exposure calculation (use state-specific statutory fees)
-- Asset titling review (joint tenancy vs community property vs trust)
-- Beneficiary designation audit (do they align with estate plan?)
-- Business succession planning (if applicable)
-- Creditor protection strategies
-
-**DIMENSION 4: TAX OPTIMIZATION ANALYSIS**
-- Federal estate tax exposure (current exemption $13.61M, sunset to ~$7M in 2026)
-- State estate/inheritance tax (varies by state)
-- Income tax considerations (step-up in basis planning)
-- Gift tax strategies (annual exclusion, lifetime exemption)
-- Generation-skipping transfer tax considerations
-
-**DIMENSION 5: INCAPACITY PLANNING ANALYSIS**
-- Financial management during incapacity
-- Healthcare decision-making authority
-- Digital asset access
-- Business continuity during incapacity
-
-**DIMENSION 6: LONG-TERM CARE & MEDICAID ANALYSIS**
-- Medicaid/Medi-Cal eligibility risks
-- Look-back period considerations (5 years federal, varies by state)
-- Asset protection trust opportunities
-- Long-term care insurance evaluation
-
-**DIMENSION 7: SCENARIO MODELING**
-Analyze what happens under these scenarios:
-- Scenario A: Client dies tomorrow (current state)
-- Scenario B: Client becomes incapacitated
-- Scenario C: Spouse dies first (if married)
-- Scenario D: Both parents die simultaneously (if minor children)
-- Scenario E: Estate value doubles over next 10 years
-- Scenario F: Federal exemption sunsets to $7M in 2026
-
-=== OUTPUT REQUIREMENTS ===
-
-You MUST save a JSON file to /home/user/generated/analysis.json with this EXACT structure:
+## YOUR TASK
+Write a JSON file to /home/user/generated/analysis.json with this structure:
 
 {
-  "analysisMetadata": {
-    "analysisDate": "<current date>",
-    "stateAnalyzed": "${parsed.state}",
-    "analysisVersion": "2.0",
-    "confidenceLevel": "<high, medium, or low based on data completeness>"
-  },
   "overallScore": {
-    "score": <0-100 calculated score>,
-    "grade": "<A, B, C, D, or F>",
-    "summary": "<2-3 sentence overall assessment>",
-    "scoringBreakdown": {
-      "documentCompleteness": {"score": <0-25>, "maxScore": 25, "details": "<explanation>"},
-      "familyProtection": {"score": <0-20>, "maxScore": 20, "details": "<explanation>"},
-      "assetProtection": {"score": <0-20>, "maxScore": 20, "details": "<explanation>"},
-      "taxEfficiency": {"score": <0-15>, "maxScore": 15, "details": "<explanation>"},
-      "incapacityPlanning": {"score": <0-10>, "maxScore": 10, "details": "<explanation>"},
-      "longTermCarePlanning": {"score": <0-10>, "maxScore": 10, "details": "<explanation>"}
+    "score": <number 0-100>,
+    "grade": "<A/B/C/D/F>",
+    "summary": "<2-3 sentence assessment>"
+  },
+  "missingDocuments": [
+    {
+      "document": "<full document name>",
+      "priority": "<critical/high/medium>",
+      "reason": "<why essential for THIS client - 2-3 sentences>",
+      "consequences": "<specific ${parsed.state} legal/financial consequences>",
+      "estimatedCostToCreate": {"low": <number>, "high": <number>},
+      "stateRequirements": "<${parsed.state} execution requirements>"
     }
-  },
-  "estateComplexity": {
-    "level": "<simple, moderate, complex, or highly-complex>",
-    "factors": ["<list factors contributing to complexity>"],
-    "recommendedPlanningLevel": "<basic will-based, trust-based, or advanced multi-entity>"
-  },
+  ],
   "financialExposure": {
     "estimatedProbateCost": {
       "low": <number>,
       "high": <number>,
-      "methodology": "<how calculated>"
+      "methodology": "<${parsed.state} statutory fee calculation showing math>",
+      "statutoryBasis": "<cite ${parsed.state} probate code>"
     },
-    "estimatedEstateTax": {
-      "federal": <number>,
-      "state": <number>,
-      "notes": "<explanation of calculations>"
-    },
-    "potentialSavingsFromPlanning": {
-      "probateAvoidance": <number>,
-      "taxReduction": <number>,
-      "assetProtection": <number>,
-      "total": <number>
-    }
+    "estimatedEstateTax": {"federal": <number>, "state": <number>}
   },
-  "missingDocuments": [
-    {
-      "document": "<document name>",
-      "priority": "<critical, high, medium, or low>",
-      "urgency": "<immediate, within-30-days, within-90-days, or when-convenient>",
-      "reason": "<detailed explanation>",
-      "consequences": "<what happens without this document>",
-      "estimatedCostToCreate": "<dollar range>",
-      "estimatedCostOfNotHaving": "<dollar range or 'incalculable'>"
-    }
-  ],
-  "outdatedDocuments": [
-    {
-      "document": "<document name>",
-      "lastUpdated": "<date or 'unknown'>",
-      "issue": "<what's outdated>",
-      "risk": "<what could go wrong>",
-      "recommendation": "<specific action>"
-    }
-  ],
-  "inconsistencies": [
-    {
-      "type": "<beneficiary-mismatch, titling-issue, goal-conflict, or family-structure>",
-      "issue": "<describe the inconsistency>",
-      "details": "<specific details>",
-      "risk": "<potential consequences>",
-      "resolution": "<how to fix>"
-    }
-  ],
   "taxStrategies": [
     {
-      "strategy": "<strategy name>",
-      "type": "<income-tax, estate-tax, gift-tax, or capital-gains>",
-      "applicability": "<why this applies to this client>",
-      "estimatedSavings": "<dollar amount or range>",
-      "complexity": "<simple, moderate, or complex>",
-      "implementation": "<steps to implement>",
-      "timeframe": "<when to implement>",
-      "risks": "<potential downsides>"
+      "strategy": "<name>",
+      "applicability": "<why relevant to THIS client>",
+      "estimatedSavings": {"low": <number>, "high": <number>},
+      "implementationSteps": ["<step1>", "<step2>", "<step3>"]
     }
   ],
-  "scenarioAnalysis": {
-    "deathTomorrow": {
-      "whatHappens": "<detailed description>",
-      "whoInherits": "<beneficiary breakdown>",
-      "probateRequired": <boolean>,
-      "estimatedSettlementTime": "<timeframe>",
-      "estimatedCosts": <number>,
-      "familyImpact": "<description>",
-      "minorChildrenImpact": "<description if applicable>"
-    },
-    "incapacity": {
-      "whoManagesFinances": "<name or 'court-appointed conservator'>",
-      "whoMakesMedicalDecisions": "<name or 'court-appointed'>",
-      "accessToAccounts": "<description>",
-      "businessContinuity": "<description if applicable>",
-      "estimatedConservatorshipCost": <number>
-    },
-    "spouseDiesFirst": {
-      "applicability": "<applicable or not-married>",
-      "assetTransfer": "<description>",
-      "taxImplications": "<description>",
-      "portabilityElection": "<needed, not-needed, or not-applicable>"
-    },
-    "bothParentsDie": {
-      "applicability": "<applicable or no-minor-children>",
-      "guardianship": "<named guardian or 'court decides'>",
-      "inheritanceManagement": "<trust, custodial account, or 'court supervision'>",
-      "concerns": ["<list of concerns>"]
-    },
-    "estateDoubles": {
-      "projectedValue": <number>,
-      "newTaxExposure": "<description>",
-      "planningChangesNeeded": ["<list of changes>"]
-    },
-    "exemptionSunset2026": {
-      "currentExemption": 13610000,
-      "projectedExemption": 7000000,
-      "clientExposure": "<description>",
-      "recommendedAction": "<specific recommendation>"
-    }
-  },
-  "medicaidPlanning": {
-    "riskLevel": "<low, moderate, high, or critical>",
-    "currentExposure": "<description>",
-    "lookbackConcerns": ["<list any transfers in lookback period>"],
-    "protectionStrategies": [
-      {
-        "strategy": "<strategy name>",
-        "effectiveness": "<description>",
-        "timing": "<when to implement>",
-        "cost": "<implementation cost>"
-      }
-    ],
-    "longTermCareInsurance": {
-      "recommended": <boolean>,
-      "reason": "<explanation>",
-      "estimatedPremium": "<if recommendable>"
-    }
-  },
   "stateSpecificConsiderations": [
     {
-      "topic": "<topic>",
-      "rule": "<state-specific rule>",
-      "impact": "<how this affects the client>",
-      "action": "<what to do about it>",
-      "citation": "<legal citation>"
+      "topic": "<legal topic>",
+      "rule": "<${parsed.state} specific rule>",
+      "impact": "<how it affects THIS client>",
+      "action": "<what to do>",
+      "citation": "<${parsed.state} statute>"
     }
   ],
   "prioritizedRecommendations": [
     {
-      "rank": <number 1-N>,
+      "rank": <1-10>,
       "action": "<specific action>",
-      "category": "<documents, tax, asset-protection, family, or compliance>",
-      "priority": "<critical, high, medium, or low>",
-      "timeline": "<immediate, 30-days, 90-days, 6-months, or 1-year>",
-      "estimatedCost": "<dollar range>",
-      "estimatedBenefit": "<dollar range or description>",
-      "dependsOn": ["<list of prerequisite actions by rank>"],
-      "detailedSteps": ["<step 1>", "<step 2>", "..."]
+      "priority": "<critical/high/medium>",
+      "timeline": "<immediate/30-days/90-days>",
+      "estimatedCost": {"low": <number>, "high": <number>},
+      "detailedSteps": ["<step1>", "<step2>", "<step3>", "<step4>"],
+      "riskOfDelay": "<consequence of not acting>"
     }
   ],
-  "professionalReferrals": [
-    {
-      "professionalType": "<estate-attorney, CPA, financial-advisor, insurance-agent, or elder-law-attorney>",
-      "reason": "<why this professional is needed>",
-      "urgency": "<immediate, soon, or when-convenient>",
-      "questionsToAsk": ["<list of questions for the professional>"]
+  "executiveSummary": {
+    "criticalIssues": ["<issue1>", "<issue2>", "<issue3>"],
+    "immediateActions": ["<action1>", "<action2>"],
+    "biggestRisks": ["<risk1>", "<risk2>", "<risk3>"]
+  }
+}
+
+## SCORING GUIDE
+Start at 100, deduct: No Will=-15, No Trust(>$500K)=-10, No FinPOA=-10, No HealthPOA=-8, Minor children no guardian=-10
+
+## REQUIREMENTS
+- Include 4-6 missing documents with detailed ${parsed.state}-specific consequences
+- Calculate exact ${parsed.state} probate fees with statutory citations
+- Provide 3-5 tax strategies with implementation steps
+- List 5-7 ${parsed.state}-specific legal considerations with statute citations
+- Give 8-10 prioritized recommendations with detailed steps
+
+Write the complete JSON file now.`;
+}
+
+// Attempt to repair truncated JSON by closing open brackets
+function repairJSON(json: string): string {
+  let repaired = json.trim();
+
+  // Remove trailing incomplete key-value pairs (e.g., `"key":` or `"key": "incomplete`)
+  // Look for patterns at the end that indicate truncation
+  repaired = repaired.replace(/,\s*"[^"]*":\s*"?[^",}\]]*$/, '');
+  repaired = repaired.replace(/,\s*"[^"]*":\s*$/, '');
+  repaired = repaired.replace(/,\s*"[^"]*$/, '');
+  repaired = repaired.replace(/,\s*$/, '');
+
+  // Count open brackets
+  let openBraces = 0;
+  let openBrackets = 0;
+  let inString = false;
+  let escapeNext = false;
+
+  for (const char of repaired) {
+    if (escapeNext) {
+      escapeNext = false;
+      continue;
     }
-  ]
+    if (char === '\\') {
+      escapeNext = true;
+      continue;
+    }
+    if (char === '"') {
+      inString = !inString;
+      continue;
+    }
+    if (!inString) {
+      if (char === '{') openBraces++;
+      if (char === '}') openBraces--;
+      if (char === '[') openBrackets++;
+      if (char === ']') openBrackets--;
+    }
+  }
+
+  // If we're in a string, close it
+  if (inString) {
+    repaired += '"';
+  }
+
+  // Close any open brackets/braces
+  while (openBrackets > 0) {
+    repaired += ']';
+    openBrackets--;
+  }
+  while (openBraces > 0) {
+    repaired += '}';
+    openBraces--;
+  }
+
+  return repaired;
 }
-
-IMPORTANT:
-- Calculate the score based on actual deficiencies found, NOT a default
-- Be specific with dollar amounts when possible
-- Reference state-specific laws by citation
-- The score should reflect reality: missing critical documents = low score
-- Use the Write tool to save the JSON file
-
-Now perform the comprehensive analysis and save the results.`;
-}
-
 
 function extractJSON(result: { stdout?: string; fileContent?: string }): Record<string, unknown> | null {
+  console.log("extractJSON called, fileContent length:", result.fileContent?.length || 0, "stdout length:", result.stdout?.length || 0);
+
   // Try file content first (most reliable)
-  if (result.fileContent) {
+  if (result.fileContent && result.fileContent.trim()) {
+    // First try direct parse
     try {
-      return JSON.parse(result.fileContent);
+      const parsed = JSON.parse(result.fileContent);
+      console.log("Successfully parsed fileContent, keys:", Object.keys(parsed));
+      return parsed;
     } catch (e) {
       console.error("Failed to parse fileContent:", e);
+      console.error("fileContent preview:", result.fileContent.substring(0, 500));
+
+      // Try to repair truncated JSON
+      try {
+        const repaired = repairJSON(result.fileContent);
+        const parsed = JSON.parse(repaired);
+        console.log("Successfully parsed REPAIRED fileContent, keys:", Object.keys(parsed));
+        return parsed;
+      } catch (repairError) {
+        console.error("Failed to repair JSON:", repairError);
+      }
     }
   }
 
@@ -419,24 +362,55 @@ function extractJSON(result: { stdout?: string; fileContent?: string }): Record<
     const codeBlockMatch = result.stdout.match(/```(?:json)?\s*\n([\s\S]*?)\n```/);
     if (codeBlockMatch) {
       try {
-        return JSON.parse(codeBlockMatch[1]);
+        const parsed = JSON.parse(codeBlockMatch[1]);
+        console.log("Successfully parsed code block JSON, keys:", Object.keys(parsed));
+        return parsed;
       } catch (e) {
         console.error("Failed to parse code block JSON:", e);
       }
     }
 
-    // Try to find raw JSON object
-    const jsonStart = result.stdout.indexOf('{');
-    const jsonEnd = result.stdout.lastIndexOf('}');
-    if (jsonStart !== -1 && jsonEnd > jsonStart) {
+    // Try to find raw JSON object - look for analysis.json content pattern
+    const analysisMatch = result.stdout.match(/\{"overallScore"[\s\S]*\}(?=\s*$|\s*\n\s*===)/);
+    if (analysisMatch) {
       try {
-        return JSON.parse(result.stdout.substring(jsonStart, jsonEnd + 1));
+        const parsed = JSON.parse(analysisMatch[0]);
+        console.log("Successfully parsed analysis JSON from stdout, keys:", Object.keys(parsed));
+        return parsed;
       } catch (e) {
-        console.error("Failed to parse raw JSON from stdout:", e);
+        console.error("Failed to parse analysis JSON:", e);
+      }
+    }
+
+    // Fallback: Try to find any large JSON object
+    const jsonStart = result.stdout.indexOf('{"overallScore"');
+    if (jsonStart !== -1) {
+      // Find the matching closing brace
+      let braceCount = 0;
+      let jsonEnd = -1;
+      for (let i = jsonStart; i < result.stdout.length; i++) {
+        if (result.stdout[i] === '{') braceCount++;
+        if (result.stdout[i] === '}') {
+          braceCount--;
+          if (braceCount === 0) {
+            jsonEnd = i;
+            break;
+          }
+        }
+      }
+      if (jsonEnd !== -1) {
+        try {
+          const parsed = JSON.parse(result.stdout.substring(jsonStart, jsonEnd + 1));
+          console.log("Successfully parsed JSON with brace matching, keys:", Object.keys(parsed));
+          return parsed;
+        } catch (e) {
+          console.error("Failed to parse JSON with brace matching:", e);
+        }
       }
     }
   }
 
+  console.error("extractJSON: No valid JSON found");
   return null;
 }
 
@@ -450,90 +424,84 @@ export async function POST(req: Request) {
 
     // Parse the intake data
     const parsed = parseIntakeData(intakeData);
+    const ctx = getClientContext(parsed);
 
-    // Build comprehensive prompt
-    const prompt = buildComprehensivePrompt(parsed);
+    console.log("Starting gap analysis...");
+    console.log("Client context:", JSON.stringify(ctx));
 
-    // Execute main analysis via Claude Code in E2B (direct call, no HTTP)
-    console.log("Starting comprehensive gap analysis...");
+    // Build and execute single comprehensive prompt
+    const prompt = buildAnalysisPrompt(parsed);
     const result = await executeInE2B({
       prompt,
       outputFile: "analysis.json",
-      timeoutMs: 0, // Use max timeout for comprehensive analysis
+      timeoutMs: 600000, // 10 minutes
+    });
+
+    console.log("E2B result:", {
+      success: result.success,
+      hasFileContent: !!result.fileContent,
+      fileContentLength: result.fileContent?.length,
+      error: result.error,
     });
 
     if (!result.success) {
       throw new Error(result.error || "E2B execution failed");
     }
 
-    // Extract and parse the JSON result
+    // Extract JSON from result
     let analysisResult = extractJSON(result);
 
-    // Calculate score if not present or if we need to override
-    if (analysisResult) {
-      const calculatedScore = calculateScore(parsed, analysisResult);
+    // Calculate and validate score
+    const calculatedScore = calculateScore(parsed, analysisResult || {});
 
-      // If the analysis has a score, validate it; otherwise use calculated
+    if (analysisResult) {
       if (analysisResult.overallScore && typeof analysisResult.overallScore === 'object') {
         const overallScore = analysisResult.overallScore as Record<string, unknown>;
-        // Use the higher confidence score (calculated vs AI-generated)
-        const aiScore = typeof overallScore.score === 'number' ? overallScore.score : 50;
-        // Blend the scores - trust AI more but validate with calculation
+        const aiScore = typeof overallScore.score === 'number' ? overallScore.score : calculatedScore;
         overallScore.score = Math.round((aiScore * 0.7) + (calculatedScore * 0.3));
         overallScore.calculatedScore = calculatedScore;
         overallScore.aiGeneratedScore = aiScore;
       } else {
-        // Create overallScore structure if missing
         analysisResult.overallScore = {
           score: calculatedScore,
           grade: calculatedScore >= 90 ? 'A' : calculatedScore >= 80 ? 'B' : calculatedScore >= 70 ? 'C' : calculatedScore >= 60 ? 'D' : 'F',
           summary: "Score calculated based on document completeness and estate planning best practices."
         };
       }
-
-      // Also set top-level score for backward compatibility
       analysisResult.score = (analysisResult.overallScore as Record<string, unknown>).score;
-    }
-
-    // If parsing failed completely, create a detailed fallback
-    if (!analysisResult) {
-      const calculatedScore = calculateScore(parsed, {});
+    } else {
+      // Fallback if parsing failed
       analysisResult = {
         score: calculatedScore,
         overallScore: {
           score: calculatedScore,
           grade: calculatedScore >= 90 ? 'A' : calculatedScore >= 80 ? 'B' : calculatedScore >= 70 ? 'C' : calculatedScore >= 60 ? 'D' : 'F',
-          summary: "Analysis completed but structured output could not be parsed. Review raw output for details.",
-          calculatedScore: calculatedScore
+          summary: "Analysis completed. Please review the details below."
         },
-        estateComplexity: { level: "unknown", factors: ["Unable to parse AI analysis"] },
         missingDocuments: [],
         outdatedDocuments: [],
         inconsistencies: [],
         taxStrategies: [],
-        scenarioAnalysis: {},
-        medicaidPlanning: { riskLevel: "unknown" },
         stateSpecificConsiderations: [],
-        prioritizedRecommendations: [{
-          rank: 1,
-          action: "Review raw analysis output and consult estate planning attorney",
-          category: "documents",
-          priority: "high",
-          timeline: "immediate",
-          estimatedCost: "Varies",
-          estimatedBenefit: "Proper estate planning",
-          dependsOn: [],
-          detailedSteps: ["Review the raw analysis output below", "Consult with a licensed estate planning attorney"]
-        }],
-        professionalReferrals: [{
-          professionalType: "estate-attorney",
-          reason: "Comprehensive estate plan review needed",
-          urgency: "soon",
-          questionsToAsk: ["What documents do I need?", "How can I minimize probate costs?"]
-        }],
-        rawAnalysis: result.stdout
+        prioritizedRecommendations: [],
+        executiveSummary: { criticalIssues: [], immediateActions: [], biggestRisks: [] },
       };
     }
+
+    // Ensure arrays exist
+    analysisResult.missingDocuments = analysisResult.missingDocuments || [];
+    analysisResult.outdatedDocuments = analysisResult.outdatedDocuments || [];
+    analysisResult.inconsistencies = analysisResult.inconsistencies || [];
+    analysisResult.taxStrategies = analysisResult.taxStrategies || [];
+    analysisResult.stateSpecificConsiderations = analysisResult.stateSpecificConsiderations || [];
+    analysisResult.prioritizedRecommendations = analysisResult.prioritizedRecommendations || [];
+
+    console.log("Final analysis:", {
+      score: analysisResult.score,
+      missingDocsCount: (analysisResult.missingDocuments as unknown[]).length,
+      recommendationsCount: (analysisResult.prioritizedRecommendations as unknown[]).length,
+      stateNotesCount: (analysisResult.stateSpecificConsiderations as unknown[]).length,
+    });
 
     return NextResponse.json({
       success: true,

@@ -153,10 +153,9 @@ export async function executeInE2B(options: E2BExecuteOptions): Promise<E2BExecu
     return { success: false, error: "API keys not configured" };
   }
 
-  // Create sandbox with extended timeout for comprehensive analysis
-  // 15 minutes for sandbox lifetime to accommodate complex analysis
+  // Create sandbox with very long timeout for comprehensive analysis
   const sandbox = await Sandbox.create("base", {
-    timeoutMs: 900000, // 15 minutes for sandbox lifetime
+    timeoutMs: 1800000, // 30 minutes sandbox lifetime
     apiKey: E2B_API_KEY,
   });
 
@@ -199,9 +198,9 @@ ls -la $HOME/.claude/skills/ 2>/dev/null || echo "(no skills)"
 
 # Run Claude Code with safety limits and structured output
 if [ "\${USE_NPX:-}" = "1" ]; then
-    npx -y @anthropic-ai/claude-code --print --dangerously-skip-permissions --output-format json --max-turns 15 -p "$(cat /tmp/prompt.txt)" 2>&1
+    npx -y @anthropic-ai/claude-code --print --dangerously-skip-permissions --output-format json --max-turns 5 -p "$(cat /tmp/prompt.txt)" 2>&1
 else
-    claude --print --dangerously-skip-permissions --output-format json --max-turns 15 -p "$(cat /tmp/prompt.txt)" 2>&1
+    claude --print --dangerously-skip-permissions --output-format json --max-turns 5 -p "$(cat /tmp/prompt.txt)" 2>&1
 fi
 
 echo ""
@@ -213,14 +212,14 @@ ls -la ${OUTPUT_DIR}/ 2>/dev/null || echo "(none)"
     await sandbox.files.write("/tmp/run_claude.sh", wrapperScript);
     await sandbox.commands.run("chmod +x /tmp/run_claude.sh");
 
-    // Run Claude Code with specified timeout (0 = use max for comprehensive analysis)
+    // Run Claude Code with very long timeout
     const result = await sandbox.commands.run("bash /tmp/run_claude.sh", {
       envs: {
         ANTHROPIC_API_KEY,
         HOME: "/home/user",
         CI: "true",
       },
-      timeoutMs: timeoutMs === 0 ? 840000 : timeoutMs, // 14 min max if 0, else use specified
+      timeoutMs: 900000, // 15 minutes per command
     });
 
     // Try to read output file if specified

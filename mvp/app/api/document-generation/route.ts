@@ -235,18 +235,29 @@ export async function POST(req: Request) {
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL ||
                     (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
 
-    // Call the E2B execute endpoint
-    const response = await fetch(`${baseUrl}${E2B_API_URL}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        prompt,
-        outputFile: `${documentType}.md`,
-        timeoutMs: 240000,
-      }),
-    });
+    // Call the E2B execute endpoint with extended timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 600000); // 10 minutes
+
+    let response;
+    try {
+      response = await fetch(`${baseUrl}${E2B_API_URL}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          prompt,
+          outputFile: `${documentType}.md`,
+          timeoutMs: 0, // Disable E2B command timeout
+        }),
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+    } catch (fetchError) {
+      clearTimeout(timeoutId);
+      throw fetchError;
+    }
 
     if (!response.ok) {
       const errorText = await response.text();

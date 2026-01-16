@@ -54,7 +54,7 @@ export default function IntakeNavigation({
   };
 
   return (
-    <div className="space-y-4 pt-6 border-t border-gray-200 dark:border-gray-700">
+    <div className="space-y-4 pt-6 border-t border-[var(--border)]">
       {/* Save indicator */}
       <div className="flex justify-end">
         <SaveIndicator status={saveStatus} lastSaved={lastSaved} />
@@ -118,7 +118,7 @@ export default function IntakeNavigation({
 
       {/* Help text for validation */}
       {!canContinue && (
-        <p className="text-sm text-amber-600 dark:text-amber-400 text-center sm:text-right">
+        <p className="text-sm text-[var(--warning)] text-center sm:text-right">
           Please complete all required fields to continue
         </p>
       )}

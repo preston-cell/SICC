@@ -123,10 +123,10 @@ function ExistingDocsFormContent() {
   if (!estatePlanId) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-500 dark:text-gray-400">
+        <p className="text-[var(--text-muted)]">
           No estate plan found. Please start from the beginning.
         </p>
-        <a href="/intake" className="text-blue-600 hover:text-blue-700 mt-2 inline-block">
+        <a href="/intake" className="text-[var(--accent-purple)] hover:opacity-80 mt-2 inline-block">
           Start New Estate Plan
         </a>
       </div>
@@ -136,7 +136,7 @@ function ExistingDocsFormContent() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--accent-purple)]"></div>
       </div>
     );
   }
@@ -152,10 +152,10 @@ function ExistingDocsFormContent() {
 
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+        <h1 className="text-2xl font-semibold text-[var(--text-heading)]">
           Existing Documents
         </h1>
-        <p className="text-gray-600 dark:text-gray-400 mt-2">
+        <p className="text-[var(--text-body)] mt-2">
           Tell us about any estate planning documents you already have. This helps us identify gaps and documents that may need updating.
         </p>
         {hasExtractedData && (
@@ -166,7 +166,7 @@ function ExistingDocsFormContent() {
       </div>
 
       {/* Form */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 space-y-8">
+      <div className="bg-white rounded-xl border border-[var(--border)] p-6 space-y-8">
         {/* Will */}
         <FormSection
           title={<>Last <GlossaryTooltip term="Will">Will</GlossaryTooltip> and Testament</>}
@@ -182,7 +182,7 @@ function ExistingDocsFormContent() {
           </FormField>
 
           {formData.hasWill === "yes" && (
-            <div className="space-y-4 mt-4 pl-4 border-l-2 border-blue-200 dark:border-blue-800">
+            <div className="space-y-4 mt-4 pl-4 border-l-2 border-[var(--accent-purple)]">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField label="What year was it created/updated?">
                   <TextInput
@@ -225,7 +225,7 @@ function ExistingDocsFormContent() {
           </FormField>
 
           {formData.hasTrust === "yes" && (
-            <div className="space-y-4 mt-4 pl-4 border-l-2 border-blue-200 dark:border-blue-800">
+            <div className="space-y-4 mt-4 pl-4 border-l-2 border-[var(--accent-purple)]">
               <FormField label="Type of trust">
                 <RadioGroup
                   name="trustType"
@@ -267,7 +267,7 @@ function ExistingDocsFormContent() {
           </FormField>
 
           {formData.hasPOAFinancial === "yes" && (
-            <div className="space-y-4 mt-4 pl-4 border-l-2 border-blue-200 dark:border-blue-800">
+            <div className="space-y-4 mt-4 pl-4 border-l-2 border-[var(--accent-purple)]">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField label="When was it created?">
                   <TextInput
@@ -303,7 +303,7 @@ function ExistingDocsFormContent() {
           </FormField>
 
           {formData.hasPOAHealthcare === "yes" && (
-            <div className="space-y-4 mt-4 pl-4 border-l-2 border-blue-200 dark:border-blue-800">
+            <div className="space-y-4 mt-4 pl-4 border-l-2 border-[var(--accent-purple)]">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField label="When was it created?">
                   <TextInput
@@ -339,7 +339,7 @@ function ExistingDocsFormContent() {
           </FormField>
 
           {formData.hasHealthcareDirective === "yes" && (
-            <div className="mt-4 pl-4 border-l-2 border-blue-200 dark:border-blue-800">
+            <div className="mt-4 pl-4 border-l-2 border-[var(--accent-purple)]">
               <FormField label="When was it created?">
                 <TextInput
                   value={formData.healthcareDirectiveYear}
@@ -385,7 +385,7 @@ function ExistingDocsFormContent() {
           </FormField>
 
           {formData.beneficiaryDesignationsReviewed === "yes" && (
-            <div className="mt-4 pl-4 border-l-2 border-blue-200 dark:border-blue-800">
+            <div className="mt-4 pl-4 border-l-2 border-[var(--accent-purple)]">
               <FormField label="When did you last review them?">
                 <TextInput
                   value={formData.beneficiaryDesignationsYear}
@@ -448,7 +448,7 @@ export default function ExistingDocsPage() {
   return (
     <Suspense fallback={
       <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--accent-purple)]"></div>
       </div>
     }>
       <ExistingDocsFormContent />

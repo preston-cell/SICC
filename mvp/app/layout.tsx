@@ -2,12 +2,19 @@ import "./globals.css";
 import { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import ConvexClientProvider from "./ConvexClientProvider";
-import { Plus_Jakarta_Sans, IBM_Plex_Mono } from "next/font/google";
+import { Inter, IBM_Plex_Mono, Source_Serif_4 } from "next/font/google";
 
-const plusJakartaSans = Plus_Jakarta_Sans({
+const inter = Inter({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
-  variable: "--font-sans",
+  weight: ["400", "500", "600"],
+  variable: "--font-inter",
+  display: "swap",
+});
+
+const sourceSerif = Source_Serif_4({
+  subsets: ["latin"],
+  weight: ["400", "600"],
+  variable: "--font-serif",
   display: "swap",
 });
 
@@ -32,8 +39,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   const content = (
-    <html lang="en" className={`${plusJakartaSans.variable} ${ibmPlexMono.variable}`}>
-      <body className={plusJakartaSans.className}>
+    <html lang="en" className={`${inter.variable} ${sourceSerif.variable} ${ibmPlexMono.variable}`}>
+      <body className={inter.className}>
         <ConvexClientProvider>
           {children}
         </ConvexClientProvider>

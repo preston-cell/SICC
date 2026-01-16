@@ -2798,6 +2798,9 @@ const DEFAULT_DATA = {
     hasRetirementAccounts: false,
     retirementAccountsValue: "",
     retirementAccountTypes: [],
+    hasCryptocurrency: false,
+    cryptocurrencyDetails: "",
+    cryptocurrencyValue: "",
     hasBusinessInterests: false,
     businessDetails: "",
     businessValue: "",
@@ -2808,6 +2811,9 @@ const DEFAULT_DATA = {
     vehiclesDetails: "",
     hasValuables: false,
     valuablesDetails: "",
+    hasSafeDepositBox: false,
+    safeDepositBoxLocation: "",
+    safeDepositBoxContents: "",
     hasOtherAssets: false,
     otherAssetsDetails: "",
     hasSignificantDebts: false,
@@ -2850,6 +2856,40 @@ const VALUE_RANGES = [
         label: "Over $10 million"
     }
 ];
+// Midpoint values for auto-calculation (using conservative midpoint estimates)
+const VALUE_RANGE_MIDPOINTS = {
+    "under_100k": 50000,
+    "100k_250k": 175000,
+    "250k_500k": 375000,
+    "500k_1m": 750000,
+    "1m_2m": 1500000,
+    "2m_5m": 3500000,
+    "5m_10m": 7500000,
+    "over_10m": 15000000
+};
+// Helper to convert value range to numeric estimate
+function getValueEstimate(rangeValue) {
+    return VALUE_RANGE_MIDPOINTS[rangeValue] || 0;
+}
+// Helper to find the appropriate range for a calculated value
+function getValueRangeForAmount(amount) {
+    if (amount <= 0) return "";
+    if (amount < 100000) return "under_100k";
+    if (amount < 250000) return "100k_250k";
+    if (amount < 500000) return "250k_500k";
+    if (amount < 1000000) return "500k_1m";
+    if (amount < 2000000) return "1m_2m";
+    if (amount < 5000000) return "2m_5m";
+    if (amount < 10000000) return "5m_10m";
+    return "over_10m";
+}
+// Helper to format currency
+function formatCurrency(amount) {
+    if (amount >= 1000000) {
+        return `$${(amount / 1000000).toFixed(1)}M`;
+    }
+    return `$${(amount / 1000).toFixed(0)}K`;
+}
 const RETIREMENT_ACCOUNT_TYPES = [
     {
         value: "401k",
@@ -3050,6 +3090,58 @@ function AssetsFormContent() {
             }));
     };
     const canContinue = true;
+    // Auto-calculate total estate value from individual asset values
+    const calculatedEstateValue = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useMemo"])(()=>{
+        let total = 0;
+        // Real Estate
+        if (formData.hasPrimaryHome && formData.primaryHomeValue) {
+            total += getValueEstimate(formData.primaryHomeValue);
+        }
+        // Financial Accounts
+        if (formData.hasBankAccounts && formData.bankAccountsValue) {
+            total += getValueEstimate(formData.bankAccountsValue);
+        }
+        if (formData.hasInvestmentAccounts && formData.investmentAccountsValue) {
+            total += getValueEstimate(formData.investmentAccountsValue);
+        }
+        if (formData.hasRetirementAccounts && formData.retirementAccountsValue) {
+            total += getValueEstimate(formData.retirementAccountsValue);
+        }
+        if (formData.hasCryptocurrency && formData.cryptocurrencyValue) {
+            total += getValueEstimate(formData.cryptocurrencyValue);
+        }
+        // Business
+        if (formData.hasBusinessInterests && formData.businessValue) {
+            total += getValueEstimate(formData.businessValue);
+        }
+        // Life Insurance (death benefit)
+        if (formData.hasLifeInsurance && formData.lifeInsuranceValue) {
+            total += getValueEstimate(formData.lifeInsuranceValue);
+        }
+        return total;
+    }, [
+        formData.hasPrimaryHome,
+        formData.primaryHomeValue,
+        formData.hasBankAccounts,
+        formData.bankAccountsValue,
+        formData.hasInvestmentAccounts,
+        formData.investmentAccountsValue,
+        formData.hasRetirementAccounts,
+        formData.retirementAccountsValue,
+        formData.hasCryptocurrency,
+        formData.cryptocurrencyValue,
+        formData.hasBusinessInterests,
+        formData.businessValue,
+        formData.hasLifeInsurance,
+        formData.lifeInsuranceValue
+    ]);
+    const suggestedValueRange = getValueRangeForAmount(calculatedEstateValue);
+    // Auto-update estimated total value when calculated value changes
+    const handleUseCalculatedValue = ()=>{
+        if (suggestedValueRange) {
+            updateField("estimatedTotalValue", suggestedValueRange);
+        }
+    };
     if (!estatePlanId) {
         return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
             className: "text-center py-12",
@@ -3059,7 +3151,7 @@ function AssetsFormContent() {
                     children: "No estate plan found. Please start from the beginning."
                 }, void 0, false, {
                     fileName: "[project]/app/intake/assets/page.tsx",
-                    lineNumber: 251,
+                    lineNumber: 354,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("a", {
@@ -3068,13 +3160,13 @@ function AssetsFormContent() {
                     children: "Start New Estate Plan"
                 }, void 0, false, {
                     fileName: "[project]/app/intake/assets/page.tsx",
-                    lineNumber: 254,
+                    lineNumber: 357,
                     columnNumber: 9
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/app/intake/assets/page.tsx",
-            lineNumber: 250,
+            lineNumber: 353,
             columnNumber: 7
         }, this);
     }
@@ -3085,12 +3177,12 @@ function AssetsFormContent() {
                 className: "animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"
             }, void 0, false, {
                 fileName: "[project]/app/intake/assets/page.tsx",
-                lineNumber: 264,
+                lineNumber: 367,
                 columnNumber: 9
             }, this)
         }, void 0, false, {
             fileName: "[project]/app/intake/assets/page.tsx",
-            lineNumber: 263,
+            lineNumber: 366,
             columnNumber: 7
         }, this);
     }
@@ -3103,7 +3195,7 @@ function AssetsFormContent() {
                 estatePlanId: estatePlanId
             }, void 0, false, {
                 fileName: "[project]/app/intake/assets/page.tsx",
-                lineNumber: 272,
+                lineNumber: 375,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3113,7 +3205,7 @@ function AssetsFormContent() {
                         children: "Assets Overview"
                     }, void 0, false, {
                         fileName: "[project]/app/intake/assets/page.tsx",
-                        lineNumber: 280,
+                        lineNumber: 383,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -3121,25 +3213,25 @@ function AssetsFormContent() {
                         children: "Help us understand your financial picture. Estimates are fine - we just need a general understanding of your estate."
                     }, void 0, false, {
                         fileName: "[project]/app/intake/assets/page.tsx",
-                        lineNumber: 283,
+                        lineNumber: 386,
                         columnNumber: 9
                     }, this),
                     hasExtractedData && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                         className: "mt-4",
                         children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$ExtractedBadge$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["ExtractedDataBanner"], {}, void 0, false, {
                             fileName: "[project]/app/intake/assets/page.tsx",
-                            lineNumber: 288,
+                            lineNumber: 391,
                             columnNumber: 13
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/app/intake/assets/page.tsx",
-                        lineNumber: 287,
+                        lineNumber: 390,
                         columnNumber: 11
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/app/intake/assets/page.tsx",
-                lineNumber: 279,
+                lineNumber: 382,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3155,7 +3247,7 @@ function AssetsFormContent() {
                                 label: "I own my primary residence"
                             }, void 0, false, {
                                 fileName: "[project]/app/intake/assets/page.tsx",
-                                lineNumber: 300,
+                                lineNumber: 403,
                                 columnNumber: 11
                             }, this),
                             formData.hasPrimaryHome && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3170,12 +3262,12 @@ function AssetsFormContent() {
                                             placeholder: "Select range"
                                         }, void 0, false, {
                                             fileName: "[project]/app/intake/assets/page.tsx",
-                                            lineNumber: 309,
+                                            lineNumber: 412,
                                             columnNumber: 17
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/app/intake/assets/page.tsx",
-                                        lineNumber: 308,
+                                        lineNumber: 411,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Checkbox"], {
@@ -3184,13 +3276,13 @@ function AssetsFormContent() {
                                         label: "I have an outstanding mortgage"
                                     }, void 0, false, {
                                         fileName: "[project]/app/intake/assets/page.tsx",
-                                        lineNumber: 316,
+                                        lineNumber: 419,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/app/intake/assets/page.tsx",
-                                lineNumber: 307,
+                                lineNumber: 410,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Checkbox"], {
@@ -3200,7 +3292,7 @@ function AssetsFormContent() {
                                 description: "Vacation homes, rental properties, land, etc."
                             }, void 0, false, {
                                 fileName: "[project]/app/intake/assets/page.tsx",
-                                lineNumber: 324,
+                                lineNumber: 427,
                                 columnNumber: 11
                             }, this),
                             formData.hasOtherRealEstate && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["FormField"], {
@@ -3211,18 +3303,18 @@ function AssetsFormContent() {
                                     placeholder: "e.g., Vacation cabin in Lake Tahoe (est. $500k), Rental property in Austin (est. $350k)"
                                 }, void 0, false, {
                                     fileName: "[project]/app/intake/assets/page.tsx",
-                                    lineNumber: 333,
+                                    lineNumber: 436,
                                     columnNumber: 15
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/app/intake/assets/page.tsx",
-                                lineNumber: 332,
+                                lineNumber: 435,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/intake/assets/page.tsx",
-                        lineNumber: 296,
+                        lineNumber: 399,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["FormSection"], {
@@ -3235,7 +3327,7 @@ function AssetsFormContent() {
                                 label: "Bank accounts (checking, savings, CDs)"
                             }, void 0, false, {
                                 fileName: "[project]/app/intake/assets/page.tsx",
-                                lineNumber: 348,
+                                lineNumber: 451,
                                 columnNumber: 11
                             }, this),
                             formData.hasBankAccounts && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3249,17 +3341,17 @@ function AssetsFormContent() {
                                         placeholder: "Select range"
                                     }, void 0, false, {
                                         fileName: "[project]/app/intake/assets/page.tsx",
-                                        lineNumber: 356,
+                                        lineNumber: 459,
                                         columnNumber: 17
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/app/intake/assets/page.tsx",
-                                    lineNumber: 355,
+                                    lineNumber: 458,
                                     columnNumber: 15
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/app/intake/assets/page.tsx",
-                                lineNumber: 354,
+                                lineNumber: 457,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Checkbox"], {
@@ -3268,7 +3360,7 @@ function AssetsFormContent() {
                                 label: "Investment/brokerage accounts"
                             }, void 0, false, {
                                 fileName: "[project]/app/intake/assets/page.tsx",
-                                lineNumber: 367,
+                                lineNumber: 470,
                                 columnNumber: 11
                             }, this),
                             formData.hasInvestmentAccounts && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3282,17 +3374,17 @@ function AssetsFormContent() {
                                         placeholder: "Select range"
                                     }, void 0, false, {
                                         fileName: "[project]/app/intake/assets/page.tsx",
-                                        lineNumber: 375,
+                                        lineNumber: 478,
                                         columnNumber: 17
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/app/intake/assets/page.tsx",
-                                    lineNumber: 374,
+                                    lineNumber: 477,
                                     columnNumber: 15
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/app/intake/assets/page.tsx",
-                                lineNumber: 373,
+                                lineNumber: 476,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Checkbox"], {
@@ -3301,7 +3393,7 @@ function AssetsFormContent() {
                                 label: "Retirement accounts"
                             }, void 0, false, {
                                 fileName: "[project]/app/intake/assets/page.tsx",
-                                lineNumber: 386,
+                                lineNumber: 489,
                                 columnNumber: 11
                             }, this),
                             formData.hasRetirementAccounts && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3324,24 +3416,24 @@ function AssetsFormContent() {
                                                             className: "mr-2"
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/intake/assets/page.tsx",
-                                                            lineNumber: 406,
+                                                            lineNumber: 509,
                                                             columnNumber: 23
                                                         }, this),
                                                         type.label
                                                     ]
                                                 }, type.value, true, {
                                                     fileName: "[project]/app/intake/assets/page.tsx",
-                                                    lineNumber: 396,
+                                                    lineNumber: 499,
                                                     columnNumber: 21
                                                 }, this))
                                         }, void 0, false, {
                                             fileName: "[project]/app/intake/assets/page.tsx",
-                                            lineNumber: 394,
+                                            lineNumber: 497,
                                             columnNumber: 17
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/app/intake/assets/page.tsx",
-                                        lineNumber: 393,
+                                        lineNumber: 496,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["FormField"], {
@@ -3353,24 +3445,84 @@ function AssetsFormContent() {
                                             placeholder: "Select range"
                                         }, void 0, false, {
                                             fileName: "[project]/app/intake/assets/page.tsx",
-                                            lineNumber: 418,
+                                            lineNumber: 521,
                                             columnNumber: 17
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/app/intake/assets/page.tsx",
-                                        lineNumber: 417,
+                                        lineNumber: 520,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/app/intake/assets/page.tsx",
-                                lineNumber: 392,
+                                lineNumber: 495,
+                                columnNumber: 13
+                            }, this),
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Checkbox"], {
+                                checked: formData.hasCryptocurrency,
+                                onChange: (v)=>updateField("hasCryptocurrency", v),
+                                label: "Cryptocurrency",
+                                description: "Bitcoin, Ethereum, and other digital assets"
+                            }, void 0, false, {
+                                fileName: "[project]/app/intake/assets/page.tsx",
+                                lineNumber: 532,
+                                columnNumber: 11
+                            }, this),
+                            formData.hasCryptocurrency && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                className: "ml-4 space-y-4",
+                                children: [
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["InfoBox"], {
+                                        type: "tip",
+                                        children: "Cryptocurrency requires special estate planning considerations. Make sure your executor knows how to access your digital wallets and private keys."
+                                    }, void 0, false, {
+                                        fileName: "[project]/app/intake/assets/page.tsx",
+                                        lineNumber: 540,
+                                        columnNumber: 15
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["FormField"], {
+                                        label: "Types of cryptocurrency held",
+                                        children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["TextInput"], {
+                                            value: formData.cryptocurrencyDetails,
+                                            onChange: (v)=>updateField("cryptocurrencyDetails", v),
+                                            placeholder: "e.g., Bitcoin, Ethereum, stored on Coinbase and Ledger hardware wallet"
+                                        }, void 0, false, {
+                                            fileName: "[project]/app/intake/assets/page.tsx",
+                                            lineNumber: 544,
+                                            columnNumber: 17
+                                        }, this)
+                                    }, void 0, false, {
+                                        fileName: "[project]/app/intake/assets/page.tsx",
+                                        lineNumber: 543,
+                                        columnNumber: 15
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["FormField"], {
+                                        label: "Estimated Value",
+                                        children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Select"], {
+                                            value: formData.cryptocurrencyValue,
+                                            onChange: (v)=>updateField("cryptocurrencyValue", v),
+                                            options: VALUE_RANGES,
+                                            placeholder: "Select range"
+                                        }, void 0, false, {
+                                            fileName: "[project]/app/intake/assets/page.tsx",
+                                            lineNumber: 551,
+                                            columnNumber: 17
+                                        }, this)
+                                    }, void 0, false, {
+                                        fileName: "[project]/app/intake/assets/page.tsx",
+                                        lineNumber: 550,
+                                        columnNumber: 15
+                                    }, this)
+                                ]
+                            }, void 0, true, {
+                                fileName: "[project]/app/intake/assets/page.tsx",
+                                lineNumber: 539,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/intake/assets/page.tsx",
-                        lineNumber: 343,
+                        lineNumber: 446,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["FormSection"], {
@@ -3383,7 +3535,7 @@ function AssetsFormContent() {
                                 label: "I have business ownership or partnership interests"
                             }, void 0, false, {
                                 fileName: "[project]/app/intake/assets/page.tsx",
-                                lineNumber: 434,
+                                lineNumber: 567,
                                 columnNumber: 11
                             }, this),
                             formData.hasBusinessInterests && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3397,12 +3549,12 @@ function AssetsFormContent() {
                                             placeholder: "e.g., 50% owner of Smith Consulting LLC, 10% partner in real estate investment group"
                                         }, void 0, false, {
                                             fileName: "[project]/app/intake/assets/page.tsx",
-                                            lineNumber: 442,
+                                            lineNumber: 575,
                                             columnNumber: 17
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/app/intake/assets/page.tsx",
-                                        lineNumber: 441,
+                                        lineNumber: 574,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["FormField"], {
@@ -3414,24 +3566,24 @@ function AssetsFormContent() {
                                             placeholder: "Select range"
                                         }, void 0, false, {
                                             fileName: "[project]/app/intake/assets/page.tsx",
-                                            lineNumber: 449,
+                                            lineNumber: 582,
                                             columnNumber: 17
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/app/intake/assets/page.tsx",
-                                        lineNumber: 448,
+                                        lineNumber: 581,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/app/intake/assets/page.tsx",
-                                lineNumber: 440,
+                                lineNumber: 573,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/intake/assets/page.tsx",
-                        lineNumber: 430,
+                        lineNumber: 563,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["FormSection"], {
@@ -3444,7 +3596,7 @@ function AssetsFormContent() {
                                 label: "I have life insurance"
                             }, void 0, false, {
                                 fileName: "[project]/app/intake/assets/page.tsx",
-                                lineNumber: 465,
+                                lineNumber: 598,
                                 columnNumber: 11
                             }, this),
                             formData.hasLifeInsurance && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3459,12 +3611,12 @@ function AssetsFormContent() {
                                             placeholder: "Select range"
                                         }, void 0, false, {
                                             fileName: "[project]/app/intake/assets/page.tsx",
-                                            lineNumber: 473,
+                                            lineNumber: 606,
                                             columnNumber: 17
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/app/intake/assets/page.tsx",
-                                        lineNumber: 472,
+                                        lineNumber: 605,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["FormField"], {
@@ -3476,7 +3628,7 @@ function AssetsFormContent() {
                                                     children: "Beneficiaries"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/intake/assets/page.tsx",
-                                                    lineNumber: 481,
+                                                    lineNumber: 614,
                                                     columnNumber: 34
                                                 }, void 0)
                                             ]
@@ -3488,24 +3640,24 @@ function AssetsFormContent() {
                                             placeholder: "e.g., Spouse (primary), Children (contingent)"
                                         }, void 0, false, {
                                             fileName: "[project]/app/intake/assets/page.tsx",
-                                            lineNumber: 484,
+                                            lineNumber: 617,
                                             columnNumber: 17
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/app/intake/assets/page.tsx",
-                                        lineNumber: 480,
+                                        lineNumber: 613,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/app/intake/assets/page.tsx",
-                                lineNumber: 471,
+                                lineNumber: 604,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/intake/assets/page.tsx",
-                        lineNumber: 461,
+                        lineNumber: 594,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["FormSection"], {
@@ -3516,7 +3668,7 @@ function AssetsFormContent() {
                                     children: "Beneficiary Designations"
                                 }, void 0, false, {
                                     fileName: "[project]/app/intake/assets/page.tsx",
-                                    lineNumber: 496,
+                                    lineNumber: 629,
                                     columnNumber: 20
                                 }, void 0),
                                 " Tracker"
@@ -3537,7 +3689,7 @@ function AssetsFormContent() {
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/app/intake/assets/page.tsx",
-                                        lineNumber: 501,
+                                        lineNumber: 634,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -3545,13 +3697,13 @@ function AssetsFormContent() {
                                         children: "If you'd still like to document your beneficiaries for reference, you can enable tracking below."
                                     }, void 0, false, {
                                         fileName: "[project]/app/intake/assets/page.tsx",
-                                        lineNumber: 505,
+                                        lineNumber: 638,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/app/intake/assets/page.tsx",
-                                lineNumber: 500,
+                                lineNumber: 633,
                                 columnNumber: 13
                             }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["InfoBox"], {
                                 type: "warning",
@@ -3564,14 +3716,14 @@ function AssetsFormContent() {
                                                 children: "Retirement accounts, life insurance, and TOD/POD accounts pass directly to named beneficiaries"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/intake/assets/page.tsx",
-                                                lineNumber: 512,
+                                                lineNumber: 645,
                                                 columnNumber: 17
                                             }, this),
                                             " - they do not go through your will or trust. This means:"
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/app/intake/assets/page.tsx",
-                                        lineNumber: 511,
+                                        lineNumber: 644,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("ul", {
@@ -3581,33 +3733,33 @@ function AssetsFormContent() {
                                                 children: "A beneficiary named on your 401(k) will receive it, even if your will says otherwise"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/intake/assets/page.tsx",
-                                                lineNumber: 516,
+                                                lineNumber: 649,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
                                                 children: "Outdated beneficiaries (like an ex-spouse) may still receive assets if not updated"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/intake/assets/page.tsx",
-                                                lineNumber: 517,
+                                                lineNumber: 650,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
                                                 children: "These designations should be reviewed regularly and kept consistent with your estate plan"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/intake/assets/page.tsx",
-                                                lineNumber: 518,
+                                                lineNumber: 651,
                                                 columnNumber: 17
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/app/intake/assets/page.tsx",
-                                        lineNumber: 515,
+                                        lineNumber: 648,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/app/intake/assets/page.tsx",
-                                lineNumber: 510,
+                                lineNumber: 643,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3624,12 +3776,12 @@ function AssetsFormContent() {
                                     description: beneficiariesAlreadyConfirmed ? "Optional: Create a record of your beneficiary designations" : "We'll help ensure your beneficiaries are consistent with your estate plan"
                                 }, void 0, false, {
                                     fileName: "[project]/app/intake/assets/page.tsx",
-                                    lineNumber: 524,
+                                    lineNumber: 657,
                                     columnNumber: 13
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/app/intake/assets/page.tsx",
-                                lineNumber: 523,
+                                lineNumber: 656,
                                 columnNumber: 11
                             }, this),
                             formData.hasBeneficiaryDesignations && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3640,7 +3792,7 @@ function AssetsFormContent() {
                                         children: "Add each account that has a beneficiary designation. Common examples include 401(k)s, IRAs, life insurance policies, and bank accounts with POD (Payable on Death) designations."
                                     }, void 0, false, {
                                         fileName: "[project]/app/intake/assets/page.tsx",
-                                        lineNumber: 545,
+                                        lineNumber: 678,
                                         columnNumber: 15
                                     }, this),
                                     formData.beneficiaryDesignations.map((designation, index)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3658,7 +3810,7 @@ function AssetsFormContent() {
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/app/intake/assets/page.tsx",
-                                                            lineNumber: 557,
+                                                            lineNumber: 690,
                                                             columnNumber: 21
                                                         }, this),
                                                         formData.beneficiaryDesignations.length > 1 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -3668,13 +3820,13 @@ function AssetsFormContent() {
                                                             children: "Remove"
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/intake/assets/page.tsx",
-                                                            lineNumber: 562,
+                                                            lineNumber: 695,
                                                             columnNumber: 23
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/app/intake/assets/page.tsx",
-                                                    lineNumber: 556,
+                                                    lineNumber: 689,
                                                     columnNumber: 19
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3692,12 +3844,12 @@ function AssetsFormContent() {
                                                                 placeholder: "Select type"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/intake/assets/page.tsx",
-                                                                lineNumber: 575,
+                                                                lineNumber: 708,
                                                                 columnNumber: 23
                                                             }, this)
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/intake/assets/page.tsx",
-                                                            lineNumber: 574,
+                                                            lineNumber: 707,
                                                             columnNumber: 21
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["FormField"], {
@@ -3708,12 +3860,12 @@ function AssetsFormContent() {
                                                                 placeholder: "e.g., Fidelity 401(k), Northwestern Mutual Life"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/intake/assets/page.tsx",
-                                                                lineNumber: 586,
+                                                                lineNumber: 719,
                                                                 columnNumber: 23
                                                             }, this)
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/intake/assets/page.tsx",
-                                                            lineNumber: 585,
+                                                            lineNumber: 718,
                                                             columnNumber: 21
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["FormField"], {
@@ -3724,12 +3876,12 @@ function AssetsFormContent() {
                                                                 placeholder: "e.g., Fidelity, Vanguard, MetLife"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/intake/assets/page.tsx",
-                                                                lineNumber: 593,
+                                                                lineNumber: 726,
                                                                 columnNumber: 23
                                                             }, this)
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/intake/assets/page.tsx",
-                                                            lineNumber: 592,
+                                                            lineNumber: 725,
                                                             columnNumber: 21
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["FormField"], {
@@ -3741,18 +3893,18 @@ function AssetsFormContent() {
                                                                 placeholder: "Select range"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/intake/assets/page.tsx",
-                                                                lineNumber: 600,
+                                                                lineNumber: 733,
                                                                 columnNumber: 23
                                                             }, this)
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/intake/assets/page.tsx",
-                                                            lineNumber: 599,
+                                                            lineNumber: 732,
                                                             columnNumber: 21
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/app/intake/assets/page.tsx",
-                                                    lineNumber: 573,
+                                                    lineNumber: 706,
                                                     columnNumber: 19
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3767,13 +3919,13 @@ function AssetsFormContent() {
                                                                     children: "Beneficiary"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/app/intake/assets/page.tsx",
-                                                                    lineNumber: 612,
+                                                                    lineNumber: 745,
                                                                     columnNumber: 31
                                                                 }, this)
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/app/intake/assets/page.tsx",
-                                                            lineNumber: 611,
+                                                            lineNumber: 744,
                                                             columnNumber: 21
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3787,12 +3939,12 @@ function AssetsFormContent() {
                                                                         placeholder: "Full legal name"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/app/intake/assets/page.tsx",
-                                                                        lineNumber: 616,
+                                                                        lineNumber: 749,
                                                                         columnNumber: 25
                                                                     }, this)
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/app/intake/assets/page.tsx",
-                                                                    lineNumber: 615,
+                                                                    lineNumber: 748,
                                                                     columnNumber: 23
                                                                 }, this),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["FormField"], {
@@ -3804,12 +3956,12 @@ function AssetsFormContent() {
                                                                         placeholder: "Select"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/app/intake/assets/page.tsx",
-                                                                        lineNumber: 623,
+                                                                        lineNumber: 756,
                                                                         columnNumber: 25
                                                                     }, this)
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/app/intake/assets/page.tsx",
-                                                                    lineNumber: 622,
+                                                                    lineNumber: 755,
                                                                     columnNumber: 23
                                                                 }, this),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["FormField"], {
@@ -3821,24 +3973,24 @@ function AssetsFormContent() {
                                                                         type: "number"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/app/intake/assets/page.tsx",
-                                                                        lineNumber: 631,
+                                                                        lineNumber: 764,
                                                                         columnNumber: 25
                                                                     }, this)
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/app/intake/assets/page.tsx",
-                                                                    lineNumber: 630,
+                                                                    lineNumber: 763,
                                                                     columnNumber: 23
                                                                 }, this)
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/app/intake/assets/page.tsx",
-                                                            lineNumber: 614,
+                                                            lineNumber: 747,
                                                             columnNumber: 21
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/app/intake/assets/page.tsx",
-                                                    lineNumber: 610,
+                                                    lineNumber: 743,
                                                     columnNumber: 19
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3852,7 +4004,7 @@ function AssetsFormContent() {
                                                                     children: "Contingent (Backup) Beneficiary"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/app/intake/assets/page.tsx",
-                                                                    lineNumber: 644,
+                                                                    lineNumber: 777,
                                                                     columnNumber: 23
                                                                 }, this),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -3860,13 +4012,13 @@ function AssetsFormContent() {
                                                                     children: "(optional)"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/app/intake/assets/page.tsx",
-                                                                    lineNumber: 645,
+                                                                    lineNumber: 778,
                                                                     columnNumber: 23
                                                                 }, this)
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/app/intake/assets/page.tsx",
-                                                            lineNumber: 643,
+                                                            lineNumber: 776,
                                                             columnNumber: 21
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3880,12 +4032,12 @@ function AssetsFormContent() {
                                                                         placeholder: "Full legal name"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/app/intake/assets/page.tsx",
-                                                                        lineNumber: 649,
+                                                                        lineNumber: 782,
                                                                         columnNumber: 25
                                                                     }, this)
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/app/intake/assets/page.tsx",
-                                                                    lineNumber: 648,
+                                                                    lineNumber: 781,
                                                                     columnNumber: 23
                                                                 }, this),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["FormField"], {
@@ -3897,12 +4049,12 @@ function AssetsFormContent() {
                                                                         placeholder: "Select"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/app/intake/assets/page.tsx",
-                                                                        lineNumber: 656,
+                                                                        lineNumber: 789,
                                                                         columnNumber: 25
                                                                     }, this)
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/app/intake/assets/page.tsx",
-                                                                    lineNumber: 655,
+                                                                    lineNumber: 788,
                                                                     columnNumber: 23
                                                                 }, this),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["FormField"], {
@@ -3914,24 +4066,24 @@ function AssetsFormContent() {
                                                                         type: "number"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/app/intake/assets/page.tsx",
-                                                                        lineNumber: 664,
+                                                                        lineNumber: 797,
                                                                         columnNumber: 25
                                                                     }, this)
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/app/intake/assets/page.tsx",
-                                                                    lineNumber: 663,
+                                                                    lineNumber: 796,
                                                                     columnNumber: 23
                                                                 }, this)
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/app/intake/assets/page.tsx",
-                                                            lineNumber: 647,
+                                                            lineNumber: 780,
                                                             columnNumber: 21
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/app/intake/assets/page.tsx",
-                                                    lineNumber: 642,
+                                                    lineNumber: 775,
                                                     columnNumber: 19
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3946,12 +4098,12 @@ function AssetsFormContent() {
                                                                 type: "text"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/intake/assets/page.tsx",
-                                                                lineNumber: 677,
+                                                                lineNumber: 810,
                                                                 columnNumber: 23
                                                             }, this)
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/intake/assets/page.tsx",
-                                                            lineNumber: 676,
+                                                            lineNumber: 809,
                                                             columnNumber: 21
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["FormField"], {
@@ -3962,24 +4114,24 @@ function AssetsFormContent() {
                                                                 placeholder: "Any additional notes"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/intake/assets/page.tsx",
-                                                                lineNumber: 685,
+                                                                lineNumber: 818,
                                                                 columnNumber: 23
                                                             }, this)
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/intake/assets/page.tsx",
-                                                            lineNumber: 684,
+                                                            lineNumber: 817,
                                                             columnNumber: 21
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/app/intake/assets/page.tsx",
-                                                    lineNumber: 675,
+                                                    lineNumber: 808,
                                                     columnNumber: 19
                                                 }, this)
                                             ]
                                         }, designation.id, true, {
                                             fileName: "[project]/app/intake/assets/page.tsx",
-                                            lineNumber: 551,
+                                            lineNumber: 684,
                                             columnNumber: 17
                                         }, this)),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -3989,19 +4141,19 @@ function AssetsFormContent() {
                                         children: "+ Add Another Account"
                                     }, void 0, false, {
                                         fileName: "[project]/app/intake/assets/page.tsx",
-                                        lineNumber: 696,
+                                        lineNumber: 829,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/app/intake/assets/page.tsx",
-                                lineNumber: 544,
+                                lineNumber: 677,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/intake/assets/page.tsx",
-                        lineNumber: 495,
+                        lineNumber: 628,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["FormSection"], {
@@ -4014,7 +4166,7 @@ function AssetsFormContent() {
                                 label: "Vehicles (cars, boats, RVs, etc.)"
                             }, void 0, false, {
                                 fileName: "[project]/app/intake/assets/page.tsx",
-                                lineNumber: 712,
+                                lineNumber: 845,
                                 columnNumber: 11
                             }, this),
                             formData.hasVehicles && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["FormField"], {
@@ -4025,12 +4177,12 @@ function AssetsFormContent() {
                                     placeholder: `e.g., ${currentYear} Tesla Model 3, ${currentYear - 2} Ford F-150`
                                 }, void 0, false, {
                                     fileName: "[project]/app/intake/assets/page.tsx",
-                                    lineNumber: 719,
+                                    lineNumber: 852,
                                     columnNumber: 15
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/app/intake/assets/page.tsx",
-                                lineNumber: 718,
+                                lineNumber: 851,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Checkbox"], {
@@ -4040,7 +4192,7 @@ function AssetsFormContent() {
                                 description: "Jewelry, art, collectibles, etc."
                             }, void 0, false, {
                                 fileName: "[project]/app/intake/assets/page.tsx",
-                                lineNumber: 727,
+                                lineNumber: 860,
                                 columnNumber: 11
                             }, this),
                             formData.hasValuables && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["FormField"], {
@@ -4051,12 +4203,71 @@ function AssetsFormContent() {
                                     placeholder: "e.g., Engagement ring ($15k), Art collection ($50k)"
                                 }, void 0, false, {
                                     fileName: "[project]/app/intake/assets/page.tsx",
-                                    lineNumber: 735,
+                                    lineNumber: 868,
                                     columnNumber: 15
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/app/intake/assets/page.tsx",
-                                lineNumber: 734,
+                                lineNumber: 867,
+                                columnNumber: 13
+                            }, this),
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Checkbox"], {
+                                checked: formData.hasSafeDepositBox,
+                                onChange: (v)=>updateField("hasSafeDepositBox", v),
+                                label: "Safe deposit box",
+                                description: "Bank safe deposit boxes containing important items or documents"
+                            }, void 0, false, {
+                                fileName: "[project]/app/intake/assets/page.tsx",
+                                lineNumber: 876,
+                                columnNumber: 11
+                            }, this),
+                            formData.hasSafeDepositBox && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                className: "ml-4 space-y-4",
+                                children: [
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["InfoBox"], {
+                                        type: "info",
+                                        children: "Make sure your executor or a trusted family member knows the location of your safe deposit box and has access authorization. Consider adding them as a co-renter."
+                                    }, void 0, false, {
+                                        fileName: "[project]/app/intake/assets/page.tsx",
+                                        lineNumber: 884,
+                                        columnNumber: 15
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["FormField"], {
+                                        label: "Bank and branch location",
+                                        children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["TextInput"], {
+                                            value: formData.safeDepositBoxLocation,
+                                            onChange: (v)=>updateField("safeDepositBoxLocation", v),
+                                            placeholder: "e.g., Chase Bank, Main Street Branch, Box #1234"
+                                        }, void 0, false, {
+                                            fileName: "[project]/app/intake/assets/page.tsx",
+                                            lineNumber: 888,
+                                            columnNumber: 17
+                                        }, this)
+                                    }, void 0, false, {
+                                        fileName: "[project]/app/intake/assets/page.tsx",
+                                        lineNumber: 887,
+                                        columnNumber: 15
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["FormField"], {
+                                        label: "Contents (general description)",
+                                        children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["TextArea"], {
+                                            value: formData.safeDepositBoxContents,
+                                            onChange: (v)=>updateField("safeDepositBoxContents", v),
+                                            placeholder: "e.g., Original will, property deeds, jewelry, gold coins, important documents"
+                                        }, void 0, false, {
+                                            fileName: "[project]/app/intake/assets/page.tsx",
+                                            lineNumber: 895,
+                                            columnNumber: 17
+                                        }, this)
+                                    }, void 0, false, {
+                                        fileName: "[project]/app/intake/assets/page.tsx",
+                                        lineNumber: 894,
+                                        columnNumber: 15
+                                    }, this)
+                                ]
+                            }, void 0, true, {
+                                fileName: "[project]/app/intake/assets/page.tsx",
+                                lineNumber: 883,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Checkbox"], {
@@ -4065,7 +4276,7 @@ function AssetsFormContent() {
                                 label: "Other significant assets"
                             }, void 0, false, {
                                 fileName: "[project]/app/intake/assets/page.tsx",
-                                lineNumber: 743,
+                                lineNumber: 904,
                                 columnNumber: 11
                             }, this),
                             formData.hasOtherAssets && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["FormField"], {
@@ -4076,18 +4287,18 @@ function AssetsFormContent() {
                                     placeholder: "Any other assets not mentioned above"
                                 }, void 0, false, {
                                     fileName: "[project]/app/intake/assets/page.tsx",
-                                    lineNumber: 750,
+                                    lineNumber: 911,
                                     columnNumber: 15
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/app/intake/assets/page.tsx",
-                                lineNumber: 749,
+                                lineNumber: 910,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/intake/assets/page.tsx",
-                        lineNumber: 708,
+                        lineNumber: 841,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["FormSection"], {
@@ -4101,7 +4312,7 @@ function AssetsFormContent() {
                                 description: "Student loans, car loans, credit cards, business loans, etc."
                             }, void 0, false, {
                                 fileName: "[project]/app/intake/assets/page.tsx",
-                                lineNumber: 764,
+                                lineNumber: 925,
                                 columnNumber: 11
                             }, this),
                             formData.hasSignificantDebts && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["FormField"], {
@@ -4112,53 +4323,132 @@ function AssetsFormContent() {
                                     placeholder: "e.g., Student loans ($50k), Car loan ($25k)"
                                 }, void 0, false, {
                                     fileName: "[project]/app/intake/assets/page.tsx",
-                                    lineNumber: 772,
+                                    lineNumber: 933,
                                     columnNumber: 15
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/app/intake/assets/page.tsx",
-                                lineNumber: 771,
+                                lineNumber: 932,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/intake/assets/page.tsx",
-                        lineNumber: 760,
+                        lineNumber: 921,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["FormSection"], {
                         title: "Total Estate Value",
                         description: "Your best estimate of total estate value (assets minus debts)",
-                        children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["FormField"], {
-                            label: "Estimated Total Value",
-                            hint: "This helps us determine if estate tax planning is relevant",
-                            children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["RadioGroup"], {
-                                name: "estimatedTotalValue",
-                                value: formData.estimatedTotalValue,
-                                onChange: (v)=>updateField("estimatedTotalValue", v),
-                                options: VALUE_RANGES.map((r)=>({
-                                        ...r,
-                                        description: undefined
-                                    }))
+                        children: [
+                            calculatedEstateValue > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                className: "mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg",
+                                children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                    className: "flex items-start justify-between",
+                                    children: [
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                            children: [
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h4", {
+                                                    className: "font-medium text-blue-900 dark:text-blue-100",
+                                                    children: [
+                                                        "Calculated Estimate: ",
+                                                        formatCurrency(calculatedEstateValue)
+                                                    ]
+                                                }, void 0, true, {
+                                                    fileName: "[project]/app/intake/assets/page.tsx",
+                                                    lineNumber: 952,
+                                                    columnNumber: 19
+                                                }, this),
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                    className: "text-sm text-blue-700 dark:text-blue-300 mt-1",
+                                                    children: "Based on the asset values you provided above"
+                                                }, void 0, false, {
+                                                    fileName: "[project]/app/intake/assets/page.tsx",
+                                                    lineNumber: 955,
+                                                    columnNumber: 19
+                                                }, this)
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "[project]/app/intake/assets/page.tsx",
+                                            lineNumber: 951,
+                                            columnNumber: 17
+                                        }, this),
+                                        suggestedValueRange && formData.estimatedTotalValue !== suggestedValueRange && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                            type: "button",
+                                            onClick: handleUseCalculatedValue,
+                                            className: "px-3 py-1.5 text-sm font-medium text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-800 hover:bg-blue-200 dark:hover:bg-blue-700 rounded-md transition-colors",
+                                            children: "Use This Value"
+                                        }, void 0, false, {
+                                            fileName: "[project]/app/intake/assets/page.tsx",
+                                            lineNumber: 960,
+                                            columnNumber: 19
+                                        }, this)
+                                    ]
+                                }, void 0, true, {
+                                    fileName: "[project]/app/intake/assets/page.tsx",
+                                    lineNumber: 950,
+                                    columnNumber: 15
+                                }, this)
                             }, void 0, false, {
                                 fileName: "[project]/app/intake/assets/page.tsx",
-                                lineNumber: 787,
+                                lineNumber: 949,
                                 columnNumber: 13
+                            }, this),
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["FormField"], {
+                                label: "Estimated Total Value",
+                                hint: "This helps us determine if estate tax planning is relevant",
+                                children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["RadioGroup"], {
+                                    name: "estimatedTotalValue",
+                                    value: formData.estimatedTotalValue,
+                                    onChange: (v)=>updateField("estimatedTotalValue", v),
+                                    options: VALUE_RANGES.map((r)=>({
+                                            ...r,
+                                            description: undefined
+                                        }))
+                                }, void 0, false, {
+                                    fileName: "[project]/app/intake/assets/page.tsx",
+                                    lineNumber: 973,
+                                    columnNumber: 13
+                                }, this)
+                            }, void 0, false, {
+                                fileName: "[project]/app/intake/assets/page.tsx",
+                                lineNumber: 972,
+                                columnNumber: 11
+                            }, this),
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                className: "mt-4 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg",
+                                children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                    className: "text-xs text-amber-800 dark:text-amber-200",
+                                    children: [
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("strong", {
+                                            children: "Disclaimer:"
+                                        }, void 0, false, {
+                                            fileName: "[project]/app/intake/assets/page.tsx",
+                                            lineNumber: 984,
+                                            columnNumber: 15
+                                        }, this),
+                                        " The calculated estimate above is based on midpoint values of the ranges you selected and is provided for general guidance only. It does not include assets without specified values (vehicles, valuables, other real estate) or account for debts and liabilities. This estimate is not intended as financial, tax, or legal advice. For accurate estate valuation, please consult with a qualified financial advisor or estate planning attorney."
+                                    ]
+                                }, void 0, true, {
+                                    fileName: "[project]/app/intake/assets/page.tsx",
+                                    lineNumber: 983,
+                                    columnNumber: 13
+                                }, this)
+                            }, void 0, false, {
+                                fileName: "[project]/app/intake/assets/page.tsx",
+                                lineNumber: 982,
+                                columnNumber: 11
                             }, this)
-                        }, void 0, false, {
-                            fileName: "[project]/app/intake/assets/page.tsx",
-                            lineNumber: 786,
-                            columnNumber: 11
-                        }, this)
-                    }, void 0, false, {
+                        ]
+                    }, void 0, true, {
                         fileName: "[project]/app/intake/assets/page.tsx",
-                        lineNumber: 782,
+                        lineNumber: 943,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/app/intake/assets/page.tsx",
-                lineNumber: 294,
+                lineNumber: 397,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$IntakeNavigation$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -4173,13 +4463,13 @@ function AssetsFormContent() {
                 nextStepLabel: nextStepLabel
             }, void 0, false, {
                 fileName: "[project]/app/intake/assets/page.tsx",
-                lineNumber: 798,
+                lineNumber: 993,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/app/intake/assets/page.tsx",
-        lineNumber: 270,
+        lineNumber: 373,
         columnNumber: 5
     }, this);
 }
@@ -4191,22 +4481,22 @@ function AssetsPage() {
                 className: "animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"
             }, void 0, false, {
                 fileName: "[project]/app/intake/assets/page.tsx",
-                lineNumber: 817,
+                lineNumber: 1012,
                 columnNumber: 9
             }, void 0)
         }, void 0, false, {
             fileName: "[project]/app/intake/assets/page.tsx",
-            lineNumber: 816,
+            lineNumber: 1011,
             columnNumber: 7
         }, void 0),
         children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(AssetsFormContent, {}, void 0, false, {
             fileName: "[project]/app/intake/assets/page.tsx",
-            lineNumber: 820,
+            lineNumber: 1015,
             columnNumber: 7
         }, this)
     }, void 0, false, {
         fileName: "[project]/app/intake/assets/page.tsx",
-        lineNumber: 815,
+        lineNumber: 1010,
         columnNumber: 5
     }, this);
 }

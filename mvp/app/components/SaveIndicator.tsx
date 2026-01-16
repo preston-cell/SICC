@@ -42,12 +42,12 @@ export default function SaveIndicator({
         inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm
         transition-all duration-300
         ${status === "saving"
-          ? "bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
+          ? "bg-[var(--accent-muted)] text-[var(--accent-purple)]"
           : status === "error"
-            ? "bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-300"
+            ? "bg-[var(--error-muted)] text-[var(--error)]"
             : showSaved
-              ? "bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-300"
-              : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
+              ? "bg-[var(--success-muted)] text-[var(--success)]"
+              : "bg-[var(--off-white)] text-[var(--text-muted)]"
         }
       `}
     >
@@ -119,7 +119,7 @@ export function SaveIndicatorInline({
 }) {
   if (status === "saving") {
     return (
-      <span className="inline-flex items-center gap-1.5 text-xs text-blue-600 dark:text-blue-400">
+      <span className="inline-flex items-center gap-1.5 text-xs text-[var(--accent-purple)]">
         <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
           <circle
             className="opacity-25"
@@ -142,7 +142,7 @@ export function SaveIndicatorInline({
 
   if (status === "saved") {
     return (
-      <span className="inline-flex items-center gap-1.5 text-xs text-green-600 dark:text-green-400">
+      <span className="inline-flex items-center gap-1.5 text-xs text-[var(--success)]">
         <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
           <path
             fillRule="evenodd"
@@ -157,7 +157,7 @@ export function SaveIndicatorInline({
 
   if (status === "error") {
     return (
-      <span className="inline-flex items-center gap-1.5 text-xs text-red-600 dark:text-red-400">
+      <span className="inline-flex items-center gap-1.5 text-xs text-[var(--error)]">
         <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
           <path
             fillRule="evenodd"
