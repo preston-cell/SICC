@@ -212,7 +212,7 @@ export default function DocumentGeneratePage() {
 
   if (!estatePlan) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
       </div>
     );
@@ -221,19 +221,19 @@ export default function DocumentGeneratePage() {
   const hasEnoughData = intakeProgress && intakeProgress.percentComplete >= 40;
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-white">
       {/* Header */}
-      <header className="bg-white dark:bg-gray-800 shadow-sm">
+      <header className="bg-white shadow-sm">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
           <Link
             href="/"
-            className="text-xl font-bold text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+            className="text-xl font-bold text-[var(--text-heading)] hover:text-[var(--accent-purple)] transition-colors"
           >
             Estate Planning Assistant
           </Link>
           <Link
             href={`/analysis/${estatePlanId}`}
-            className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+            className="text-sm text-[var(--text-muted)] hover:text-[var(--text-body)]"
           >
             Back to Analysis
           </Link>
@@ -243,24 +243,24 @@ export default function DocumentGeneratePage() {
       <main className="max-w-4xl mx-auto px-4 py-8">
         {/* Page Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+          <h1 className="text-3xl font-bold text-[var(--text-heading)]">
             Generate Documents
           </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-2">
+          <p className="text-[var(--text-body)] mt-2">
             Select a document type to generate a customized draft based on your information.
           </p>
         </div>
 
         {/* Progress Warning */}
         {!hasEnoughData && (
-          <div className="mb-6 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+          <div className="mb-6 bg-[var(--warning-muted)] border border-[var(--warning)] rounded-lg p-4">
             <div className="flex gap-3">
               <svg className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
               </svg>
               <div>
-                <h3 className="font-medium text-amber-800 dark:text-amber-200">More Information Needed</h3>
-                <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
+                <h3 className="font-medium text-[var(--warning)]">More Information Needed</h3>
+                <p className="text-sm text-[var(--warning)] mt-1">
                   Your intake questionnaire is only {intakeProgress?.percentComplete || 0}% complete.
                   Documents generated with incomplete information will have placeholder values.{" "}
                   <Link href={`/intake/${estatePlanId}`} className="underline hover:no-underline">
@@ -274,11 +274,11 @@ export default function DocumentGeneratePage() {
         )}
 
         {/* AI Enhancement Toggle */}
-        <div className="mb-6 bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+        <div className="mb-6 bg-white rounded-lg shadow p-4">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="font-medium text-gray-900 dark:text-white">AI-Enhanced Generation</h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <h3 className="font-medium text-[var(--text-heading)]">AI-Enhanced Generation</h3>
+              <p className="text-sm text-[var(--text-muted)]">
                 Use Claude AI to generate more detailed and customized documents
               </p>
             </div>
@@ -287,7 +287,7 @@ export default function DocumentGeneratePage() {
               className={`
                 relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent
                 transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2
-                ${useAI ? "bg-blue-600" : "bg-gray-200 dark:bg-gray-600"}
+                ${useAI ? "bg-blue-600" : "bg-[var(--border)]"}
               `}
             >
               <span
@@ -303,14 +303,14 @@ export default function DocumentGeneratePage() {
 
         {/* Error Display */}
         {generationState.error && (
-          <div className="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+          <div className="mb-6 bg-[var(--error-muted)] border border-[var(--error)] rounded-lg p-4">
             <div className="flex gap-3">
               <svg className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <div>
-                <h3 className="font-medium text-red-800 dark:text-red-200">Generation Error</h3>
-                <p className="text-sm text-red-700 dark:text-red-300 mt-1">{generationState.error}</p>
+                <h3 className="font-medium text-[var(--error)]">Generation Error</h3>
+                <p className="text-sm text-[var(--error)] mt-1">{generationState.error}</p>
               </div>
             </div>
           </div>
@@ -328,11 +328,11 @@ export default function DocumentGeneratePage() {
               <div
                 key={doc.type}
                 className={`
-                  bg-white dark:bg-gray-800 rounded-lg shadow p-6 border-2 transition-colors
+                  bg-white rounded-lg shadow p-6 border-2 transition-colors
                   ${isHighlighted
-                    ? "border-blue-500 ring-2 ring-blue-200 dark:ring-blue-800"
+                    ? "border-blue-500 ring-2 ring-[var(--accent-muted)]"
                     : isRecommended
-                      ? "border-red-200 dark:border-red-800"
+                      ? "border-[var(--error)]"
                       : "border-transparent"
                   }
                 `}
@@ -343,24 +343,24 @@ export default function DocumentGeneratePage() {
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="font-semibold text-gray-900 dark:text-white">
+                      <h3 className="font-semibold text-[var(--text-heading)]">
                         {doc.name}
                       </h3>
                       {isRecommended && (
-                        <span className="text-xs px-2 py-0.5 bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300 rounded-full">
+                        <span className="text-xs px-2 py-0.5 bg-[var(--error-muted)] text-[var(--error)] rounded-full">
                           Recommended
                         </span>
                       )}
                       {existingDoc && (
-                        <span className="text-xs px-2 py-0.5 bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 rounded-full">
+                        <span className="text-xs px-2 py-0.5 bg-[var(--success-muted)] text-[var(--success)] rounded-full">
                           Draft v{existingDoc.version}
                         </span>
                       )}
                     </div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                    <p className="text-sm text-[var(--text-body)] mt-1">
                       {doc.description}
                     </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                    <p className="text-xs text-[var(--text-caption)] mt-1">
                       Est. time: {doc.estimatedTime}
                     </p>
                     <div className="mt-4 flex gap-2">
@@ -370,10 +370,10 @@ export default function DocumentGeneratePage() {
                         className={`
                           px-4 py-2 rounded-lg text-sm font-medium transition-colors
                           ${isGenerating
-                            ? "bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 cursor-wait"
+                            ? "bg-[var(--accent-muted)] text-[var(--accent-purple)] cursor-wait"
                             : generationState.isGenerating
-                              ? "bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed"
-                              : "bg-blue-600 hover:bg-blue-700 text-white"
+                              ? "bg-[var(--off-white)] text-[var(--text-caption)] cursor-not-allowed"
+                              : "bg-[var(--accent-purple)] hover:opacity-90 text-white"
                           }
                         `}
                       >
@@ -401,7 +401,7 @@ export default function DocumentGeneratePage() {
                               documentId: existingDoc._id,
                             });
                           }}
-                          className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg text-sm font-medium transition-colors"
+                          className="px-4 py-2 bg-[var(--off-white)] text-[var(--text-body)] hover:bg-[var(--border)] rounded-lg text-sm font-medium transition-colors"
                         >
                           View Draft
                         </button>
@@ -415,8 +415,8 @@ export default function DocumentGeneratePage() {
         </div>
 
         {/* Disclaimer */}
-        <div className="mt-8 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
-          <p className="text-sm text-yellow-700 dark:text-yellow-300">
+        <div className="mt-8 bg-[var(--warning-muted)] border border-[var(--warning)] rounded-lg p-4">
+          <p className="text-sm text-[var(--warning)]">
             <strong>Disclaimer:</strong> Generated documents are drafts for informational purposes only and do not constitute legal advice.
             All documents should be reviewed by a licensed attorney in your state before signing or relying upon them.
           </p>
@@ -428,16 +428,16 @@ export default function DocumentGeneratePage() {
         <div className="fixed inset-0 z-50 overflow-y-auto">
           <div className="fixed inset-0 bg-black/50" onClick={() => setPreviewState(prev => ({ ...prev, isOpen: false }))} />
           <div className="relative min-h-screen flex items-center justify-center p-4">
-            <div className="relative bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col">
+            <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col">
               {/* Modal Header */}
-              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+              <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border)]">
+                <h2 className="text-xl font-semibold text-[var(--text-heading)]">
                   {previewState.title}
                 </h2>
                 <div className="flex items-center gap-2">
                   <button
                     onClick={handleCopy}
-                    className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                    className="p-2 text-[var(--text-muted)] hover:text-[var(--text-body)] hover:bg-[var(--off-white)] rounded-lg transition-colors"
                     title="Copy to clipboard"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -446,7 +446,7 @@ export default function DocumentGeneratePage() {
                   </button>
                   <button
                     onClick={handleDownload}
-                    className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                    className="p-2 text-[var(--text-muted)] hover:text-[var(--text-body)] hover:bg-[var(--off-white)] rounded-lg transition-colors"
                     title="Download as Markdown"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -455,7 +455,7 @@ export default function DocumentGeneratePage() {
                   </button>
                   <button
                     onClick={() => setPreviewState(prev => ({ ...prev, isOpen: false }))}
-                    className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                    className="p-2 text-[var(--text-muted)] hover:text-[var(--text-body)] hover:bg-[var(--off-white)] rounded-lg transition-colors"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -466,26 +466,26 @@ export default function DocumentGeneratePage() {
 
               {/* Modal Body - Document Content */}
               <div className="flex-1 overflow-y-auto p-6">
-                <div className="prose dark:prose-invert prose-sm max-w-none">
+                <div className="prose prose-sm max-w-none">
                   <ReactMarkdown>{previewState.content}</ReactMarkdown>
                 </div>
               </div>
 
               {/* Modal Footer */}
-              <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 rounded-b-xl">
-                <p className="text-xs text-gray-500 dark:text-gray-400">
+              <div className="flex items-center justify-between px-6 py-4 border-t border-[var(--border)] bg-white/50 rounded-b-xl">
+                <p className="text-xs text-[var(--text-muted)]">
                   This is a draft document. Please review with an attorney before signing.
                 </p>
                 <div className="flex gap-3">
                   <button
                     onClick={() => setPreviewState(prev => ({ ...prev, isOpen: false }))}
-                    className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-sm font-medium transition-colors"
+                    className="px-4 py-2 text-[var(--text-body)] hover:bg-[var(--off-white)] rounded-lg text-sm font-medium transition-colors"
                   >
                     Close
                   </button>
                   <button
                     onClick={handleDownload}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors"
+                    className="px-4 py-2 bg-[var(--accent-purple)] hover:opacity-90 text-white rounded-lg text-sm font-medium transition-colors"
                   >
                     Download
                   </button>

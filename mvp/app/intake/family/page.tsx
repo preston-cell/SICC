@@ -172,10 +172,10 @@ function FamilyFormContent() {
   if (!estatePlanId) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-500 dark:text-gray-400">
+        <p className="text-[var(--text-muted)]">
           No estate plan found. Please start from the beginning.
         </p>
-        <a href="/intake" className="text-blue-600 hover:text-blue-700 mt-2 inline-block">
+        <a href="/intake" className="text-[var(--accent-purple)] hover:opacity-80 mt-2 inline-block">
           Start New Estate Plan
         </a>
       </div>
@@ -185,7 +185,7 @@ function FamilyFormContent() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--accent-purple)]"></div>
       </div>
     );
   }
@@ -201,10 +201,10 @@ function FamilyFormContent() {
 
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+        <h1 className="text-2xl font-semibold text-[var(--text-heading)]">
           Family Information
         </h1>
-        <p className="text-gray-600 dark:text-gray-400 mt-2">
+        <p className="text-[var(--text-body)] mt-2">
           Tell us about your family members. This helps us understand who may be beneficiaries or need provisions in your estate plan.
         </p>
         {hasExtractedData && (
@@ -215,7 +215,7 @@ function FamilyFormContent() {
       </div>
 
       {/* Form */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 space-y-8">
+      <div className="bg-white rounded-xl border border-[var(--border)] p-6 space-y-8">
         {/* Spouse Information - Hidden if marital status is single/divorced/widowed */}
         {!isSingle && (
           <FormSection
@@ -230,7 +230,7 @@ function FamilyFormContent() {
             />
 
             {formData.hasSpouse && (
-              <div className="mt-4 pl-4 border-l-2 border-blue-200 dark:border-blue-800 space-y-4">
+              <div className="mt-4 pl-4 border-l-2 border-[var(--accent-purple)] space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField label={<span className="flex items-center gap-2">Spouse&apos;s First Name {isFieldExtracted("spouseFirstName") && <ExtractedBadge />}</span>}>
                     <TextInput
@@ -290,16 +290,16 @@ function FamilyFormContent() {
               {formData.children.map((child, index) => (
                 <div
                   key={child.id}
-                  className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg space-y-4"
+                  className="p-4 border border-[var(--border)] rounded-lg space-y-4"
                 >
                   <div className="flex items-center justify-between">
-                    <h4 className="font-medium text-gray-900 dark:text-white">
+                    <h4 className="font-medium text-[var(--text-heading)]">
                       Child {index + 1}
                     </h4>
                     <button
                       type="button"
                       onClick={() => removeChild(child.id)}
-                      className="text-red-500 hover:text-red-700 text-sm"
+                      className="text-[var(--error)] hover:opacity-80 text-sm"
                     >
                       Remove
                     </button>
@@ -368,9 +368,9 @@ function FamilyFormContent() {
               <button
                 type="button"
                 onClick={addChild}
-                className="w-full py-3 border-2 border-dashed border-gray-300 dark:border-gray-600
-                           rounded-lg text-gray-500 dark:text-gray-400 hover:border-blue-500
-                           hover:text-blue-500 transition-colors"
+                className="w-full py-3 border-2 border-dashed border-[var(--border)]
+                           rounded-lg text-[var(--text-muted)] hover:border-[var(--accent-purple)]
+                           hover:text-[var(--accent-purple)] transition-colors"
               >
                 + Add Child
               </button>
@@ -534,7 +534,7 @@ export default function FamilyPage() {
   return (
     <Suspense fallback={
       <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--accent-purple)]"></div>
       </div>
     }>
       <FamilyFormContent />

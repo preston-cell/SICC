@@ -124,12 +124,12 @@ export default function VisualizationPage() {
   // Loading state
   if (estatePlan === undefined || intakeData === undefined) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="min-h-screen bg-white">
         <div className="max-w-6xl mx-auto px-4 py-8">
           <div className="animate-pulse space-y-8">
-            <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/3"></div>
-            <div className="h-64 bg-gray-200 dark:bg-gray-700 rounded"></div>
-            <div className="h-96 bg-gray-200 dark:bg-gray-700 rounded"></div>
+            <div className="h-8 bg-gray-200  rounded w-1/3"></div>
+            <div className="h-64 bg-gray-200  rounded"></div>
+            <div className="h-96 bg-gray-200  rounded"></div>
           </div>
         </div>
       </div>
@@ -139,12 +139,12 @@ export default function VisualizationPage() {
   // Not found state
   if (estatePlan === null) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+          <h1 className="text-2xl font-bold text-[var(--text-heading)] mb-4">
             Estate Plan Not Found
           </h1>
-          <Link href="/" className="text-blue-600 hover:text-blue-700">
+          <Link href="/" className="text-[var(--accent-purple)] hover:opacity-80">
             Return Home
           </Link>
         </div>
@@ -160,11 +160,11 @@ export default function VisualizationPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-white">
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-2">
+          <div className="flex items-center gap-2 text-sm text-[var(--text-muted)] mb-2">
             <Link href={`/analysis/${estatePlanId}`} className="hover:text-blue-600">
               Analysis
             </Link>
@@ -175,10 +175,10 @@ export default function VisualizationPage() {
           </div>
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+              <h1 className="text-3xl font-bold text-[var(--text-heading)]">
                 Estate Distribution
               </h1>
-              <p className="text-gray-600 dark:text-gray-400 mt-1">
+              <p className="text-[var(--text-body)] mt-1">
                 {estatePlan.name || "My Estate Plan"} — Visual breakdown of your estate
               </p>
             </div>
@@ -202,16 +202,16 @@ export default function VisualizationPage() {
 
         {/* Scenario indicator */}
         {selectedScenario && (
-          <div className="mb-6 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg flex items-center justify-between">
+          <div className="mb-6 p-4 bg-[var(--warning-muted)] border border-[var(--warning)] rounded-lg flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <svg className="w-5 h-5 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 text-[var(--warning)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <div>
-                <p className="font-medium text-amber-800 dark:text-amber-200">
+                <p className="font-medium text-[var(--warning)]">
                   Viewing Scenario: {SCENARIOS.find((s) => s.id === selectedScenario)?.name}
                 </p>
-                <p className="text-sm text-amber-700 dark:text-amber-300">
+                <p className="text-sm text-[var(--warning)]">
                   {SCENARIOS.find((s) => s.id === selectedScenario)?.description}
                 </p>
               </div>
@@ -229,42 +229,42 @@ export default function VisualizationPage() {
 
         {/* Tab navigation and content */}
         <Tabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab}>
-          <div className="mt-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+          <div className="mt-6 bg-white rounded-xl shadow-sm border border-[var(--border)] p-6">
             <TabPanel tabId="distribution">
             {displayData ? (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                  <h3 className="text-lg font-semibold text-[var(--text-heading)] mb-4">
                     Distribution by Beneficiary
                   </h3>
                   <EstateVisualization data={displayData} height={350} />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                  <h3 className="text-lg font-semibold text-[var(--text-heading)] mb-4">
                     Key Insights
                   </h3>
                   <div className="space-y-4">
                     {/* Insights cards */}
-                    <div className="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg">
+                    <div className="p-4 bg-white/50 rounded-lg">
                       <div className="flex items-center gap-2 mb-2">
                         <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        <span className="font-medium text-gray-900 dark:text-white">Beneficiaries</span>
+                        <span className="font-medium text-[var(--text-heading)]">Beneficiaries</span>
                       </div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                      <p className="text-sm text-[var(--text-body)]">
                         {displayData.beneficiaries.length} beneficiar{displayData.beneficiaries.length === 1 ? "y" : "ies"} will receive your estate assets
                       </p>
                     </div>
 
-                    <div className="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg">
+                    <div className="p-4 bg-white/50 rounded-lg">
                       <div className="flex items-center gap-2 mb-2">
                         <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                         </svg>
-                        <span className="font-medium text-gray-900 dark:text-white">Probate Avoidance</span>
+                        <span className="font-medium text-[var(--text-heading)]">Probate Avoidance</span>
                       </div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                      <p className="text-sm text-[var(--text-body)]">
                         {displayData.assets.filter((a) => a.bypassesProbate).length} of {displayData.assets.length} assets bypass probate through beneficiary designations
                       </p>
                     </div>
@@ -275,9 +275,9 @@ export default function VisualizationPage() {
                           <svg className="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                           </svg>
-                          <span className="font-medium text-amber-800 dark:text-amber-200">Attention Needed</span>
+                          <span className="font-medium text-[var(--warning)]">Attention Needed</span>
                         </div>
-                        <p className="text-sm text-amber-700 dark:text-amber-300">
+                        <p className="text-sm text-[var(--warning)]">
                           {displayData.warnings.length} issue{displayData.warnings.length === 1 ? "" : "s"} detected that may need your attention
                         </p>
                       </div>
@@ -317,10 +317,10 @@ export default function VisualizationPage() {
           <TabPanel tabId="scenarios">
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                <h3 className="text-lg font-semibold text-[var(--text-heading)] mb-2">
                   What-If Scenarios
                 </h3>
-                <p className="text-gray-600 dark:text-gray-400">
+                <p className="text-[var(--text-body)]">
                   Explore how your estate distribution changes under different circumstances.
                   Select a scenario to see the impact on your beneficiaries.
                 </p>
@@ -333,33 +333,33 @@ export default function VisualizationPage() {
                     onClick={() => setSelectedScenario(scenario.id === selectedScenario ? null : scenario.id)}
                     className={`p-5 rounded-xl border-2 text-left transition-all ${
                       selectedScenario === scenario.id
-                        ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
-                        : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
+                        ? "border-[var(--accent-purple)] bg-[var(--accent-muted)]"
+                        : "border-[var(--border)] hover:border-gray-300 dark:hover:border-gray-600"
                     }`}
                   >
                     <div className={`w-12 h-12 rounded-lg flex items-center justify-center mb-3 ${
                       selectedScenario === scenario.id
-                        ? "bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-400"
-                        : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
+                        ? "bg-[var(--accent-muted)] text-[var(--accent-purple)]"
+                        : "bg-[var(--off-white)] text-[var(--text-muted)]"
                     }`}>
                       {scenario.icon}
                     </div>
                     <h4 className={`font-semibold ${
                       selectedScenario === scenario.id
-                        ? "text-blue-900 dark:text-blue-100"
-                        : "text-gray-900 dark:text-white"
+                        ? "text-[var(--accent-purple)]"
+                        : "text-[var(--text-heading)]"
                     }`}>
                       {scenario.name}
                     </h4>
                     <p className={`text-sm mt-1 ${
                       selectedScenario === scenario.id
-                        ? "text-blue-700 dark:text-blue-300"
-                        : "text-gray-600 dark:text-gray-400"
+                        ? "text-[var(--accent-purple)]"
+                        : "text-[var(--text-body)]"
                     }`}>
                       {scenario.description}
                     </p>
                     {selectedScenario === scenario.id && (
-                      <div className="mt-3 flex items-center gap-1 text-sm font-medium text-blue-600 dark:text-blue-400">
+                      <div className="mt-3 flex items-center gap-1 text-sm font-medium text-[var(--accent-purple)]">
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                         </svg>
@@ -372,18 +372,18 @@ export default function VisualizationPage() {
 
               {/* Scenario comparison */}
               {selectedScenario && displayData && estateData && (
-                <div className="mt-8 p-6 bg-gray-50 dark:bg-gray-900/50 rounded-xl">
-                  <h4 className="font-semibold text-gray-900 dark:text-white mb-4">
+                <div className="mt-8 p-6 bg-white/50 rounded-xl">
+                  <h4 className="font-semibold text-[var(--text-heading)] mb-4">
                     Distribution Comparison
                   </h4>
                   <div className="grid grid-cols-2 gap-8">
                     <div>
-                      <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">Current Plan</p>
+                      <p className="text-sm text-[var(--text-muted)] mb-3">Current Plan</p>
                       <div className="space-y-2">
                         {estateData.beneficiaries.map((b) => (
                           <div key={b.name} className="flex items-center justify-between">
-                            <span className="text-sm text-gray-700 dark:text-gray-300">{b.name}</span>
-                            <span className="font-medium text-gray-900 dark:text-white">
+                            <span className="text-sm text-[var(--text-body)]">{b.name}</span>
+                            <span className="font-medium text-[var(--text-heading)]">
                               {b.percentage.toFixed(0)}%
                             </span>
                           </div>
@@ -391,19 +391,19 @@ export default function VisualizationPage() {
                       </div>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">With Scenario</p>
+                      <p className="text-sm text-[var(--text-muted)] mb-3">With Scenario</p>
                       <div className="space-y-2">
                         {displayData.beneficiaries.length > 0 ? (
                           displayData.beneficiaries.map((b) => (
                             <div key={b.name} className="flex items-center justify-between">
-                              <span className="text-sm text-gray-700 dark:text-gray-300">{b.name}</span>
-                              <span className="font-medium text-gray-900 dark:text-white">
+                              <span className="text-sm text-[var(--text-body)]">{b.name}</span>
+                              <span className="font-medium text-[var(--text-heading)]">
                                 {b.percentage.toFixed(0)}%
                               </span>
                             </div>
                           ))
                         ) : (
-                          <p className="text-sm text-amber-600 dark:text-amber-400">
+                          <p className="text-sm text-[var(--warning)]">
                             No remaining beneficiaries — contingent beneficiaries would receive assets
                           </p>
                         )}
@@ -414,7 +414,7 @@ export default function VisualizationPage() {
               )}
 
               {/* Disclaimer */}
-              <div className="p-4 bg-gray-100 dark:bg-gray-900/50 rounded-lg text-sm text-gray-600 dark:text-gray-400">
+              <div className="p-4 bg-[var(--off-white)] rounded-lg text-sm text-[var(--text-body)]">
                 <strong>Note:</strong> These scenarios are simplified illustrations. Actual distribution
                 depends on your complete estate plan, state laws, and specific beneficiary designations.
                 Consult with an estate planning attorney to ensure your wishes are properly documented
@@ -433,15 +433,15 @@ export default function VisualizationPage() {
 function EmptyState() {
   return (
     <div className="text-center py-12">
-      <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center">
+      <div className="w-16 h-16 mx-auto mb-4 bg-[var(--off-white)] rounded-full flex items-center justify-center">
         <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
         </svg>
       </div>
-      <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+      <h3 className="text-lg font-medium text-[var(--text-heading)] mb-2">
         No Data Available
       </h3>
-      <p className="text-gray-500 dark:text-gray-400 max-w-md mx-auto">
+      <p className="text-[var(--text-muted)] max-w-md mx-auto">
         Complete your estate planning intake form to see your estate visualization.
         We need information about your assets, family, and goals.
       </p>

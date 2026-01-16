@@ -82,27 +82,27 @@ function getScoreInterpretation(score: number): {
     return {
       label: "Excellent",
       description: "Your estate plan is comprehensive and well-organized.",
-      color: "text-green-600 dark:text-green-400",
+      color: "text-[var(--success)]",
     };
   }
   if (score >= 60) {
     return {
       label: "Good",
       description: "Your estate plan is solid but has some room for improvement.",
-      color: "text-yellow-600 dark:text-yellow-400",
+      color: "text-[var(--warning)]",
     };
   }
   if (score >= 40) {
     return {
       label: "Needs Work",
       description: "Several important areas need attention in your estate plan.",
-      color: "text-orange-600 dark:text-orange-400",
+      color: "text-[var(--warning)]",
     };
   }
   return {
     label: "Critical",
     description: "Your estate plan has significant gaps that should be addressed soon.",
-    color: "text-red-600 dark:text-red-400",
+    color: "text-[var(--error)]",
   };
 }
 
@@ -318,23 +318,23 @@ export default function AnalysisPage() {
 
   if (!estatePlan) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-400">Loading...</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--accent-purple)] mx-auto"></div>
+          <p className="mt-4 text-[var(--text-body)]">Loading...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 print:bg-white">
+    <div className="min-h-screen bg-white print:bg-white">
       {/* Header */}
-      <header className="bg-white dark:bg-gray-800 shadow-sm print:hidden">
+      <header className="bg-white shadow-sm print:hidden">
         <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
           <Link
             href="/"
-            className="text-xl font-bold text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+            className="text-xl font-bold text-[var(--text-heading)] hover:text-[var(--accent-purple)] transition-colors"
           >
             Estate Planning Assistant
           </Link>
@@ -355,7 +355,7 @@ export default function AnalysisPage() {
             )}
             <Link
               href={`/intake?planId=${estatePlanId}`}
-              className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+              className="text-sm text-[var(--text-muted)] hover:text-[var(--text-body)]"
             >
               Back to Intake
             </Link>
@@ -366,20 +366,20 @@ export default function AnalysisPage() {
       <main className="max-w-5xl mx-auto px-4 py-8">
         {/* Intake Incomplete Warning */}
         {!intakeComplete && (
-          <div className="mb-6 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 print:hidden">
+          <div className="mb-6 bg-[var(--warning-muted)] border border-[var(--warning)] rounded-lg p-4 print:hidden">
             <div className="flex gap-3">
               <svg className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
               </svg>
               <div>
-                <h3 className="font-medium text-yellow-800 dark:text-yellow-200">Intake Incomplete</h3>
-                <p className="text-sm text-yellow-700 dark:text-yellow-300 mt-1">
+                <h3 className="font-medium text-[var(--warning)]">Intake Incomplete</h3>
+                <p className="text-sm text-[var(--warning)] mt-1">
                   Complete all intake sections for the most accurate analysis.
                   You&apos;ve completed {intakeProgress?.completedCount || 0} of {intakeProgress?.totalCount || 5} sections.
                 </p>
                 <Link
                   href={`/intake?planId=${estatePlanId}`}
-                  className="inline-block mt-2 text-sm font-medium text-yellow-800 dark:text-yellow-200 hover:underline"
+                  className="inline-block mt-2 text-sm font-medium text-[var(--warning)] hover:underline"
                 >
                   Complete Intake →
                 </Link>
@@ -390,16 +390,16 @@ export default function AnalysisPage() {
 
         {/* Run Analysis State */}
         {!latestAnalysis && !isRunning && (
-          <div className="mb-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 text-center">
-            <div className="w-20 h-20 bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/30 dark:to-blue-800/30 rounded-full flex items-center justify-center mx-auto mb-6">
-              <svg className="w-10 h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="mb-8 bg-white rounded-xl shadow-lg p-8 text-center">
+            <div className="w-20 h-20 bg-gradient-to-br from-[var(--accent-muted)] to-[var(--accent-purple)]/20 rounded-full flex items-center justify-center mx-auto mb-6">
+              <svg className="w-10 h-10 text-[var(--accent-purple)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
               </svg>
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
+            <h2 className="text-2xl font-bold text-[var(--text-heading)] mb-3">
               Ready to Analyze Your Estate Plan
             </h2>
-            <p className="text-gray-600 dark:text-gray-400 mb-8 max-w-lg mx-auto">
+            <p className="text-[var(--text-body)] mb-8 max-w-lg mx-auto">
               Our AI will review your intake data and identify gaps, outdated documents, and provide personalized recommendations based on your state&apos;s laws.
             </p>
             <Button onClick={handleRunAnalysis} size="lg">
@@ -410,15 +410,15 @@ export default function AnalysisPage() {
 
         {/* Running State */}
         {isRunning && (
-          <div className="mb-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 text-center">
+          <div className="mb-8 bg-white rounded-xl shadow-lg p-8 text-center">
             <div className="relative w-20 h-20 mx-auto mb-6">
-              <div className="absolute inset-0 rounded-full border-4 border-blue-200 dark:border-blue-900"></div>
-              <div className="absolute inset-0 rounded-full border-4 border-blue-600 border-t-transparent animate-spin"></div>
+              <div className="absolute inset-0 rounded-full border-4 border-[var(--accent-muted)]"></div>
+              <div className="absolute inset-0 rounded-full border-4 border-[var(--accent-purple)] border-t-transparent animate-spin"></div>
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
+            <h2 className="text-2xl font-bold text-[var(--text-heading)] mb-3">
               Analyzing Your Estate Plan...
             </h2>
-            <p className="text-gray-600 dark:text-gray-400 max-w-lg mx-auto">
+            <p className="text-[var(--text-body)] max-w-lg mx-auto">
               This may take a minute. We&apos;re reviewing your information and generating personalized recommendations.
             </p>
           </div>
@@ -426,17 +426,17 @@ export default function AnalysisPage() {
 
         {/* Error State */}
         {error && (
-          <div className="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+          <div className="mb-6 bg-[var(--error-muted)] border border-[var(--error)] rounded-lg p-4">
             <div className="flex gap-3">
               <svg className="w-5 h-5 text-red-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <div>
-                <h3 className="font-medium text-red-800 dark:text-red-300">Analysis Failed</h3>
-                <p className="text-sm text-red-700 dark:text-red-400 mt-1">{error}</p>
+                <h3 className="font-medium text-[var(--error)]">Analysis Failed</h3>
+                <p className="text-sm text-[var(--error)] mt-1">{error}</p>
                 <button
                   onClick={handleRunAnalysis}
-                  className="mt-2 text-sm font-medium text-red-800 dark:text-red-300 hover:underline"
+                  className="mt-2 text-sm font-medium text-[var(--error)] hover:underline"
                 >
                   Try Again
                 </button>
@@ -449,10 +449,10 @@ export default function AnalysisPage() {
         {latestAnalysis && !isRunning && (
           <div className="space-y-6">
             {/* Hero Section - Score Display */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
+            <div className="bg-white rounded-xl shadow-lg overflow-hidden">
               {/* Score Hero */}
-              <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 px-6 py-10 text-center">
-                <h1 className="text-lg font-medium text-gray-600 dark:text-gray-400 mb-6">
+              <div className="bg-gradient-to-br from-[var(--off-white)] to-[var(--light-gray)]/50 px-6 py-10 text-center">
+                <h1 className="text-lg font-medium text-[var(--text-body)] mb-6">
                   {estatePlan.name || "Your Estate Plan"} Analysis
                 </h1>
 
@@ -467,7 +467,7 @@ export default function AnalysisPage() {
                     <h2 className={`text-3xl font-bold ${scoreInfo.color} mb-2`}>
                       {scoreInfo.label}
                     </h2>
-                    <p className="text-gray-600 dark:text-gray-400 max-w-md mx-auto">
+                    <p className="text-[var(--text-body)] max-w-md mx-auto">
                       {scoreInfo.description}
                     </p>
                   </div>
@@ -532,14 +532,14 @@ export default function AnalysisPage() {
               </div>
 
               {/* Metadata bar */}
-              <div className="px-6 py-3 bg-gray-50 dark:bg-gray-900/50 border-t border-gray-200 dark:border-gray-700 flex flex-wrap justify-between items-center gap-2 text-sm print:hidden">
-                <span className="text-gray-500 dark:text-gray-400">
+              <div className="px-6 py-3 bg-white/50 border-t border-[var(--border)] flex flex-wrap justify-between items-center gap-2 text-sm print:hidden">
+                <span className="text-[var(--text-muted)]">
                   Analysis from {new Date(latestAnalysis.createdAt).toLocaleString()}
                 </span>
                 <button
                   onClick={handleRunAnalysis}
                   disabled={isRunning}
-                  className="text-blue-600 hover:text-blue-700 font-medium inline-flex items-center gap-1"
+                  className="text-[var(--accent-purple)] hover:opacity-80 font-medium inline-flex items-center gap-1"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -550,7 +550,7 @@ export default function AnalysisPage() {
             </div>
 
             {/* Tab Navigation */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden print:shadow-none">
+            <div className="bg-white rounded-xl shadow-lg overflow-hidden print:shadow-none">
               <Tabs
                 tabs={tabs}
                 activeTab={activeTab}
@@ -565,8 +565,8 @@ export default function AnalysisPage() {
                     {/* Summary Cards */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {/* Priority Actions Card */}
-                      <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
-                        <h3 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                      <div className="bg-white/50 rounded-lg p-4">
+                        <h3 className="font-semibold text-[var(--text-heading)] mb-3 flex items-center gap-2">
                           <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                           </svg>
@@ -581,7 +581,7 @@ export default function AnalysisPage() {
                               .map((doc, idx) => (
                                 <li key={`doc-${idx}`} className="flex items-start gap-2 text-sm">
                                   <Badge variant="error" size="sm">Missing</Badge>
-                                  <span className="text-gray-700 dark:text-gray-300">
+                                  <span className="text-[var(--text-body)]">
                                     {DOCUMENT_TYPE_NAMES[doc.document || doc.type || ""] || doc.document || doc.type || "Document"}
                                   </span>
                                 </li>
@@ -592,20 +592,20 @@ export default function AnalysisPage() {
                               .map((rec, idx) => (
                                 <li key={`rec-${idx}`} className="flex items-start gap-2 text-sm">
                                   <Badge variant="warning" size="sm">Action</Badge>
-                                  <span className="text-gray-700 dark:text-gray-300">{rec.action}</span>
+                                  <span className="text-[var(--text-body)]">{rec.action}</span>
                                 </li>
                               ))}
                           </ul>
                         ) : (
-                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                          <p className="text-sm text-[var(--text-muted)]">
                             No high-priority actions needed.
                           </p>
                         )}
                       </div>
 
                       {/* Documents Status Card */}
-                      <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
-                        <h3 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                      <div className="bg-white/50 rounded-lg p-4">
+                        <h3 className="font-semibold text-[var(--text-heading)] mb-3 flex items-center gap-2">
                           <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                           </svg>
@@ -613,15 +613,15 @@ export default function AnalysisPage() {
                         </h3>
                         <div className="space-y-2">
                           <div className="flex justify-between text-sm">
-                            <span className="text-gray-600 dark:text-gray-400">Missing</span>
+                            <span className="text-[var(--text-body)]">Missing</span>
                             <span className="font-medium text-red-600">{missingDocs.length}</span>
                           </div>
                           <div className="flex justify-between text-sm">
-                            <span className="text-gray-600 dark:text-gray-400">Outdated</span>
+                            <span className="text-[var(--text-body)]">Outdated</span>
                             <span className="font-medium text-yellow-600">{outdatedDocs.length}</span>
                           </div>
                           <div className="flex justify-between text-sm">
-                            <span className="text-gray-600 dark:text-gray-400">Inconsistencies</span>
+                            <span className="text-[var(--text-body)]">Inconsistencies</span>
                             <span className="font-medium text-orange-600">{inconsistencies.length}</span>
                           </div>
                         </div>
@@ -667,32 +667,32 @@ export default function AnalysisPage() {
                         return (
                           <div
                             key={idx}
-                            className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4"
+                            className="bg-[var(--error-muted)] border border-[var(--error)] rounded-lg p-4"
                           >
                             <div className="flex items-start justify-between mb-2">
-                              <h4 className="font-semibold text-gray-900 dark:text-white">
+                              <h4 className="font-semibold text-[var(--text-heading)]">
                                 {DOCUMENT_TYPE_NAMES[docType] || docName}
                               </h4>
                               <Badge variant={priorityVariant} size="sm">
                                 {priority}
                               </Badge>
                             </div>
-                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                            <p className="text-sm text-[var(--text-body)] mb-2">
                               {doc.reason || "This document is recommended for your estate plan."}
                             </p>
                             {doc.consequences && (
-                              <p className="text-sm text-red-600 dark:text-red-400 mb-2">
+                              <p className="text-sm text-[var(--error)] mb-2">
                                 <strong>Without it:</strong> {doc.consequences}
                               </p>
                             )}
                             {doc.estimatedCostToCreate && (
-                              <p className="text-xs text-gray-500 dark:text-gray-500 mb-4">
+                              <p className="text-xs text-[var(--text-muted)] mb-4">
                                 Est. cost: ${doc.estimatedCostToCreate.low.toLocaleString()} - ${doc.estimatedCostToCreate.high.toLocaleString()}
                               </p>
                             )}
                             <Link
                               href={`/documents/generate/${estatePlanId}?type=${docType}`}
-                              className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-700"
+                              className="inline-flex items-center gap-1 text-sm font-medium text-[var(--accent-purple)] hover:opacity-80"
                             >
                               Generate Document →
                             </Link>
@@ -709,7 +709,7 @@ export default function AnalysisPage() {
                     {/* Outdated Documents */}
                     {outdatedDocs.length > 0 && (
                       <div>
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                        <h3 className="text-lg font-semibold text-[var(--text-heading)] mb-4 flex items-center gap-2">
                           <svg className="w-5 h-5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                           </svg>
@@ -739,7 +739,7 @@ export default function AnalysisPage() {
                     {/* Inconsistencies */}
                     {inconsistencies.length > 0 && (
                       <div>
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                        <h3 className="text-lg font-semibold text-[var(--text-heading)] mb-4 flex items-center gap-2">
                           <svg className="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                           </svg>
@@ -781,16 +781,16 @@ export default function AnalysisPage() {
                         return (
                           <div
                             key={idx}
-                            className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4"
+                            className="bg-white border border-[var(--border)] rounded-lg p-4"
                           >
                             <div className="flex items-start justify-between mb-2">
                               <div className="flex items-center gap-2">
                                 {rec.rank && (
-                                  <span className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 text-xs font-bold">
+                                  <span className="flex items-center justify-center w-6 h-6 rounded-full bg-[var(--accent-muted)] text-[var(--accent-purple)] text-xs font-bold">
                                     {rec.rank}
                                   </span>
                                 )}
-                                <h4 className="font-semibold text-gray-900 dark:text-white">{title}</h4>
+                                <h4 className="font-semibold text-[var(--text-heading)]">{title}</h4>
                               </div>
                               <div className="flex items-center gap-2">
                                 {rec.timeline && (
@@ -805,12 +805,12 @@ export default function AnalysisPage() {
                               </div>
                             </div>
                             {description && (
-                              <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">{description}</p>
+                              <p className="text-sm text-[var(--text-body)] mb-3">{description}</p>
                             )}
                             {rec.detailedSteps && rec.detailedSteps.length > 0 && (
-                              <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
-                                <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Steps:</p>
-                                <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                              <div className="mt-3 pt-3 border-t border-[var(--border)]">
+                                <p className="text-xs font-medium text-[var(--text-muted)] mb-2">Steps:</p>
+                                <ul className="text-sm text-[var(--text-body)] space-y-1">
                                   {rec.detailedSteps.slice(0, 3).map((step, i) => (
                                     <li key={i} className="flex items-start gap-2">
                                       <span className="text-gray-400">•</span>
@@ -824,7 +824,7 @@ export default function AnalysisPage() {
                               </div>
                             )}
                             {rec.estimatedCost && (
-                              <p className="text-xs text-gray-500 dark:text-gray-500 mt-2">
+                              <p className="text-xs text-[var(--text-muted)] mt-2">
                                 Est. cost: ${rec.estimatedCost.low?.toLocaleString()} - ${rec.estimatedCost.high?.toLocaleString()}
                               </p>
                             )}
@@ -850,14 +850,14 @@ export default function AnalysisPage() {
                         return (
                           <div
                             key={idx}
-                            className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4"
+                            className="bg-[var(--info-muted)] border border-[var(--info)] rounded-lg p-4"
                           >
-                            <h4 className="font-semibold text-gray-900 dark:text-white mb-2">{title}</h4>
+                            <h4 className="font-semibold text-[var(--text-heading)] mb-2">{title}</h4>
                             {description && (
-                              <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">{description}</p>
+                              <p className="text-sm text-[var(--text-body)] mb-2">{description}</p>
                             )}
                             {note.citation && (
-                              <p className="text-xs text-blue-600 dark:text-blue-400 font-mono">
+                              <p className="text-xs text-[var(--accent-purple)] font-mono">
                                 {note.citation}
                               </p>
                             )}
@@ -865,7 +865,7 @@ export default function AnalysisPage() {
                         );
                       })}
                       {stateNotes.length === 0 && (
-                        <p className="text-gray-500 dark:text-gray-400 text-center py-8">
+                        <p className="text-[var(--text-muted)] text-center py-8">
                           No state-specific considerations found. This may be due to limited state information provided.
                         </p>
                       )}
@@ -885,8 +885,8 @@ export default function AnalysisPage() {
             </div>
 
             {/* Disclaimer */}
-            <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
-              <p className="text-sm text-yellow-700 dark:text-yellow-300">
+            <div className="bg-[var(--warning-muted)] border border-[var(--warning)] rounded-lg p-4">
+              <p className="text-sm text-[var(--warning)]">
                 <strong>Disclaimer:</strong> This analysis is for informational purposes only and does not constitute legal advice.
                 Please consult with a licensed attorney in your state to review your specific situation and any documents before signing.
               </p>
@@ -908,10 +908,10 @@ interface StatCardProps {
 
 function StatCard({ label, value, color, icon }: StatCardProps) {
   const colorClasses = {
-    red: "text-red-600 bg-red-100 dark:bg-red-900/30",
-    yellow: "text-yellow-600 bg-yellow-100 dark:bg-yellow-900/30",
-    green: "text-green-600 bg-green-100 dark:bg-green-900/30",
-    blue: "text-blue-600 bg-blue-100 dark:bg-blue-900/30",
+    red: "text-[var(--error)] bg-[var(--error-muted)]",
+    yellow: "text-[var(--warning)] bg-[var(--warning-muted)]",
+    green: "text-[var(--success)] bg-[var(--success-muted)]",
+    blue: "text-[var(--accent-purple)] bg-[var(--accent-muted)]",
   };
 
   return (
@@ -921,8 +921,8 @@ function StatCard({ label, value, color, icon }: StatCardProps) {
       >
         {icon}
       </div>
-      <div className="text-3xl font-bold text-gray-900 dark:text-white">{value}</div>
-      <div className="text-sm text-gray-500 dark:text-gray-400">{label}</div>
+      <div className="text-3xl font-bold text-[var(--text-heading)]">{value}</div>
+      <div className="text-sm text-[var(--text-muted)]">{label}</div>
     </div>
   );
 }

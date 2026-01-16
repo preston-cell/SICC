@@ -191,10 +191,10 @@ function GoalsFormContent() {
   if (!estatePlanId) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-500 dark:text-gray-400">
+        <p className="text-[var(--text-muted)]">
           No estate plan found. Please start from the beginning.
         </p>
-        <a href="/intake" className="text-blue-600 hover:text-blue-700 mt-2 inline-block">
+        <a href="/intake" className="text-[var(--accent-purple)] hover:opacity-80 mt-2 inline-block">
           Start New Estate Plan
         </a>
       </div>
@@ -204,7 +204,7 @@ function GoalsFormContent() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--accent-purple)]"></div>
       </div>
     );
   }
@@ -220,10 +220,10 @@ function GoalsFormContent() {
 
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+        <h1 className="text-2xl font-semibold text-[var(--text-heading)]">
           Goals & Wishes
         </h1>
-        <p className="text-gray-600 dark:text-gray-400 mt-2">
+        <p className="text-[var(--text-body)] mt-2">
           Tell us about your wishes for your estate and end-of-life preferences. This is the most important part - it&apos;s about what matters most to you.
         </p>
         {hasExtractedData && (
@@ -234,7 +234,7 @@ function GoalsFormContent() {
       </div>
 
       {/* Form */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 space-y-8">
+      <div className="bg-white rounded-xl border border-[var(--border)] p-6 space-y-8">
         {/* Primary Beneficiaries */}
         <FormSection
           title="Distribution of Assets"
@@ -277,7 +277,7 @@ function GoalsFormContent() {
           </FormField>
 
           {formData.executorPreference && formData.executorPreference !== "unsure" && (
-            <div className="space-y-4 mt-4 pl-4 border-l-2 border-blue-200 dark:border-blue-800">
+            <div className="space-y-4 mt-4 pl-4 border-l-2 border-[var(--accent-purple)]">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField label="Executor's full name">
                   <TextInput
@@ -324,7 +324,7 @@ function GoalsFormContent() {
             </div>
 
             {formData.hasMinorChildren && (
-              <div className="space-y-4 mt-4 pl-4 border-l-2 border-blue-200 dark:border-blue-800">
+              <div className="space-y-4 mt-4 pl-4 border-l-2 border-[var(--accent-purple)]">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField label="Preferred guardian's name">
                     <TextInput
@@ -589,7 +589,7 @@ export default function GoalsPage() {
   return (
     <Suspense fallback={
       <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--accent-purple)]"></div>
       </div>
     }>
       <GoalsFormContent />
