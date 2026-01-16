@@ -217,6 +217,27 @@ Write a JSON file to /home/user/generated/analysis.json with this structure:
       "stateRequirements": "<${parsed.state} execution requirements>"
     }
   ],
+  "outdatedDocuments": [
+    {
+      "document": "<document name>",
+      "type": "<will/trust/poa_financial/poa_healthcare/etc>",
+      "issue": "<specific issue - e.g., 'Created before marriage', 'Over 5 years old', 'Does not reflect current assets'>",
+      "risk": "<what could go wrong if not updated>",
+      "recommendation": "<specific action to take>",
+      "yearsOld": <number or null if unknown>,
+      "estimatedUpdateCost": {"low": <number>, "high": <number>}
+    }
+  ],
+  "inconsistencies": [
+    {
+      "type": "<beneficiary_mismatch/naming_conflict/asset_discrepancy/guardian_conflict/etc>",
+      "severity": "<critical/high/medium/low>",
+      "issue": "<brief title of the inconsistency>",
+      "details": "<detailed explanation of the conflict between documents or information>",
+      "potentialConsequence": "<what could happen if not resolved - legal/financial impact>",
+      "resolution": "<specific steps to fix this inconsistency>"
+    }
+  ],
   "financialExposure": {
     "estimatedProbateCost": {
       "low": <number>,
@@ -266,6 +287,8 @@ Start at 100, deduct: No Will=-15, No Trust(>$500K)=-10, No FinPOA=-10, No Healt
 
 ## REQUIREMENTS
 - Include 4-6 missing documents with detailed ${parsed.state}-specific consequences
+- Include 2-4 outdated documents if client has existing docs (consider: docs over 3+ years old, docs created before major life events like marriage/children/divorce, docs that don't reflect current asset levels)
+- Include 2-4 inconsistencies if you detect conflicts (e.g., beneficiary designations that conflict with will, POA agents who are deceased/estranged, trust that doesn't include all assets, guardian nominations that conflict between documents)
 - Calculate exact ${parsed.state} probate fees with statutory citations
 - Provide 3-5 tax strategies with implementation steps
 - List 5-7 ${parsed.state}-specific legal considerations with statute citations

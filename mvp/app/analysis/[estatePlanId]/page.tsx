@@ -419,7 +419,7 @@ export default function AnalysisPage() {
               Analyzing Your Estate Plan...
             </h2>
             <p className="text-[var(--text-body)] max-w-lg mx-auto">
-              This may take a minute. We&apos;re reviewing your information and generating personalized recommendations.
+              This could take up to 10 minutes. We&apos;re reviewing your information and generating personalized recommendations.
             </p>
           </div>
         )}
