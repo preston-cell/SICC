@@ -16,6 +16,7 @@ type DocumentType =
   | "deed"
   | "insurance_policy"
   | "beneficiary_form"
+  | "tax_return"
   | "other";
 
 const DOCUMENT_TYPE_OPTIONS: Array<{ value: DocumentType; label: string; description: string }> = [
@@ -27,6 +28,7 @@ const DOCUMENT_TYPE_OPTIONS: Array<{ value: DocumentType; label: string; descrip
   { value: "deed", label: "Deed", description: "Property Deed or Title" },
   { value: "insurance_policy", label: "Insurance Policy", description: "Life Insurance or Annuity" },
   { value: "beneficiary_form", label: "Beneficiary Form", description: "Beneficiary Designation" },
+  { value: "tax_return", label: "Tax Return", description: "Federal or State Income Tax Return" },
   { value: "other", label: "Other", description: "Other Estate Document" },
 ];
 
