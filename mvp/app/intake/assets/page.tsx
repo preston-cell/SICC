@@ -351,10 +351,10 @@ function AssetsFormContent() {
   if (!estatePlanId) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-500 dark:text-gray-400">
+        <p className="text-[var(--text-muted)]">
           No estate plan found. Please start from the beginning.
         </p>
-        <a href="/intake" className="text-blue-600 hover:text-blue-700 mt-2 inline-block">
+        <a href="/intake" className="text-[var(--accent-purple)] hover:opacity-80 mt-2 inline-block">
           Start New Estate Plan
         </a>
       </div>
@@ -364,7 +364,7 @@ function AssetsFormContent() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--accent-purple)]"></div>
       </div>
     );
   }
@@ -380,10 +380,10 @@ function AssetsFormContent() {
 
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+        <h1 className="text-2xl font-semibold text-[var(--text-heading)]">
           Assets Overview
         </h1>
-        <p className="text-gray-600 dark:text-gray-400 mt-2">
+        <p className="text-[var(--text-body)] mt-2">
           Help us understand your financial picture. Estimates are fine - we just need a general understanding of your estate.
         </p>
         {hasExtractedData && (
@@ -394,7 +394,7 @@ function AssetsFormContent() {
       </div>
 
       {/* Form */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 space-y-8">
+      <div className="bg-white rounded-xl border border-[var(--border)] p-6 space-y-8">
         {/* Real Estate */}
         <FormSection
           title="Real Estate"
@@ -407,7 +407,7 @@ function AssetsFormContent() {
           />
 
           {formData.hasPrimaryHome && (
-            <div className="mt-4 pl-4 border-l-2 border-blue-200 dark:border-blue-800 space-y-4">
+            <div className="mt-4 pl-4 border-l-2 border-[var(--accent-purple)] space-y-4">
               <FormField label="Estimated Home Value">
                 <Select
                   value={formData.primaryHomeValue}
@@ -501,8 +501,8 @@ function AssetsFormContent() {
                       className={`
                         flex items-center p-2 border rounded cursor-pointer text-sm
                         ${formData.retirementAccountTypes.includes(type.value)
-                          ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
-                          : "border-gray-300 dark:border-gray-600"
+                          ? "border-[var(--accent-purple)] bg-[var(--accent-muted)]"
+                          : "border-[var(--border)]"
                         }
                       `}
                     >
@@ -669,8 +669,6 @@ function AssetsFormContent() {
                   addBeneficiaryDesignation();
                 }
               }}
-              label="I want to track my beneficiary designations"
-              description="Optional: Track which beneficiaries are on each account"
               label={beneficiariesAlreadyConfirmed
                 ? "I still want to document my beneficiary designations for reference"
                 : "I want to track my beneficiary designations"
@@ -692,11 +690,11 @@ function AssetsFormContent() {
               {formData.beneficiaryDesignations.map((designation, index) => (
                 <div
                   key={designation.id}
-                  className="relative border border-gray-200 dark:border-gray-700 rounded-lg p-4 space-y-4 bg-gray-50 dark:bg-gray-800/50"
+                  className="relative border border-[var(--border)] rounded-lg p-4 space-y-4 bg-[var(--off-white)]"
                 >
                   {/* Header with remove button */}
                   <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-medium text-gray-900 dark:text-white">
+                    <h4 className="font-medium text-[var(--text-heading)]">
                       Account #{index + 1}
                       {designation.assetName && `: ${designation.assetName}`}
                     </h4>
@@ -704,7 +702,7 @@ function AssetsFormContent() {
                       <button
                         type="button"
                         onClick={() => removeBeneficiaryDesignation(designation.id)}
-                        className="text-red-500 hover:text-red-700 text-sm font-medium"
+                        className="text-[var(--error)] hover:opacity-80 text-sm font-medium"
                       >
                         Remove
                       </button>
@@ -749,8 +747,8 @@ function AssetsFormContent() {
                   </div>
 
                   {/* Primary Beneficiary */}
-                  <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-                    <h5 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                  <div className="pt-4 border-t border-[var(--border)]">
+                    <h5 className="text-sm font-medium text-[var(--text-body)] mb-3">
                       Primary <GlossaryTooltip term="Beneficiary">Beneficiary</GlossaryTooltip>
                     </h5>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -781,8 +779,8 @@ function AssetsFormContent() {
                   </div>
 
                   {/* Contingent Beneficiary */}
-                  <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-                    <h5 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                  <div className="pt-4 border-t border-[var(--border)]">
+                    <h5 className="text-sm font-medium text-[var(--text-body)] mb-3">
                       <GlossaryTooltip term="Contingent Beneficiary">Contingent (Backup) Beneficiary</GlossaryTooltip>
                       <span className="text-gray-500 font-normal ml-2">(optional)</span>
                     </h5>
@@ -814,7 +812,7 @@ function AssetsFormContent() {
                   </div>
 
                   {/* Notes & Last Reviewed */}
-                  <div className="pt-4 border-t border-gray-200 dark:border-gray-700 grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="pt-4 border-t border-[var(--border)] grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField label="Last Reviewed">
                       <TextInput
                         value={designation.lastReviewedDate}
@@ -838,7 +836,7 @@ function AssetsFormContent() {
               <button
                 type="button"
                 onClick={addBeneficiaryDesignation}
-                className="w-full py-3 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg text-gray-600 dark:text-gray-400 hover:border-blue-500 hover:text-blue-500 dark:hover:border-blue-400 dark:hover:text-blue-400 transition-colors"
+                className="w-full py-3 border-2 border-dashed border-[var(--border)] rounded-lg text-[var(--text-muted)] hover:border-[var(--accent-purple)] hover:text-[var(--accent-purple)] transition-colors"
               >
                 + Add Another Account
               </button>
@@ -1019,7 +1017,7 @@ export default function AssetsPage() {
   return (
     <Suspense fallback={
       <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--accent-purple)]"></div>
       </div>
     }>
       <AssetsFormContent />

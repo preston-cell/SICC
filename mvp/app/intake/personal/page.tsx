@@ -97,18 +97,18 @@ function PersonalFormContent() {
     return (
       <div className="text-center py-12">
         <div className="max-w-md mx-auto">
-          <svg className="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-16 h-16 mx-auto text-[var(--text-caption)] mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+          <h2 className="text-xl font-semibold text-[var(--text-heading)] mb-2">
             No Estate Plan Found
           </h2>
-          <p className="text-gray-500 dark:text-gray-400 mb-4">
+          <p className="text-[var(--text-muted)] mb-4">
             Please start from the beginning to create your estate plan.
           </p>
           <a
             href="/intake"
-            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="inline-flex items-center px-4 py-2 bg-[var(--accent-purple)] text-white rounded-lg hover:opacity-90 transition-colors"
           >
             Start New Estate Plan
           </a>
@@ -120,8 +120,8 @@ function PersonalFormContent() {
   if (isLoading) {
     return (
       <div className="space-y-8">
-        <div className="h-20 bg-gray-100 dark:bg-gray-800 rounded-lg animate-pulse" />
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
+        <div className="h-20 bg-[var(--off-white)] rounded-lg animate-pulse" />
+        <div className="bg-white rounded-xl shadow-sm p-6">
           <SkeletonForm />
         </div>
       </div>
@@ -139,10 +139,10 @@ function PersonalFormContent() {
 
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+        <h1 className="text-2xl font-semibold text-[var(--text-heading)]">
           Personal Information
         </h1>
-        <p className="text-gray-600 dark:text-gray-400 mt-2">
+        <p className="text-[var(--text-body)] mt-2">
           Let&apos;s start with your basic information. This will be used to personalize your estate planning documents.
         </p>
         {hasExtractedData && (
@@ -153,7 +153,7 @@ function PersonalFormContent() {
       </div>
 
       {/* Form */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 md:p-8 space-y-8">
+      <div className="bg-white rounded-xl border border-[var(--border)] p-6 md:p-8 space-y-8">
         {/* Legal Name */}
         <FormSection
           title="Legal Name"
@@ -365,8 +365,8 @@ export default function PersonalPage() {
     <Suspense
       fallback={
         <div className="space-y-8">
-          <div className="h-20 bg-gray-100 dark:bg-gray-800 rounded-lg animate-pulse" />
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
+          <div className="h-20 bg-[var(--off-white)] rounded-lg animate-pulse" />
+          <div className="bg-white rounded-xl border border-[var(--border)] p-6">
             <SkeletonForm />
           </div>
         </div>

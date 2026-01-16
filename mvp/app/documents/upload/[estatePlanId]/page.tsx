@@ -227,26 +227,26 @@ export default function DocumentUploadPage() {
 
   if (!estatePlan) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-white">
       {/* Header */}
-      <header className="bg-white dark:bg-gray-800 shadow-sm">
+      <header className="bg-white shadow-sm">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
           <Link
             href="/"
-            className="text-xl font-bold text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+            className="text-xl font-bold text-[var(--text-heading)] hover:text-[var(--accent-purple)] transition-colors"
           >
             Estate Planning Assistant
           </Link>
           <Link
             href={`/analysis/${estatePlanId}`}
-            className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+            className="text-sm text-[var(--text-muted)] hover:text-[var(--text-body)]"
           >
             Back to Analysis
           </Link>
@@ -256,10 +256,10 @@ export default function DocumentUploadPage() {
       <main className="max-w-6xl mx-auto px-4 py-8">
         {/* Page Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+          <h1 className="text-3xl font-bold text-[var(--text-heading)]">
             Upload & Analyze Documents
           </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-2">
+          <p className="text-[var(--text-body)] mt-2">
             Upload your existing legal documents for AI-powered analysis and insights.
           </p>
         </div>
@@ -267,25 +267,25 @@ export default function DocumentUploadPage() {
         {/* Summary Cards */}
         {analysisSummary && analysisSummary.totalDocuments > 0 && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
-              <div className="text-2xl font-bold text-gray-900 dark:text-white">
+            <div className="bg-white rounded-lg shadow p-4">
+              <div className="text-2xl font-bold text-[var(--text-heading)]">
                 {analysisSummary.totalDocuments}
               </div>
-              <div className="text-sm text-gray-500 dark:text-gray-400">Total Documents</div>
+              <div className="text-sm text-[var(--text-muted)]">Total Documents</div>
             </div>
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+            <div className="bg-white rounded-lg shadow p-4">
               <div className="text-2xl font-bold text-green-600">{analysisSummary.completed}</div>
-              <div className="text-sm text-gray-500 dark:text-gray-400">Analyzed</div>
+              <div className="text-sm text-[var(--text-muted)]">Analyzed</div>
             </div>
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+            <div className="bg-white rounded-lg shadow p-4">
               <div className="text-2xl font-bold text-yellow-600">
                 {analysisSummary.pendingAnalysis + analysisSummary.inProgress}
               </div>
-              <div className="text-sm text-gray-500 dark:text-gray-400">Pending</div>
+              <div className="text-sm text-[var(--text-muted)]">Pending</div>
             </div>
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+            <div className="bg-white rounded-lg shadow p-4">
               <div className="text-2xl font-bold text-red-600">{analysisSummary.failed}</div>
-              <div className="text-sm text-gray-500 dark:text-gray-400">Failed</div>
+              <div className="text-sm text-[var(--text-muted)]">Failed</div>
             </div>
           </div>
         )}
@@ -293,19 +293,19 @@ export default function DocumentUploadPage() {
         <div className="grid lg:grid-cols-2 gap-8">
           {/* Upload Section */}
           <div>
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+            <h2 className="text-xl font-semibold text-[var(--text-heading)] mb-4">
               Upload New Document
             </h2>
 
             {/* Document Type Selection */}
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-[var(--text-body)] mb-2">
                 Document Type
               </label>
               <select
                 value={selectedType}
                 onChange={(e) => setSelectedType(e.target.value as DocumentType)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-[var(--border)] rounded-lg bg-white text-[var(--text-heading)] focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 {DOCUMENT_TYPE_OPTIONS.map((opt) => (
                   <option key={opt.value} value={opt.value}>
@@ -317,7 +317,7 @@ export default function DocumentUploadPage() {
 
             {/* Description */}
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-[var(--text-body)] mb-2">
                 Description (optional)
               </label>
               <input
@@ -325,7 +325,7 @@ export default function DocumentUploadPage() {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="e.g., Mom's 2019 will"
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-[var(--border)] rounded-lg bg-white text-[var(--text-heading)] focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
 
@@ -338,8 +338,8 @@ export default function DocumentUploadPage() {
               className={`
                 border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors
                 ${isDragging
-                  ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
-                  : "border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500"
+                  ? "border-[var(--accent-purple)] bg-[var(--accent-muted)]"
+                  : "border-[var(--border)] hover:border-[var(--accent-purple)]"
                 }
                 ${uploadState.isUploading ? "pointer-events-none opacity-50" : ""}
               `}
@@ -355,7 +355,7 @@ export default function DocumentUploadPage() {
               {uploadState.isUploading ? (
                 <div>
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                  <p className="text-gray-600 dark:text-gray-400">
+                  <p className="text-[var(--text-body)]">
                     Uploading... {uploadState.progress}%
                   </p>
                 </div>
@@ -374,28 +374,28 @@ export default function DocumentUploadPage() {
                       d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
                     />
                   </svg>
-                  <p className="text-gray-600 dark:text-gray-400 mb-2">
-                    <span className="font-medium text-blue-600 dark:text-blue-400">
+                  <p className="text-[var(--text-body)] mb-2">
+                    <span className="font-medium text-[var(--accent-purple)]">
                       Click to upload
                     </span>{" "}
                     or drag and drop
                   </p>
-                  <p className="text-sm text-gray-500 dark:text-gray-500">PDF files up to 20MB</p>
+                  <p className="text-sm text-[var(--text-caption)]">PDF files up to 20MB</p>
                 </>
               )}
             </div>
 
             {/* Error Display */}
             {uploadState.error && (
-              <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-                <p className="text-sm text-red-700 dark:text-red-300">{uploadState.error}</p>
+              <div className="mt-4 p-3 bg-[var(--error-muted)] border border-[var(--error)] rounded-lg">
+                <p className="text-sm text-[var(--error)]">{uploadState.error}</p>
               </div>
             )}
 
             {/* Uploaded Documents List */}
             {uploadedDocs && uploadedDocs.length > 0 && (
               <div className="mt-8">
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+                <h3 className="text-lg font-medium text-[var(--text-heading)] mb-4">
                   Uploaded Documents
                 </h3>
                 <div className="space-y-3">
@@ -406,8 +406,8 @@ export default function DocumentUploadPage() {
                       className={`
                         p-4 rounded-lg border cursor-pointer transition-colors
                         ${selectedDocId === doc._id
-                          ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
-                          : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-blue-300"
+                          ? "border-[var(--accent-purple)] bg-[var(--accent-muted)]"
+                          : "border-[var(--border)] bg-white hover:border-blue-300"
                         }
                       `}
                     >
@@ -422,10 +422,10 @@ export default function DocumentUploadPage() {
                             <path d="M14 2v6h6" fill="none" stroke="currentColor" strokeWidth="2" />
                           </svg>
                           <div>
-                            <p className="font-medium text-gray-900 dark:text-white text-sm">
+                            <p className="font-medium text-[var(--text-heading)] text-sm">
                               {doc.fileName}
                             </p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                            <p className="text-xs text-[var(--text-muted)]">
                               {DOCUMENT_TYPE_OPTIONS.find((o) => o.value === doc.documentType)?.label}
                               {doc.description && ` - ${doc.description}`}
                             </p>
@@ -437,12 +437,12 @@ export default function DocumentUploadPage() {
                             className={`
                               text-xs px-2 py-1 rounded-full
                               ${doc.analysisStatus === "completed"
-                                ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
+                                ? "bg-[var(--success-muted)] text-[var(--success)]"
                                 : doc.analysisStatus === "failed"
-                                  ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300"
+                                  ? "bg-[var(--error-muted)] text-[var(--error)]"
                                   : doc.analysisStatus === "pending"
-                                    ? "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300"
-                                    : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300"
+                                    ? "bg-[var(--off-white)] text-[var(--text-body)]"
+                                    : "bg-[var(--warning-muted)] text-[var(--warning)]"
                               }
                             `}
                           >
@@ -477,40 +477,40 @@ export default function DocumentUploadPage() {
 
           {/* Analysis Results Section */}
           <div>
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+            <h2 className="text-xl font-semibold text-[var(--text-heading)] mb-4">
               Analysis Results
             </h2>
 
             {!selectedDoc ? (
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-8 text-center">
+              <div className="bg-white rounded-lg shadow p-8 text-center">
                 <svg
-                  className="w-16 h-16 mx-auto mb-4 text-gray-300 dark:text-gray-600"
+                  className="w-16 h-16 mx-auto mb-4 text-[var(--text-caption)]"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
-                <p className="text-gray-500 dark:text-gray-400">
+                <p className="text-[var(--text-muted)]">
                   Select a document to view its analysis
                 </p>
               </div>
             ) : selectedDoc.analysisStatus === "pending" || selectedDoc.analysisStatus === "extracting" || selectedDoc.analysisStatus === "analyzing" ? (
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-8 text-center">
+              <div className="bg-white rounded-lg shadow p-8 text-center">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                <p className="text-gray-600 dark:text-gray-400">
+                <p className="text-[var(--text-body)]">
                   {selectedDoc.analysisStatus === "pending"
                     ? "Waiting to start analysis..."
                     : selectedDoc.analysisStatus === "extracting"
                       ? "Extracting text from PDF..."
                       : "Analyzing document with AI..."}
                 </p>
-                <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">
+                <p className="text-sm text-[var(--text-caption)] mt-2">
                   This may take a minute or two
                 </p>
               </div>
             ) : selectedDoc.analysisStatus === "failed" ? (
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-8">
+              <div className="bg-white rounded-lg shadow p-8">
                 <div className="text-center mb-4">
                   <svg
                     className="w-12 h-12 mx-auto mb-4 text-red-500"
@@ -520,62 +520,62 @@ export default function DocumentUploadPage() {
                   >
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  <p className="text-red-600 dark:text-red-400 font-medium">Analysis Failed</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                  <p className="text-[var(--error)] font-medium">Analysis Failed</p>
+                  <p className="text-sm text-[var(--text-muted)] mt-2">
                     {selectedDoc.analysisError || "Unknown error occurred"}
                   </p>
                 </div>
                 <button
                   onClick={() => handleReanalyze(selectedDoc._id)}
-                  className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+                  className="w-full px-4 py-2 bg-[var(--accent-purple)] hover:opacity-90 text-white rounded-lg font-medium transition-colors"
                 >
                   Try Again
                 </button>
               </div>
             ) : selectedAnalysis ? (
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+              <div className="bg-white rounded-lg shadow overflow-hidden">
                 {/* Document Summary */}
-                <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-3">Summary</h3>
+                <div className="p-6 border-b border-[var(--border)]">
+                  <h3 className="font-semibold text-[var(--text-heading)] mb-3">Summary</h3>
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
-                      <span className="text-gray-500 dark:text-gray-400">Type:</span>
-                      <span className="ml-2 text-gray-900 dark:text-white">
+                      <span className="text-[var(--text-muted)]">Type:</span>
+                      <span className="ml-2 text-[var(--text-heading)]">
                         {selectedAnalysis.summary.documentType}
                       </span>
                     </div>
                     <div>
-                      <span className="text-gray-500 dark:text-gray-400">Date:</span>
-                      <span className="ml-2 text-gray-900 dark:text-white">
+                      <span className="text-[var(--text-muted)]">Date:</span>
+                      <span className="ml-2 text-[var(--text-heading)]">
                         {selectedAnalysis.summary.documentDate || "Not found"}
                       </span>
                     </div>
                     <div>
-                      <span className="text-gray-500 dark:text-gray-400">Jurisdiction:</span>
-                      <span className="ml-2 text-gray-900 dark:text-white">
+                      <span className="text-[var(--text-muted)]">Jurisdiction:</span>
+                      <span className="ml-2 text-[var(--text-heading)]">
                         {selectedAnalysis.summary.jurisdiction || "Not specified"}
                       </span>
                     </div>
                   </div>
-                  <p className="mt-3 text-gray-600 dark:text-gray-400 text-sm">
+                  <p className="mt-3 text-[var(--text-body)] text-sm">
                     {selectedAnalysis.summary.overallPurpose}
                   </p>
                 </div>
 
                 {/* Plain English Summary */}
-                <div className="p-6 border-b border-gray-200 dark:border-gray-700 bg-blue-50 dark:bg-blue-900/20">
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-3">
+                <div className="p-6 border-b border-[var(--border)] bg-[var(--accent-muted)]">
+                  <h3 className="font-semibold text-[var(--text-heading)] mb-3">
                     What This Document Does (Plain English)
                   </h3>
-                  <div className="prose dark:prose-invert prose-sm max-w-none">
+                  <div className="prose prose-sm max-w-none">
                     <ReactMarkdown>{selectedAnalysis.plainEnglishSummary}</ReactMarkdown>
                   </div>
                 </div>
 
                 {/* Inconsistencies */}
                 {selectedAnalysis.inconsistencies.length > 0 && (
-                  <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-                    <h3 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                  <div className="p-6 border-b border-[var(--border)]">
+                    <h3 className="font-semibold text-[var(--text-heading)] mb-3 flex items-center gap-2">
                       <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                       </svg>
@@ -587,23 +587,23 @@ export default function DocumentUploadPage() {
                           key={i}
                           className={`p-3 rounded-lg border ${
                             item.severity === "critical"
-                              ? "border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20"
+                              ? "border-[var(--error)] bg-[var(--error-muted)]"
                               : item.severity === "warning"
-                                ? "border-yellow-200 bg-yellow-50 dark:border-yellow-800 dark:bg-yellow-900/20"
-                                : "border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-900/20"
+                                ? "border-[var(--warning)] bg-[var(--warning-muted)]"
+                                : "border-[var(--info)] bg-[var(--info-muted)]"
                           }`}
                         >
-                          <p className="font-medium text-gray-900 dark:text-white text-sm">
+                          <p className="font-medium text-[var(--text-heading)] text-sm">
                             {item.issue}
                           </p>
                           <div className="mt-2 text-xs space-y-1">
-                            <p className="text-gray-600 dark:text-gray-400">
+                            <p className="text-[var(--text-body)]">
                               <strong>Document says:</strong> {item.documentSays}
                             </p>
-                            <p className="text-gray-600 dark:text-gray-400">
+                            <p className="text-[var(--text-body)]">
                               <strong>Your situation:</strong> {item.intakeSays}
                             </p>
-                            <p className="text-blue-600 dark:text-blue-400">
+                            <p className="text-[var(--accent-purple)]">
                               <strong>Recommendation:</strong> {item.recommendation}
                             </p>
                           </div>
@@ -615,8 +615,8 @@ export default function DocumentUploadPage() {
 
                 {/* Potential Issues */}
                 {selectedAnalysis.potentialIssues.length > 0 && (
-                  <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-                    <h3 className="font-semibold text-gray-900 dark:text-white mb-3">
+                  <div className="p-6 border-b border-[var(--border)]">
+                    <h3 className="font-semibold text-[var(--text-heading)] mb-3">
                       Potential Issues
                     </h3>
                     <div className="space-y-3">
@@ -625,19 +625,19 @@ export default function DocumentUploadPage() {
                           key={i}
                           className={`p-3 rounded-lg border ${
                             item.severity === "critical"
-                              ? "border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20"
+                              ? "border-[var(--error)] bg-[var(--error-muted)]"
                               : item.severity === "warning"
-                                ? "border-yellow-200 bg-yellow-50 dark:border-yellow-800 dark:bg-yellow-900/20"
-                                : "border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900/20"
+                                ? "border-[var(--warning)] bg-[var(--warning-muted)]"
+                                : "border-[var(--border)] bg-[var(--off-white)]"
                           }`}
                         >
-                          <p className="font-medium text-gray-900 dark:text-white text-sm">
+                          <p className="font-medium text-[var(--text-heading)] text-sm">
                             {item.issue}
                           </p>
-                          <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                          <p className="text-xs text-[var(--text-body)] mt-1">
                             {item.details}
                           </p>
-                          <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                          <p className="text-xs text-[var(--accent-purple)] mt-1">
                             {item.recommendation}
                           </p>
                         </div>
@@ -648,21 +648,21 @@ export default function DocumentUploadPage() {
 
                 {/* Hypothetical Scenarios */}
                 {selectedAnalysis.hypotheticals.length > 0 && (
-                  <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-                    <h3 className="font-semibold text-gray-900 dark:text-white mb-3">
+                  <div className="p-6 border-b border-[var(--border)]">
+                    <h3 className="font-semibold text-[var(--text-heading)] mb-3">
                       What If Scenarios
                     </h3>
                     <div className="space-y-4">
                       {selectedAnalysis.hypotheticals.map((item, i) => (
-                        <div key={i} className="p-3 bg-gray-50 dark:bg-gray-900/30 rounded-lg">
-                          <p className="font-medium text-gray-900 dark:text-white text-sm">
+                        <div key={i} className="p-3 bg-white/30 rounded-lg">
+                          <p className="font-medium text-[var(--text-heading)] text-sm">
                             {item.scenario}
                           </p>
-                          <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                          <p className="text-sm text-[var(--text-body)] mt-2">
                             {item.outcome}
                           </p>
                           {item.considerations.length > 0 && (
-                            <ul className="mt-2 text-xs text-gray-500 dark:text-gray-500 list-disc list-inside">
+                            <ul className="mt-2 text-xs text-[var(--text-caption)] list-disc list-inside">
                               {item.considerations.map((c, j) => (
                                 <li key={j}>{c}</li>
                               ))}
@@ -676,17 +676,17 @@ export default function DocumentUploadPage() {
 
                 {/* Key Parties */}
                 {selectedAnalysis.keyParties.length > 0 && (
-                  <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-                    <h3 className="font-semibold text-gray-900 dark:text-white mb-3">
+                  <div className="p-6 border-b border-[var(--border)]">
+                    <h3 className="font-semibold text-[var(--text-heading)] mb-3">
                       Key Parties
                     </h3>
                     <div className="grid grid-cols-2 gap-2">
                       {selectedAnalysis.keyParties.map((party, i) => (
                         <div key={i} className="text-sm">
-                          <span className="font-medium text-gray-900 dark:text-white">
+                          <span className="font-medium text-[var(--text-heading)]">
                             {party.name}
                           </span>
-                          <span className="text-gray-500 dark:text-gray-400 ml-1">
+                          <span className="text-[var(--text-muted)] ml-1">
                             ({party.role})
                           </span>
                         </div>
@@ -698,7 +698,7 @@ export default function DocumentUploadPage() {
                 {/* Recommendations */}
                 {selectedAnalysis.recommendations.length > 0 && (
                   <div className="p-6">
-                    <h3 className="font-semibold text-gray-900 dark:text-white mb-3">
+                    <h3 className="font-semibold text-[var(--text-heading)] mb-3">
                       Recommendations
                     </h3>
                     <div className="space-y-2">
@@ -707,19 +707,19 @@ export default function DocumentUploadPage() {
                           <span
                             className={`text-xs px-2 py-0.5 rounded-full flex-shrink-0 mt-0.5 ${
                               rec.priority === "high"
-                                ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300"
+                                ? "bg-[var(--error-muted)] text-[var(--error)]"
                                 : rec.priority === "medium"
-                                  ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300"
-                                  : "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300"
+                                  ? "bg-[var(--warning-muted)] text-[var(--warning)]"
+                                  : "bg-[var(--off-white)] text-[var(--text-body)]"
                             }`}
                           >
                             {rec.priority}
                           </span>
                           <div>
-                            <p className="text-sm font-medium text-gray-900 dark:text-white">
+                            <p className="text-sm font-medium text-[var(--text-heading)]">
                               {rec.action}
                             </p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">{rec.reason}</p>
+                            <p className="text-xs text-[var(--text-muted)]">{rec.reason}</p>
                           </div>
                         </div>
                       ))}
@@ -728,16 +728,16 @@ export default function DocumentUploadPage() {
                 )}
               </div>
             ) : (
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-8 text-center">
-                <p className="text-gray-500 dark:text-gray-400">No analysis available</p>
+              <div className="bg-white rounded-lg shadow p-8 text-center">
+                <p className="text-[var(--text-muted)]">No analysis available</p>
               </div>
             )}
           </div>
         </div>
 
         {/* Disclaimer */}
-        <div className="mt-8 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
-          <p className="text-sm text-yellow-700 dark:text-yellow-300">
+        <div className="mt-8 bg-[var(--warning-muted)] border border-[var(--warning)] rounded-lg p-4">
+          <p className="text-sm text-[var(--warning)]">
             <strong>Disclaimer:</strong> This AI analysis is for informational purposes only and does
             not constitute legal advice. Always consult with a licensed attorney for legal matters.
             Uploaded documents are stored securely and used only for analysis purposes.

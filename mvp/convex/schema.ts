@@ -308,6 +308,7 @@ export default defineSchema({
       v.literal("deed"),
       v.literal("insurance_policy"),
       v.literal("beneficiary_form"),
+      v.literal("tax_return"),
       v.literal("other")
     ),
     // User-provided description

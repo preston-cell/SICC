@@ -80,3 +80,62 @@ const Badge = forwardRef<HTMLSpanElement, BadgeProps>(
 Badge.displayName = "Badge";
 
 export default Badge;
+
+// Tag component for filtering and categories
+type TagVariant = "outline" | "filled" | "neutral";
+type TagSize = "sm" | "md";
+
+interface TagProps extends HTMLAttributes<HTMLButtonElement> {
+  variant?: TagVariant;
+  size?: TagSize;
+  active?: boolean;
+  onClick?: () => void;
+}
+
+const tagVariantStyles: Record<TagVariant, string> = {
+  outline: "border border-[var(--accent-purple)] text-[var(--accent-purple)] hover:bg-[var(--accent-purple)] hover:text-white",
+  filled: "bg-[var(--accent-purple)] text-white",
+  neutral: "border border-[var(--light-gray)] text-[var(--medium-gray)] hover:border-[var(--medium-gray)] hover:text-[var(--dark-gray)]",
+};
+
+const tagSizeStyles: Record<TagSize, string> = {
+  sm: "px-3 py-1 text-xs",
+  md: "px-4 py-1.5 text-sm",
+};
+
+export const Tag = forwardRef<HTMLButtonElement, TagProps>(
+  (
+    {
+      variant = "outline",
+      size = "md",
+      active = false,
+      className = "",
+      children,
+      ...props
+    },
+    ref
+  ) => {
+    const activeStyles = active ? "bg-[var(--accent-purple)] text-white border-[var(--accent-purple)]" : "";
+
+    return (
+      <button
+        ref={ref}
+        className={`
+          inline-flex items-center justify-center
+          font-medium rounded-full
+          transition-all duration-200
+          cursor-pointer
+          ${tagVariantStyles[variant]}
+          ${tagSizeStyles[size]}
+          ${activeStyles}
+          ${className}
+        `}
+        {...props}
+      >
+        {children}
+      </button>
+    );
+  }
+);
+
+Tag.displayName = "Tag";

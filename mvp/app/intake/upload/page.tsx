@@ -157,7 +157,8 @@ function UploadStepContent() {
           fileName: file.name,
           fileSize: file.size,
           mimeType: file.type,
-          documentType: selectedType,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          documentType: selectedType as any,
         });
         setUploadProgress(80);
 

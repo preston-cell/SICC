@@ -30,13 +30,13 @@ export function FormField({
       <div className="flex items-center justify-between">
         <label
           htmlFor={id}
-          className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+          className="block text-sm font-medium text-[var(--text-body)]"
         >
           {label}
-          {required && <span className="text-red-500 ml-1">*</span>}
+          {required && <span className="text-[var(--error)] ml-1">*</span>}
         </label>
         {showSuccessState && (
-          <span className="flex items-center text-xs text-green-600 dark:text-green-400">
+          <span className="flex items-center text-xs text-[var(--success)]">
             <svg className="w-3.5 h-3.5 mr-1" fill="currentColor" viewBox="0 0 20 20">
               <path
                 fillRule="evenodd"
@@ -51,8 +51,8 @@ export function FormField({
 
       {/* Help text above the field */}
       {helpText && (
-        <p className="text-xs text-gray-500 dark:text-gray-400 flex items-start gap-1.5">
-          <svg className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <p className="text-xs text-[var(--text-muted)] flex items-start gap-1.5">
+          <svg className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-[var(--text-caption)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           {helpText}
@@ -63,10 +63,10 @@ export function FormField({
 
       {/* Hint or error below the field */}
       {hint && !error && (
-        <p className="text-xs text-gray-500 dark:text-gray-400">{hint}</p>
+        <p className="text-xs text-[var(--text-muted)]">{hint}</p>
       )}
       {error && (
-        <p className="text-xs text-red-500 flex items-center gap-1">
+        <p className="text-xs text-[var(--error)] flex items-center gap-1">
           <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
             <path
               fillRule="evenodd"
@@ -127,16 +127,16 @@ export function TextInput({
       maxLength={maxLength}
       className={`
         w-full px-3 py-2.5 border rounded-lg
-        bg-white dark:bg-gray-800 text-gray-900 dark:text-white
-        placeholder-gray-400 dark:placeholder-gray-500
+        bg-white text-[var(--text-heading)]
+        placeholder-[var(--text-caption)]
         transition-all duration-150
         focus:outline-none focus:ring-2 focus:ring-offset-0
-        disabled:bg-gray-100 dark:disabled:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-60
+        disabled:bg-[var(--off-white)] disabled:cursor-not-allowed disabled:opacity-60
         ${error
-          ? "border-red-500 focus:ring-red-500 focus:border-red-500"
+          ? "border-[var(--error)] focus:ring-[var(--error)] focus:border-[var(--error)]"
           : success
-            ? "border-green-500 focus:ring-green-500 focus:border-green-500"
-            : "border-gray-300 dark:border-gray-600 focus:ring-blue-500 focus:border-blue-500"
+            ? "border-[var(--success)] focus:ring-[var(--success)] focus:border-[var(--success)]"
+            : "border-[var(--border)] focus:ring-[var(--accent-purple)] focus:border-[var(--accent-purple)]"
         }
       `}
     />
@@ -173,15 +173,15 @@ export function Select({
         disabled={disabled}
         className={`
           w-full px-3 py-2.5 border rounded-lg appearance-none
-          bg-white dark:bg-gray-800 text-gray-900 dark:text-white
+          bg-white text-[var(--text-heading)]
           transition-all duration-150
           focus:outline-none focus:ring-2 focus:ring-offset-0
-          disabled:bg-gray-100 dark:disabled:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-60
+          disabled:bg-[var(--off-white)] disabled:cursor-not-allowed disabled:opacity-60
           ${error
-            ? "border-red-500 focus:ring-red-500 focus:border-red-500"
+            ? "border-[var(--error)] focus:ring-[var(--error)] focus:border-[var(--error)]"
             : success
-              ? "border-green-500 focus:ring-green-500 focus:border-green-500"
-              : "border-gray-300 dark:border-gray-600 focus:ring-blue-500 focus:border-blue-500"
+              ? "border-[var(--success)] focus:ring-[var(--success)] focus:border-[var(--success)]"
+              : "border-[var(--border)] focus:ring-[var(--accent-purple)] focus:border-[var(--accent-purple)]"
           }
         `}
       >
@@ -196,7 +196,7 @@ export function Select({
           </option>
         ))}
       </select>
-      <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+      <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[var(--text-caption)]">
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
@@ -231,8 +231,8 @@ export function RadioGroup({
             relative flex items-start p-4 border-2 rounded-xl cursor-pointer
             transition-all duration-200
             ${value === opt.value
-              ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20 ring-1 ring-blue-500"
-              : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800/50"
+              ? "border-[var(--accent-purple)] bg-[var(--accent-muted)] ring-1 ring-[var(--accent-purple)]"
+              : "border-[var(--border)] hover:border-[var(--border-strong)] hover:bg-[var(--off-white)]"
             }
             ${disabled ? "opacity-50 cursor-not-allowed" : ""}
           `}
@@ -244,21 +244,21 @@ export function RadioGroup({
             checked={value === opt.value}
             onChange={(e) => onChange(e.target.value)}
             disabled={disabled}
-            className="mt-0.5 h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500 focus:ring-offset-0"
+            className="mt-0.5 h-4 w-4 text-[var(--accent-purple)] border-[var(--border)] focus:ring-[var(--accent-purple)] focus:ring-offset-0"
           />
           <div className="ml-3 flex-1">
-            <span className={`text-sm font-medium ${value === opt.value ? "text-blue-700 dark:text-blue-300" : "text-gray-900 dark:text-white"}`}>
+            <span className={`text-sm font-medium ${value === opt.value ? "text-[var(--accent-purple)]" : "text-[var(--text-heading)]"}`}>
               {opt.label}
             </span>
             {opt.description && (
-              <p className={`text-xs mt-0.5 ${value === opt.value ? "text-blue-600 dark:text-blue-400" : "text-gray-500 dark:text-gray-400"}`}>
+              <p className={`text-xs mt-0.5 ${value === opt.value ? "text-[var(--accent-purple)]" : "text-[var(--text-muted)]"}`}>
                 {opt.description}
               </p>
             )}
           </div>
           {value === opt.value && (
             <div className="absolute top-3 right-3">
-              <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+              <svg className="w-5 h-5 text-[var(--accent-purple)]" fill="currentColor" viewBox="0 0 20 20">
                 <path
                   fillRule="evenodd"
                   d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
@@ -288,8 +288,8 @@ export function Checkbox({ checked, onChange, label, description, disabled }: Ch
         relative flex items-start p-4 border-2 rounded-xl cursor-pointer
         transition-all duration-200
         ${checked
-          ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20 ring-1 ring-blue-500"
-          : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800/50"
+          ? "border-[var(--accent-purple)] bg-[var(--accent-muted)] ring-1 ring-[var(--accent-purple)]"
+          : "border-[var(--border)] hover:border-[var(--border-strong)] hover:bg-[var(--off-white)]"
         }
         ${disabled ? "opacity-50 cursor-not-allowed" : ""}
       `}
@@ -299,21 +299,21 @@ export function Checkbox({ checked, onChange, label, description, disabled }: Ch
         checked={checked}
         onChange={(e) => onChange(e.target.checked)}
         disabled={disabled}
-        className="mt-0.5 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 focus:ring-offset-0"
+        className="mt-0.5 h-4 w-4 text-[var(--accent-purple)] border-[var(--border)] rounded focus:ring-[var(--accent-purple)] focus:ring-offset-0"
       />
       <div className="ml-3 flex-1">
-        <span className={`text-sm font-medium ${checked ? "text-blue-700 dark:text-blue-300" : "text-gray-900 dark:text-white"}`}>
+        <span className={`text-sm font-medium ${checked ? "text-[var(--accent-purple)]" : "text-[var(--text-heading)]"}`}>
           {label}
         </span>
         {description && (
-          <p className={`text-xs mt-0.5 ${checked ? "text-blue-600 dark:text-blue-400" : "text-gray-500 dark:text-gray-400"}`}>
+          <p className={`text-xs mt-0.5 ${checked ? "text-[var(--accent-purple)]" : "text-[var(--text-muted)]"}`}>
             {description}
           </p>
         )}
       </div>
       {checked && (
         <div className="absolute top-3 right-3">
-          <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+          <svg className="w-5 h-5 text-[var(--accent-purple)]" fill="currentColor" viewBox="0 0 20 20">
             <path
               fillRule="evenodd"
               d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
@@ -360,21 +360,21 @@ export function TextArea({
         maxLength={maxLength}
         className={`
           w-full px-3 py-2.5 border rounded-lg resize-none
-          bg-white dark:bg-gray-800 text-gray-900 dark:text-white
-          placeholder-gray-400 dark:placeholder-gray-500
+          bg-white text-[var(--text-heading)]
+          placeholder-[var(--text-caption)]
           transition-all duration-150
           focus:outline-none focus:ring-2 focus:ring-offset-0
-          disabled:bg-gray-100 dark:disabled:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-60
+          disabled:bg-[var(--off-white)] disabled:cursor-not-allowed disabled:opacity-60
           ${error
-            ? "border-red-500 focus:ring-red-500 focus:border-red-500"
+            ? "border-[var(--error)] focus:ring-[var(--error)] focus:border-[var(--error)]"
             : success
-              ? "border-green-500 focus:ring-green-500 focus:border-green-500"
-              : "border-gray-300 dark:border-gray-600 focus:ring-blue-500 focus:border-blue-500"
+              ? "border-[var(--success)] focus:ring-[var(--success)] focus:border-[var(--success)]"
+              : "border-[var(--border)] focus:ring-[var(--accent-purple)] focus:border-[var(--accent-purple)]"
           }
         `}
       />
       {showCount && maxLength && (
-        <div className="absolute bottom-2 right-3 text-xs text-gray-400">
+        <div className="absolute bottom-2 right-3 text-xs text-[var(--text-caption)]">
           {value.length}/{maxLength}
         </div>
       )}
@@ -399,13 +399,13 @@ export function FormSection({
 }: FormSectionProps) {
   return (
     <div className="space-y-4">
-      <div className="border-b border-gray-200 dark:border-gray-700 pb-3">
+      <div className="border-b border-[var(--border)] pb-3">
         <div className="flex items-center gap-3">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{title}</h3>
+          <h3 className="text-lg font-semibold text-[var(--text-heading)]">{title}</h3>
           {badge}
         </div>
         {description && (
-          <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">{description}</div>
+          <div className="text-sm text-[var(--text-muted)] mt-1">{description}</div>
         )}
       </div>
       <div className="space-y-4">{children}</div>
@@ -441,7 +441,7 @@ export function CurrencyInput({
 
   return (
     <div className="relative">
-      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400">
+      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]">
         $
       </span>
       <input
@@ -453,14 +453,14 @@ export function CurrencyInput({
         disabled={disabled}
         className={`
           w-full pl-7 pr-3 py-2.5 border rounded-lg
-          bg-white dark:bg-gray-800 text-gray-900 dark:text-white
-          placeholder-gray-400 dark:placeholder-gray-500
+          bg-white text-[var(--text-heading)]
+          placeholder-[var(--text-caption)]
           transition-all duration-150
           focus:outline-none focus:ring-2 focus:ring-offset-0
-          disabled:bg-gray-100 dark:disabled:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-60
+          disabled:bg-[var(--off-white)] disabled:cursor-not-allowed disabled:opacity-60
           ${error
-            ? "border-red-500 focus:ring-red-500 focus:border-red-500"
-            : "border-gray-300 dark:border-gray-600 focus:ring-blue-500 focus:border-blue-500"
+            ? "border-[var(--error)] focus:ring-[var(--error)] focus:border-[var(--error)]"
+            : "border-[var(--border)] focus:ring-[var(--accent-purple)] focus:border-[var(--accent-purple)]"
           }
         `}
       />
@@ -478,19 +478,19 @@ interface InfoBoxProps {
 export function InfoBox({ type = "info", title, children }: InfoBoxProps) {
   const styles = {
     info: {
-      container: "bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800",
-      icon: "text-blue-600 dark:text-blue-400",
-      title: "text-blue-800 dark:text-blue-200",
+      container: "bg-[var(--info-muted)] border-[var(--info)]",
+      icon: "text-[var(--info)]",
+      title: "text-[var(--info)]",
     },
     warning: {
-      container: "bg-amber-50 border-amber-200 dark:bg-amber-900/20 dark:border-amber-800",
-      icon: "text-amber-600 dark:text-amber-400",
-      title: "text-amber-800 dark:text-amber-200",
+      container: "bg-[var(--warning-muted)] border-[var(--warning)]",
+      icon: "text-[var(--warning)]",
+      title: "text-[var(--warning)]",
     },
     tip: {
-      container: "bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800",
-      icon: "text-green-600 dark:text-green-400",
-      title: "text-green-800 dark:text-green-200",
+      container: "bg-[var(--success-muted)] border-[var(--success)]",
+      icon: "text-[var(--success)]",
+      title: "text-[var(--success)]",
     },
   };
 
@@ -520,7 +520,7 @@ export function InfoBox({ type = "info", title, children }: InfoBoxProps) {
           {title && (
             <h4 className={`font-medium mb-1 ${styles[type].title}`}>{title}</h4>
           )}
-          <div className="text-sm text-gray-700 dark:text-gray-300">{children}</div>
+          <div className="text-sm text-[var(--text-body)]">{children}</div>
         </div>
       </div>
     </div>
