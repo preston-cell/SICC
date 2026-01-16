@@ -624,11 +624,18 @@ function AssetsFormContent() {
           )}
         </FormSection>
 
-        {/* Beneficiary Designations - Important Section */}
+        {/* Beneficiary Designations - Only show if user has relevant assets or owns a business */}
+        {(formData.hasRetirementAccounts || formData.hasLifeInsurance || formData.hasBusinessInterests) && (
         <FormSection
           title={<><GlossaryTooltip term="Beneficiary Designation">Beneficiary Designations</GlossaryTooltip> Tracker</>}
           description="Track beneficiaries on accounts that bypass your will"
         >
+          <InfoBox type="warning" title="Important: These Assets Bypass Your Will">
+            <p className="mb-2">
+              <strong>Retirement accounts, life insurance, and TOD/POD accounts pass directly to named beneficiaries</strong> -
+              they do not go through your will or trust.
+            </p>
+          </InfoBox>
           {beneficiariesAlreadyConfirmed ? (
             <InfoBox type="info" title="Beneficiary Designations Already Reviewed">
               <p className="mb-2">
@@ -662,6 +669,8 @@ function AssetsFormContent() {
                   addBeneficiaryDesignation();
                 }
               }}
+              label="I want to track my beneficiary designations"
+              description="Optional: Track which beneficiaries are on each account"
               label={beneficiariesAlreadyConfirmed
                 ? "I still want to document my beneficiary designations for reference"
                 : "I want to track my beneficiary designations"
@@ -836,6 +845,7 @@ function AssetsFormContent() {
             </div>
           )}
         </FormSection>
+        )}
 
         {/* Other Assets */}
         <FormSection
