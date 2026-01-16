@@ -1,0 +1,40 @@
+{
+  "name": "mvp",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "25.0.8",
+    "autoprefixer": "^10.4.23",
+    "postcss": "^8.5.6",
+    "prisma": "^7.2.0",
+    "tailwindcss": "^4.1.18",
+    "typescript": "5.9.3"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.71.2",
+    "@prisma/adapter-pg": "^7.2.0",
+    "@prisma/client": "^7.2.0",
+    "@prisma/extension-accelerate": "^3.0.1",
+    "@tailwindcss/postcss": "^4.1.18",
+    "e2b": "^2.10.1",
+    "next": "^16.1.1",
+    "pg": "^8.16.3",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
+    "swr": "^2.3.8",
+    "zod": "^4.3.5"
+  }
+}

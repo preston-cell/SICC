@@ -1,0 +1,321 @@
+// Prisma schema for SICC - PostgreSQL database
+// Migrated from Convex to support AWS RDS
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================================
+// USER MANAGEMENT
+// ============================================
+
+model User {
+  id              String           @id @default(cuid())
+  email           String           @unique
+  phoneNumber     String?
+  netWorthBracket NetWorthBracket?
+
+  firstName       String?
+  lastName        String?
+  dateOfBirth     DateTime?
+
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  lastLoginAt     DateTime?
+
+  uploadedDocuments   UploadedDocument[]
+  generatedDocuments  GeneratedDocument[]
+  questionResponses   QuestionResponse[]
+  sessions            Session[]
+  events              Event[]
+  agentRuns           AgentRun[]
+
+  @@index([email])
+  @@index([createdAt])
+}
+
+enum NetWorthBracket {
+  UNDER_50K
+  FROM_50K_TO_100K
+  FROM_100K_TO_250K
+  FROM_250K_TO_500K
+  FROM_500K_TO_1M
+  FROM_1M_TO_5M
+  FROM_5M_TO_10M
+  OVER_10M
+  PREFER_NOT_TO_SAY
+}
+
+// ============================================
+// UPLOADED DOCUMENTS (User-provided)
+// ============================================
+
+model UploadedDocument {
+  id            String         @id @default(cuid())
+  userId        String
+  documentType  DocumentType
+  fileName      String
+  fileSize      Int
+  mimeType      String
+  storageKey    String
+  storageUrl    String?
+  status        DocumentStatus @default(PENDING)
+  extractedText String?        @db.Text
+  metadata      Json?
+  uploadedAt    DateTime       @default(now())
+  processedAt   DateTime?
+
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([documentType])
+  @@index([uploadedAt])
+}
+
+enum DocumentType {
+  TAX_RETURN_1040
+  W2
+  W9
+  K1
+  TAX_1099_INT
+  TAX_1099_DIV
+  TAX_1099_B
+  TAX_1099_MISC
+  TAX_1099_NEC
+  MARRIAGE_CERTIFICATE
+  DIVORCE_DECREE
+  BIRTH_CERTIFICATE
+  DEATH_CERTIFICATE
+  WILL
+  TRUST_DOCUMENT
+  POWER_OF_ATTORNEY
+  BANK_STATEMENT
+  INVESTMENT_STATEMENT
+  MORTGAGE_STATEMENT
+  LOAN_AGREEMENT
+  INSURANCE_POLICY
+  DRIVERS_LICENSE
+  PASSPORT
+  SOCIAL_SECURITY_CARD
+  OTHER
+}
+
+enum DocumentStatus {
+  PENDING
+  PROCESSING
+  PROCESSED
+  FAILED
+}
+
+// ============================================
+// GENERATED DOCUMENTS (AI-created)
+// ============================================
+
+model GeneratedDocument {
+  id           String           @id @default(cuid())
+  userId       String
+  sessionId    String?
+  documentType GeneratedDocType
+  title        String
+  content      String           @db.Text
+  prompt       String           @db.Text
+  modelUsed    String
+  tokensUsed   Int?
+  fileFormat   String?
+  storageKey   String?
+  storageUrl   String?
+  metadata     Json?
+  generatedAt  DateTime         @default(now())
+
+  user         User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  session      Session?         @relation(fields: [sessionId], references: [id])
+
+  @@index([userId])
+  @@index([documentType])
+  @@index([generatedAt])
+}
+
+enum GeneratedDocType {
+  FINANCIAL_PLAN
+  TAX_SUMMARY
+  INVESTMENT_RECOMMENDATION
+  ESTATE_PLAN
+  BUDGET_ANALYSIS
+  RETIREMENT_PROJECTION
+  INSURANCE_ANALYSIS
+  CUSTOM_REPORT
+  OTHER
+}
+
+// ============================================
+// QUESTIONS AND RESPONSES
+// ============================================
+
+model Question {
+  id           String       @id @default(cuid())
+  questionKey  String       @unique
+  questionText String
+  questionType QuestionType
+  category     String
+  options      Json?
+  validation   Json?
+  order        Int
+  isRequired   Boolean      @default(false)
+  helpText     String?
+
+  responses    QuestionResponse[]
+
+  @@index([category])
+  @@index([order])
+}
+
+enum QuestionType {
+  TEXT
+  NUMBER
+  CURRENCY
+  DATE
+  SINGLE_CHOICE
+  MULTI_CHOICE
+  BOOLEAN
+  FILE_UPLOAD
+  SCALE
+}
+
+model QuestionResponse {
+  id            String   @id @default(cuid())
+  userId        String
+  questionId    String
+  sessionId     String?
+  responseValue String   @db.Text
+  responseJson  Json?
+  confidence    Int?
+  notes         String?
+  respondedAt   DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  version       Int      @default(1)
+
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question      Question @relation(fields: [questionId], references: [id])
+  session       Session? @relation(fields: [sessionId], references: [id])
+
+  @@unique([userId, questionId])
+  @@index([userId])
+  @@index([questionId])
+  @@index([sessionId])
+}
+
+// ============================================
+// SESSIONS
+// ============================================
+
+model Session {
+  id              String        @id @default(cuid())
+  userId          String
+  sessionType     SessionType
+  status          SessionStatus @default(IN_PROGRESS)
+  currentStep     String?
+  totalSteps      Int?
+  completedSteps  Int           @default(0)
+  progressPercent Float         @default(0)
+  startedAt       DateTime      @default(now())
+  lastActivityAt  DateTime      @default(now())
+  completedAt     DateTime?
+  pausedAt        DateTime?
+  metadata        Json?
+
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  events          Event[]
+  responses       QuestionResponse[]
+  generatedDocs   GeneratedDocument[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([startedAt])
+}
+
+enum SessionType {
+  ONBOARDING
+  FINANCIAL_REVIEW
+  TAX_PLANNING
+  DOCUMENT_UPLOAD
+  GOAL_SETTING
+  CONSULTATION
+}
+
+enum SessionStatus {
+  IN_PROGRESS
+  PAUSED
+  COMPLETED
+  ABANDONED
+  EXPIRED
+}
+
+// ============================================
+// EVENTS (Granular Behavior Tracking)
+// ============================================
+
+model Event {
+  id            String   @id @default(cuid())
+  userId        String?
+  sessionId     String?
+  eventType     String
+  eventCategory String
+  properties    Json?
+  pageUrl       String?
+  referrerUrl   String?
+  userAgent     String?
+  ipAddress     String?
+  deviceType    String?
+  browser       String?
+  os            String?
+  timestamp     DateTime @default(now())
+  duration      Int?
+
+  user          User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  session       Session? @relation(fields: [sessionId], references: [id])
+
+  @@index([userId])
+  @@index([sessionId])
+  @@index([eventType])
+  @@index([eventCategory])
+  @@index([timestamp])
+}
+
+// ============================================
+// AGENT RUNS (From original Convex schema)
+// ============================================
+
+model AgentRun {
+  id             String    @id @default(cuid())
+  userId         String?
+  prompt         String    @db.Text
+  status         String    @default("pending")
+  output         String?   @db.Text
+  error          String?   @db.Text
+  createdAt      DateTime  @default(now())
+  completedAt    DateTime?
+
+  user           User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
+  generatedFiles GeneratedFile[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model GeneratedFile {
+  id       String   @id @default(cuid())
+  runId    String
+  path     String
+  content  String   @db.Text
+  isBinary Boolean  @default(false)
+  size     Int
+
+  run      AgentRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@index([runId])
+}
