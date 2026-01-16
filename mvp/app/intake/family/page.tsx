@@ -3,9 +3,14 @@
 import { Suspense } from "react";
 import IntakeProgress from "../../components/IntakeProgress";
 import IntakeNavigation from "../../components/IntakeNavigation";
-import { FormField, TextInput, Select, RadioGroup, FormSection, Checkbox } from "../../components/FormFields";
-import { useIntakeForm } from "../useIntakeForm";
+import { FormField, TextInput, Select, RadioGroup, FormSection, Checkbox, TextArea, InfoBox } from "../../components/FormFields";
+import { useIntakeForm, useOtherSectionData } from "../useIntakeForm";
 import { ExtractedBadge, ExtractedDataBanner } from "../../components/ExtractedBadge";
+
+// Personal data interface for cross-section check
+interface PersonalData {
+  maritalStatus: string;
+}
 
 interface Child {
   id: string;
@@ -30,6 +35,13 @@ interface FamilyData {
   hasChildren: boolean;
   children: Child[];
 
+  // Guardian for minor children
+  guardianName: string;
+  guardianRelationship: string;
+  alternateGuardianName: string;
+  alternateGuardianRelationship: string;
+  guardianInstructions: string;
+
   // Other dependents
   hasOtherDependents: boolean;
   otherDependentsDetails: string;
@@ -51,6 +63,11 @@ const DEFAULT_DATA: FamilyData = {
   spouseIsUSCitizen: true,
   hasChildren: false,
   children: [],
+  guardianName: "",
+  guardianRelationship: "",
+  alternateGuardianName: "",
+  alternateGuardianRelationship: "",
+  guardianInstructions: "",
   hasOtherDependents: false,
   otherDependentsDetails: "",
   hasPets: false,
@@ -72,6 +89,18 @@ const PARENTS_OPTIONS = [
   { value: "neither", label: "Neither parent is living" },
 ];
 
+const GUARDIAN_RELATIONSHIP_OPTIONS = [
+  { value: "sibling", label: "Sibling" },
+  { value: "parent", label: "Parent/Grandparent" },
+  { value: "aunt_uncle", label: "Aunt/Uncle" },
+  { value: "cousin", label: "Cousin" },
+  { value: "friend", label: "Close Friend" },
+  { value: "other", label: "Other" },
+];
+
+// Marital statuses that should hide spouse section
+const SINGLE_STATUSES = ["single", "divorced", "widowed"];
+
 function FamilyFormContent() {
   const {
     formData,
@@ -89,6 +118,20 @@ function FamilyFormContent() {
     isFieldExtracted,
     hasExtractedData,
   } = useIntakeForm<FamilyData>("family", DEFAULT_DATA);
+
+  // Fetch personal data to check marital status
+  const { data: personalData } = useOtherSectionData<PersonalData>(
+    estatePlanId,
+    "personal"
+  );
+
+  // Determine if spouse section should be shown based on marital status
+  const isSingle = personalData?.maritalStatus
+    ? SINGLE_STATUSES.includes(personalData.maritalStatus)
+    : false;
+
+  // Check if there are any minor children
+  const hasMinorChildren = formData.children.some((child) => child.isMinor);
 
   const addChild = () => {
     const newChild: Child = {
@@ -173,56 +216,58 @@ function FamilyFormContent() {
 
       {/* Form */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 space-y-8">
-        {/* Spouse Information */}
-        <FormSection
-          title="Spouse or Partner"
-          description="Information about your spouse or domestic partner"
-        >
-          <Checkbox
-            checked={formData.hasSpouse}
-            onChange={(v) => updateField("hasSpouse", v)}
-            label="I have a spouse or domestic partner"
-            description="Check this if you are married or in a registered domestic partnership"
-          />
+        {/* Spouse Information - Hidden if marital status is single/divorced/widowed */}
+        {!isSingle && (
+          <FormSection
+            title="Spouse or Partner"
+            description="Information about your spouse or domestic partner"
+          >
+            <Checkbox
+              checked={formData.hasSpouse}
+              onChange={(v) => updateField("hasSpouse", v)}
+              label="I have a spouse or domestic partner"
+              description="Check this if you are married or in a registered domestic partnership"
+            />
 
-          {formData.hasSpouse && (
-            <div className="mt-4 pl-4 border-l-2 border-blue-200 dark:border-blue-800 space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField label={<span className="flex items-center gap-2">Spouse&apos;s First Name {isFieldExtracted("spouseFirstName") && <ExtractedBadge />}</span>}>
-                  <TextInput
-                    value={formData.spouseFirstName}
-                    onChange={(v) => updateField("spouseFirstName", v)}
-                    placeholder="Jane"
-                  />
-                </FormField>
-                <FormField label={<span className="flex items-center gap-2">Spouse&apos;s Last Name {isFieldExtracted("spouseLastName") && <ExtractedBadge />}</span>}>
-                  <TextInput
-                    value={formData.spouseLastName}
-                    onChange={(v) => updateField("spouseLastName", v)}
-                    placeholder="Smith"
-                  />
-                </FormField>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField label="Spouse's Date of Birth">
-                  <TextInput
-                    type="date"
-                    value={formData.spouseDateOfBirth}
-                    onChange={(v) => updateField("spouseDateOfBirth", v)}
-                  />
-                </FormField>
-                <div className="flex items-end">
-                  <Checkbox
-                    checked={formData.spouseIsUSCitizen}
-                    onChange={(v) => updateField("spouseIsUSCitizen", v)}
-                    label="U.S. Citizen"
-                    description="Important for tax planning purposes"
-                  />
+            {formData.hasSpouse && (
+              <div className="mt-4 pl-4 border-l-2 border-blue-200 dark:border-blue-800 space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField label={<span className="flex items-center gap-2">Spouse&apos;s First Name {isFieldExtracted("spouseFirstName") && <ExtractedBadge />}</span>}>
+                    <TextInput
+                      value={formData.spouseFirstName}
+                      onChange={(v) => updateField("spouseFirstName", v)}
+                      placeholder="Jane"
+                    />
+                  </FormField>
+                  <FormField label={<span className="flex items-center gap-2">Spouse&apos;s Last Name {isFieldExtracted("spouseLastName") && <ExtractedBadge />}</span>}>
+                    <TextInput
+                      value={formData.spouseLastName}
+                      onChange={(v) => updateField("spouseLastName", v)}
+                      placeholder="Smith"
+                    />
+                  </FormField>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField label="Spouse's Date of Birth">
+                    <TextInput
+                      type="date"
+                      value={formData.spouseDateOfBirth}
+                      onChange={(v) => updateField("spouseDateOfBirth", v)}
+                    />
+                  </FormField>
+                  <div className="flex items-end">
+                    <Checkbox
+                      checked={formData.spouseIsUSCitizen}
+                      onChange={(v) => updateField("spouseIsUSCitizen", v)}
+                      label="U.S. Citizen"
+                      description="Important for tax planning purposes"
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
-        </FormSection>
+            )}
+          </FormSection>
+        )}
 
         {/* Children */}
         <FormSection
@@ -244,7 +289,7 @@ function FamilyFormContent() {
             <div className="mt-4 space-y-4">
               {formData.children.map((child, index) => (
                 <div
-                  key={child.id}
+                  key={child.id || `child-${index}`}
                   className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg space-y-4"
                 >
                   <div className="flex items-center justify-between">
@@ -332,6 +377,69 @@ function FamilyFormContent() {
             </div>
           )}
         </FormSection>
+
+        {/* Guardian for Minor Children - Only shown if there are minor children */}
+        {hasMinorChildren && (
+          <FormSection
+            title="Guardian for Minor Children"
+            description="If something happens to you, who should care for your minor children?"
+          >
+            <InfoBox type="info" title="Why This Matters">
+              Naming a guardian ensures your children are cared for by someone you trust.
+              Without this designation, a court will decide who raises your children.
+            </InfoBox>
+
+            <div className="space-y-4 mt-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField label="Preferred Guardian's Name" required>
+                  <TextInput
+                    value={formData.guardianName}
+                    onChange={(v) => updateField("guardianName", v)}
+                    placeholder="Full legal name"
+                  />
+                </FormField>
+                <FormField label="Relationship">
+                  <Select
+                    value={formData.guardianRelationship}
+                    onChange={(v) => updateField("guardianRelationship", v)}
+                    options={GUARDIAN_RELATIONSHIP_OPTIONS}
+                    placeholder="Select relationship"
+                  />
+                </FormField>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField label="Alternate Guardian's Name" hint="In case primary cannot serve">
+                  <TextInput
+                    value={formData.alternateGuardianName}
+                    onChange={(v) => updateField("alternateGuardianName", v)}
+                    placeholder="Full legal name"
+                  />
+                </FormField>
+                <FormField label="Relationship">
+                  <Select
+                    value={formData.alternateGuardianRelationship}
+                    onChange={(v) => updateField("alternateGuardianRelationship", v)}
+                    options={GUARDIAN_RELATIONSHIP_OPTIONS}
+                    placeholder="Select relationship"
+                  />
+                </FormField>
+              </div>
+
+              <FormField
+                label="Special Instructions"
+                hint="Optional guidance for raising your children"
+              >
+                <TextArea
+                  value={formData.guardianInstructions}
+                  onChange={(v) => updateField("guardianInstructions", v)}
+                  placeholder="e.g., Religious upbringing preferences, education priorities, keep siblings together"
+                  rows={3}
+                />
+              </FormField>
+            </div>
+          </FormSection>
+        )}
 
         {/* Other Dependents */}
         <FormSection

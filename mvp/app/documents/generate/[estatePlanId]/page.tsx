@@ -1,11 +1,11 @@
 "use client";
 
 import { useParams, useSearchParams } from "next/navigation";
-import { useQuery, useAction } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { Id } from "../../../../convex/_generated/dataModel";
 import Link from "next/link";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import ReactMarkdown from "react-markdown";
 
 type DocumentType = "will" | "trust" | "poa_financial" | "poa_healthcare" | "healthcare_directive" | "hipaa";
@@ -117,6 +117,8 @@ export default function DocumentGeneratePage() {
     documentId: null,
   });
   const [useAI, setUseAI] = useState(false);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const pdfContentRef = useRef<HTMLDivElement>(null);
 
   // Fetch estate plan
   const estatePlan = useQuery(api.queries.getEstatePlan, { estatePlanId });
@@ -130,8 +132,11 @@ export default function DocumentGeneratePage() {
   // Fetch intake progress
   const intakeProgress = useQuery(api.queries.getIntakeProgress, { estatePlanId });
 
-  // Document generation action
-  const generateDocument = useAction(api.documentGeneration.generateDocument);
+  // Fetch full intake data for API call
+  const intakeData = useQuery(api.queries.getEstatePlanFull, { estatePlanId });
+
+  // Mutation to save generated document
+  const createDocument = useMutation(api.estatePlanning.createDocument);
 
   // Parse missing documents from gap analysis
   const missingDocTypes = new Set<string>();
@@ -144,7 +149,7 @@ export default function DocumentGeneratePage() {
     }
   }
 
-  // Handle document generation
+  // Handle document generation - calls API directly (bypasses Convex timeout)
   const handleGenerate = useCallback(async (docType: DocumentType) => {
     setGenerationState({
       isGenerating: true,
@@ -153,26 +158,57 @@ export default function DocumentGeneratePage() {
     });
 
     try {
-      const result = await generateDocument({
-        estatePlanId,
-        documentType: docType,
-        useAI,
+      // Build intake data object for the API
+      // Note: intakeData from getEstatePlanFull has the intake array at .intakeData
+      const intake = intakeData?.intakeData || [];
+      const apiIntakeData = {
+        personal: intake.find((i: { section: string; data: string }) => i.section === "personal")?.data
+          ? JSON.parse(intake.find((i: { section: string }) => i.section === "personal")?.data || "{}")
+          : {},
+        family: intake.find((i: { section: string; data: string }) => i.section === "family")?.data
+          ? JSON.parse(intake.find((i: { section: string }) => i.section === "family")?.data || "{}")
+          : {},
+        assets: intake.find((i: { section: string; data: string }) => i.section === "assets")?.data
+          ? JSON.parse(intake.find((i: { section: string }) => i.section === "assets")?.data || "{}")
+          : {},
+        goals: intake.find((i: { section: string; data: string }) => i.section === "goals")?.data
+          ? JSON.parse(intake.find((i: { section: string }) => i.section === "goals")?.data || "{}")
+          : {},
+      };
+
+      // Call the API route directly (bypasses Convex timeout issues)
+      const response = await fetch("/api/document-generation", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ documentType: docType, intakeData: apiIntakeData }),
       });
 
-      if (result.success && result.content) {
-        const docInfo = DOCUMENT_TYPES.find(d => d.type === docType);
-        setPreviewState({
-          isOpen: true,
-          title: docInfo?.name || "Generated Document",
-          content: result.content,
-          documentId: result.documentId || null,
-        });
-      } else {
+      const result = await response.json();
+
+      if (!result.success) {
         setGenerationState(prev => ({
           ...prev,
           error: result.error || "Failed to generate document",
         }));
+        return;
       }
+
+      // Save the document to Convex
+      const docInfo = DOCUMENT_TYPES.find(d => d.type === docType);
+      const documentId = await createDocument({
+        estatePlanId,
+        type: docType,
+        title: docInfo?.name || "Generated Document",
+        content: result.content,
+        format: "markdown",
+      });
+
+      setPreviewState({
+        isOpen: true,
+        title: docInfo?.name || "Generated Document",
+        content: result.content,
+        documentId: documentId || null,
+      });
     } catch (error) {
       setGenerationState(prev => ({
         ...prev,
@@ -185,7 +221,7 @@ export default function DocumentGeneratePage() {
         generatingType: null,
       }));
     }
-  }, [estatePlanId, generateDocument, useAI]);
+  }, [estatePlanId, intakeData, createDocument]);
 
   // Handle download
   const handleDownload = useCallback(() => {
@@ -209,6 +245,86 @@ export default function DocumentGeneratePage() {
       console.error("Failed to copy:", error);
     }
   }, [previewState.content]);
+
+  // Download as PDF
+  const handleDownloadPDF = useCallback(async () => {
+    if (!pdfContentRef.current) return;
+
+    setIsGeneratingPDF(true);
+    try {
+      // Dynamically import html2pdf to avoid SSR issues
+      const html2pdfModule = await import("html2pdf.js");
+      const html2pdf = html2pdfModule.default;
+
+      const element = pdfContentRef.current;
+      const filename = `${previewState.title.replace(/\s+/g, "_")}.pdf`;
+
+      // Temporarily apply print-friendly styles for PDF generation
+      const originalStyle = element.getAttribute("style") || "";
+      element.style.cssText = `
+        background-color: white !important;
+        color: black !important;
+        font-family: 'Times New Roman', Times, serif !important;
+        font-size: 12pt !important;
+        line-height: 1.6 !important;
+        padding: 0 !important;
+      `;
+
+      // Apply styles to all child elements
+      const allElements = element.querySelectorAll("*");
+      const originalStyles: string[] = [];
+      allElements.forEach((el, index) => {
+        const htmlEl = el as HTMLElement;
+        originalStyles[index] = htmlEl.getAttribute("style") || "";
+        htmlEl.style.color = "black";
+        htmlEl.style.backgroundColor = "transparent";
+      });
+
+      // Style headings specifically
+      element.querySelectorAll("h1, h2, h3, h4, h5, h6").forEach((heading) => {
+        const h = heading as HTMLElement;
+        h.style.fontWeight = "bold";
+        h.style.marginTop = "1em";
+        h.style.marginBottom = "0.5em";
+      });
+
+      element.querySelectorAll("h1").forEach((h) => {
+        (h as HTMLElement).style.fontSize = "18pt";
+      });
+      element.querySelectorAll("h2").forEach((h) => {
+        (h as HTMLElement).style.fontSize = "16pt";
+      });
+      element.querySelectorAll("h3").forEach((h) => {
+        (h as HTMLElement).style.fontSize = "14pt";
+      });
+
+      const opt = {
+        margin: [0.75, 0.75, 0.75, 0.75] as [number, number, number, number],
+        filename,
+        image: { type: "jpeg", quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, logging: false, backgroundColor: "#ffffff" },
+        jsPDF: { unit: "in", format: "letter", orientation: "portrait" as const },
+        pagebreak: { mode: ["avoid-all", "css", "legacy"] },
+      };
+
+      await html2pdf().set(opt).from(element).save();
+
+      // Restore original styles
+      element.setAttribute("style", originalStyle);
+      allElements.forEach((el, index) => {
+        const htmlEl = el as HTMLElement;
+        if (originalStyles[index]) {
+          htmlEl.setAttribute("style", originalStyles[index]);
+        } else {
+          htmlEl.removeAttribute("style");
+        }
+      });
+    } catch (error) {
+      console.error("Failed to generate PDF:", error);
+    } finally {
+      setIsGeneratingPDF(false);
+    }
+  }, [previewState.title]);
 
   if (!estatePlan) {
     return (
@@ -454,6 +570,24 @@ export default function DocumentGeneratePage() {
                     </svg>
                   </button>
                   <button
+                    onClick={handleDownloadPDF}
+                    disabled={isGeneratingPDF}
+                    className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors disabled:opacity-50"
+                    title="Download as PDF"
+                  >
+                    {isGeneratingPDF ? (
+                      <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
+                    ) : (
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 11v6m-3-3h6" />
+                      </svg>
+                    )}
+                  </button>
+                  <button
                     onClick={() => setPreviewState(prev => ({ ...prev, isOpen: false }))}
                     className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                   >
@@ -466,8 +600,15 @@ export default function DocumentGeneratePage() {
 
               {/* Modal Body - Document Content */}
               <div className="flex-1 overflow-y-auto p-6">
-                <div className="prose dark:prose-invert prose-sm max-w-none">
-                  <ReactMarkdown>{previewState.content}</ReactMarkdown>
+                <div ref={pdfContentRef} className="prose dark:prose-invert prose-sm max-w-none bg-white dark:bg-gray-800 pdf-content [&>hr]:hidden [&_hr]:hidden">
+                  <ReactMarkdown>{
+                    previewState.content
+                      .replace(/<br\s*\/?>/gi, "\n\n")
+                      .replace(/<hr\s*\/?>/gi, "\n\n")
+                      .replace(/^---+$/gm, "")
+                      .replace(/^\*\*\*+$/gm, "")
+                      .replace(/^___+$/gm, "")
+                  }</ReactMarkdown>
                 </div>
               </div>
 
@@ -485,9 +626,26 @@ export default function DocumentGeneratePage() {
                   </button>
                   <button
                     onClick={handleDownload}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors"
+                    className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-lg text-sm font-medium transition-colors"
                   >
-                    Download
+                    Download MD
+                  </button>
+                  <button
+                    onClick={handleDownloadPDF}
+                    disabled={isGeneratingPDF}
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50 flex items-center gap-2"
+                  >
+                    {isGeneratingPDF ? (
+                      <>
+                        <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                        </svg>
+                        Generating...
+                      </>
+                    ) : (
+                      "Download PDF"
+                    )}
                   </button>
                 </div>
               </div>

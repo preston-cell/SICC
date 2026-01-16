@@ -1,17 +1,25 @@
 "use node";
 
+/**
+ * Gap Analysis Action - Using Claude Code in E2B
+ *
+ * This action analyzes estate planning intake data by:
+ * 1. Fetching intake data from the database
+ * 2. Calling the Next.js API route which runs Claude Code in E2B
+ * 3. Claude Code uses the us-estate-planning-analyzer skill to produce comprehensive analysis
+ * 4. Saving the analysis results to the database
+ */
+
 import { action } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { v } from "convex/values";
 import { Id } from "./_generated/dataModel";
 import { getStateSpecificContent, getFinancialProfilePrompt } from "./stateSpecificAnalysis";
 
-// Gap analysis action - analyzes estate planning intake data
+// Gap analysis action - analyzes estate planning intake data using Claude Code via API route
 export const runGapAnalysis = action({
   args: { estatePlanId: v.id("estatePlans") },
   handler: async (ctx, { estatePlanId }) => {
-    const { Sandbox } = require("@e2b/sdk");
-
     // Fetch all intake data for this estate plan
     const intakeData = await ctx.runQuery(internal.gapAnalysisQueries.getIntakeDataForAnalysis, {
       estatePlanId,
@@ -33,139 +41,86 @@ export const runGapAnalysis = action({
       status: "running",
     });
 
-    let sandbox;
     try {
-      // Build the analysis prompt and get pre-detected issues
-      const { prompt: analysisPrompt, preDetectedIssues } = buildAnalysisPrompt(intakeData);
+      // Build the analysis prompt
+      const analysisPrompt = buildAnalysisPrompt(intakeData);
 
-      // Create sandbox with explicit API key
-      sandbox = await Sandbox.create({
-        template: "base",
-        timeoutMs: 300000,
-        apiKey: process.env.E2B_API_KEY,
+      // Call the Next.js API route for E2B execution
+      const apiUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+      const response = await fetch(`${apiUrl}/api/e2b/execute`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          prompt: analysisPrompt,
+          outputFile: "analysis.json",
+          timeoutMs: 240000,
+        }),
       });
 
-      // Create Python script for analysis (using Anthropic API directly for structured output)
-      const pythonScript = `
-import os
-import json
-import anthropic
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`API call failed: ${response.status} ${errorText}`);
+      }
 
-# Intake data for analysis
-INTAKE_DATA = '''
-${JSON.stringify(intakeData, null, 2).replace(/'/g, "\\'")}
-'''
+      const result = await response.json();
 
-ANALYSIS_PROMPT = '''
-${analysisPrompt.replace(/'/g, "\\'")}
-'''
+      if (!result.success) {
+        throw new Error(result.error || "E2B execution failed");
+      }
 
-def run_analysis():
-    api_key = os.environ.get("ANTHROPIC_API_KEY")
-    if not api_key:
-        raise RuntimeError("ANTHROPIC_API_KEY missing")
-
-    client = anthropic.Anthropic(api_key=api_key)
-
-    response = client.messages.create(
-        model="claude-sonnet-4-5-20250929",
-        max_tokens=4000,
-        messages=[
-            {
-                "role": "user",
-                "content": ANALYSIS_PROMPT
-            }
-        ]
-    )
-
-    # Extract the text response
-    result_text = "".join(block.text for block in response.content if block.type == "text")
-
-    # Try to parse as JSON
-    try:
-        # Find JSON in the response
-        start = result_text.find('{')
-        end = result_text.rfind('}') + 1
-        if start != -1 and end > start:
-            json_str = result_text[start:end]
-            result = json.loads(json_str)
-            print("===JSON_START===")
-            print(json.dumps(result, indent=2))
-            print("===JSON_END===")
-            return result
-    except json.JSONDecodeError as e:
-        print(f"JSON parse error: {e}")
-
-    # If JSON parsing fails, return raw text
-    print("===RAW_OUTPUT===")
-    print(result_text)
-    print("===RAW_END===")
-    return {"raw": result_text}
-
-if __name__ == "__main__":
-    run_analysis()
-`;
-
-      await sandbox.files.write("/tmp/analysis.py", pythonScript);
-
-      // Run the analysis
-      const result = await sandbox.commands.run(
-        "pip install -q anthropic && python /tmp/analysis.py",
-        {
-          envs: {
-            ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY!,
-          },
-          timeoutMs: 180000,
-        }
-      );
-
-      const output = result.stdout + "\n" + (result.stderr || "");
+      const output = `STDOUT:\n${result.stdout}\n\nSTDERR:\n${result.stderr || "(none)"}`;
 
       // Parse the JSON result from output
       let analysisResult;
-      const jsonMatch = output.match(/===JSON_START===\n([\s\S]*?)\n===JSON_END===/);
 
-      if (jsonMatch) {
+      // Try to read from file content first
+      if (result.fileContent) {
         try {
-          analysisResult = JSON.parse(jsonMatch[1]);
-        } catch (e) {
-          console.error("Failed to parse analysis JSON:", e);
-          analysisResult = {
-            score: 50,
-            missingDocuments: [],
-            outdatedDocuments: [],
-            inconsistencies: [],
-            recommendations: [{ action: "Review analysis output manually", priority: "medium", reason: "Automated parsing failed" }],
-            stateSpecificNotes: [],
-          };
+          analysisResult = JSON.parse(result.fileContent);
+        } catch {
+          console.error("Failed to parse file content as JSON");
         }
-      } else {
-        // Try to extract raw output
-        const rawMatch = output.match(/===RAW_OUTPUT===\n([\s\S]*?)\n===RAW_END===/);
+      }
+
+      // Try to extract JSON from stdout
+      if (!analysisResult) {
+        const jsonMatch = result.stdout?.match(/```json\n([\s\S]*?)\n```/) ||
+                          result.stdout?.match(/\{[\s\S]*"score"[\s\S]*"recommendations"[\s\S]*\}/);
+
+        if (jsonMatch) {
+          try {
+            const jsonStr = jsonMatch[1] || jsonMatch[0];
+            const start = jsonStr.indexOf('{');
+            const end = jsonStr.lastIndexOf('}') + 1;
+            if (start !== -1 && end > start) {
+              analysisResult = JSON.parse(jsonStr.substring(start, end));
+            }
+          } catch (e) {
+            console.error("Failed to parse analysis JSON:", e);
+          }
+        }
+      }
+
+      // If we still don't have a result, create a default one
+      if (!analysisResult) {
         analysisResult = {
           score: 50,
           missingDocuments: [],
           outdatedDocuments: [],
           inconsistencies: [],
-          recommendations: [],
+          recommendations: [
+            {
+              action: "Review analysis output manually",
+              priority: "medium",
+              reason: "Automated parsing could not extract structured results"
+            }
+          ],
           stateSpecificNotes: [],
-          commonIssues: [],
-          rawAnalysis: rawMatch ? rawMatch[1] : output,
+          rawAnalysis: result.stdout,
         };
       }
-
-      // Merge pre-detected issues with AI-detected issues
-      // Pre-detected issues are always included to ensure critical issues aren't missed
-      const mergedCommonIssues = [
-        ...preDetectedIssues,
-        ...(analysisResult.commonIssues || []).filter((aiIssue: CommonDocumentIssue) =>
-          // Only add AI-detected issues that aren't duplicates of pre-detected ones
-          !preDetectedIssues.some(preIssue =>
-            preIssue.type === aiIssue.type && preIssue.title === aiIssue.title
-          )
-        ),
-      ];
-      analysisResult.commonIssues = mergedCommonIssues;
 
       // Save the gap analysis results
       await ctx.runMutation(internal.estatePlanning.saveGapAnalysis, {
@@ -176,7 +131,6 @@ if __name__ == "__main__":
         estimatedEstateTax: analysisResult.estimatedEstateTax
           ? JSON.stringify(analysisResult.estimatedEstateTax)
           : undefined,
-        commonIssues: JSON.stringify(analysisResult.commonIssues || []),
         missingDocuments: JSON.stringify(analysisResult.missingDocuments || []),
         outdatedDocuments: JSON.stringify(analysisResult.outdatedDocuments || []),
         inconsistencies: JSON.stringify(analysisResult.inconsistencies || []),
@@ -189,12 +143,6 @@ if __name__ == "__main__":
         recommendations: JSON.stringify(analysisResult.recommendations || []),
         stateSpecificNotes: JSON.stringify(analysisResult.stateSpecificNotes || []),
         rawAnalysis: analysisResult.rawAnalysis || output,
-      });
-
-      // Auto-generate action items from the analysis with smart due dates
-      await ctx.runMutation(internal.reminders.internalGenerateActionItems, {
-        estatePlanId,
-        includeSubTasks: true,
       });
 
       // Update run as completed
@@ -225,14 +173,6 @@ if __name__ == "__main__":
         runId,
         error: error.message,
       };
-    } finally {
-      if (sandbox) {
-        try {
-          await sandbox.kill();
-        } catch {
-          // Ignore cleanup errors
-        }
-      }
     }
   },
 });
@@ -754,14 +694,14 @@ function buildAnalysisPrompt(intakeData: {
   existingDocuments?: { data: string };
   goals?: { data: string };
   beneficiaryDesignations?: BeneficiaryDesignation[];
-}): { prompt: string; preDetectedIssues: CommonDocumentIssue[] } {
+}): string {
   const state = intakeData.estatePlan?.stateOfResidence || "Unknown";
 
   let personalData = {};
-  let familyData: FamilyData = {};
-  let assetsData: AssetsData = {};
-  let existingDocsData: ExistingDocsData = {};
-  let goalsData: GoalsData = {};
+  let familyData = {};
+  let assetsData = {};
+  let existingDocsData = {};
+  let goalsData = {};
 
   try {
     if (intakeData.personal?.data) personalData = JSON.parse(intakeData.personal.data);
@@ -774,35 +714,6 @@ function buildAnalysisPrompt(intakeData: {
   }
 
   const beneficiaryData = intakeData.beneficiaryDesignations || [];
-
-  // Run pre-detection of common issues
-  const preDetectedIssues = detectCommonIssues(
-    familyData,
-    assetsData,
-    existingDocsData,
-    goalsData,
-    beneficiaryData
-  );
-
-  // Build pre-detected issues section for the prompt
-  let preDetectedSection = "";
-  if (preDetectedIssues.length > 0) {
-    preDetectedSection = `
-=== PRE-DETECTED COMMON ISSUES ===
-The following issues have been automatically detected based on the intake data.
-Include these in your analysis and add any additional issues you identify:
-
-${preDetectedIssues.map((issue, index) => `
-${index + 1}. [${issue.severity.toUpperCase()}] ${issue.title}
-   Type: ${issue.type}
-   Description: ${issue.description}
-   ${issue.affectedAssets ? `Affected Assets: ${issue.affectedAssets.join(", ")}` : ""}
-   Recommendation: ${issue.recommendation}
-`).join("\n")}
-
-=== END PRE-DETECTED ISSUES ===
-`;
-  }
 
   // Get state-specific analysis content
   const stateContent = getStateSpecificContent(state);
@@ -826,10 +737,14 @@ ${stateContent.medicaidReference}
 `;
   }
 
-  const prompt = `You are an estate planning expert assistant. Analyze the following estate planning intake data and provide a comprehensive gap analysis.
+  return `You are an expert estate planning analyst using the us-estate-planning-analyzer skill.
+
+Perform a comprehensive gap analysis of the following estate planning data.
 
 STATE OF RESIDENCE: ${state}
 ${stateContent.isSupported ? `\n**ENHANCED ANALYSIS**: This state (${state}) has specialized analysis rules available. Apply them carefully.\n` : ''}
+
+=== INTAKE DATA ===
 
 PERSONAL INFORMATION:
 ${JSON.stringify(personalData, null, 2)}
@@ -853,17 +768,40 @@ ${financialProfilePrompt}
 
 ${stateSpecificSection}
 
-${preDetectedSection}
+=== ANALYSIS REQUIREMENTS ===
 
-Based on this information, provide a detailed gap analysis in the following JSON format:
+Analyze this estate plan comprehensively. Consider:
 
+1. **Missing Documents**: What essential documents are missing based on their situation?
+   - Will, Trust, POAs (financial & healthcare), Healthcare Directive, HIPAA
+   - Consider family situation (minor children need guardian nominations)
+   - Consider asset complexity (high value may need trust)
+
+2. **Outdated Documents**: Any documents created more than 5 years ago?
+
+3. **Inconsistencies**: Conflicts between stated goals and existing documents?
+   - Beneficiary designations vs. will provisions
+   - Ex-spouse still named on accounts?
+   - Children from previous marriage not included?
+
+4. **State-Specific Issues**: Requirements specific to ${state}
+
+5. **Tax Planning**: Based on estate value, any tax optimization strategies?
+
+6. **Beneficiary Conflicts**: Do retirement/insurance beneficiaries match will intentions?
+
+=== OUTPUT FORMAT ===
+
+Save your analysis as JSON to: /home/user/generated/analysis.json
+
+Use this exact format:
 {
   "score": <number 0-100 representing estate plan completeness>,
-  "estateComplexity": "<low, moderate, or high based on financial profile>",
+  "estateComplexity": "<low, moderate, or high>",
   "estimatedEstateTax": {
-    "state": <estimated state estate tax in dollars, or 0 if below threshold>,
-    "federal": <estimated federal estate tax in dollars, or 0 if below threshold>,
-    "notes": "<explanation of tax exposure>"
+    "state": <estimated state estate tax in dollars>,
+    "federal": <estimated federal estate tax in dollars>,
+    "notes": "<explanation>"
   },
   "commonIssues": [
     {
@@ -877,40 +815,40 @@ Based on this information, provide a detailed gap analysis in the following JSON
   ],
   "missingDocuments": [
     {
-      "type": "<document type: will, trust, poa_financial, poa_healthcare, healthcare_directive, hipaa, credit_shelter_trust, ilit, homestead_declaration>",
+      "type": "<document type>",
       "priority": "<high, medium, or low>",
-      "reason": "<why this document is needed based on their situation>",
-      "estimatedImpact": "<dollar impact if applicable, e.g., 'Could save $X in estate taxes'>"
+      "reason": "<why this document is needed>",
+      "estimatedImpact": "<dollar impact if applicable>"
     }
   ],
   "outdatedDocuments": [
     {
       "type": "<document type>",
-      "issue": "<what's outdated or needs updating>",
+      "issue": "<what's outdated>",
       "recommendation": "<what should be done>"
     }
   ],
   "inconsistencies": [
     {
       "issue": "<describe the inconsistency>",
-      "details": "<specifics about the problem>",
+      "details": "<specifics>",
       "recommendation": "<how to resolve>"
     }
   ],
   "taxOptimization": [
     {
-      "strategy": "<strategy name, e.g., Credit Shelter Trust, ILIT, Gifting Program>",
-      "applicability": "<why this applies to their situation>",
-      "estimatedSavings": "<dollar amount or range>",
+      "strategy": "<strategy name>",
+      "applicability": "<why this applies>",
+      "estimatedSavings": "<dollar amount>",
       "complexity": "<conservative, moderate, or advanced>",
       "priority": "<high, medium, or low>"
     }
   ],
   "medicaidPlanning": {
-    "atRisk": <boolean - true if should consider Medicaid planning>,
-    "concerns": ["<list of Medicaid-related concerns>"],
-    "recommendations": ["<Medicaid planning recommendations>"],
-    "lookbackIssues": ["<any 5-year look-back concerns>"]
+    "atRisk": <boolean>,
+    "concerns": ["<list of concerns>"],
+    "recommendations": ["<recommendations>"],
+    "lookbackIssues": ["<5-year look-back concerns>"]
   },
   "recommendations": [
     {
@@ -922,48 +860,12 @@ Based on this information, provide a detailed gap analysis in the following JSON
   ],
   "stateSpecificNotes": [
     {
-      "note": "<state-specific consideration for ${state}>",
-      "relevance": "<why this matters for their situation>",
-      "citation": "<legal citation if applicable, e.g., MGL c. 190B, § 2-502>"
+      "note": "<state-specific consideration>",
+      "relevance": "<why this matters>",
+      "citation": "<legal citation if applicable>"
     }
   ]
 }
 
-Consider the following in your analysis:
-1. Missing essential documents based on their family situation (e.g., minor children need guardian nominations)
-2. Documents that may be outdated (created more than 5 years ago)
-3. Inconsistencies between stated goals and existing documents
-4. State-specific requirements and considerations for ${state}
-5. Special situations like blended families, special needs beneficiaries, business ownership
-6. Tax planning considerations based on estate value
-7. Healthcare directives and end-of-life planning completeness
-
-CRITICAL - BENEFICIARY DESIGNATION ANALYSIS:
-8. Beneficiary designations on retirement accounts, life insurance, and TOD/POD accounts BYPASS the will entirely
-9. Check if beneficiary designations are consistent with stated family and estate planning goals
-10. Flag any potential conflicts, such as:
-    - Ex-spouse still named as beneficiary
-    - Children from previous marriage not included
-    - Beneficiaries different from will beneficiaries without clear reason
-    - Accounts without contingent beneficiaries
-    - Outdated beneficiary designations (not reviewed recently)
-11. For users with retirement accounts or life insurance but no beneficiary data tracked, recommend they verify and track their beneficiary designations
-
-${stateContent.isSupported ? `
-CRITICAL - ${state.toUpperCase()} SPECIFIC ANALYSIS:
-12. Apply ALL state-specific compliance requirements from the reference material above
-13. Calculate potential estate tax using state thresholds (e.g., MA $2M cliff effect)
-14. Include Medicaid/MassHealth planning considerations if relevant
-15. Reference specific statutes (e.g., MGL citations for Massachusetts)
-16. Identify state-specific documents (e.g., Homestead Declaration in MA)
-` : ''}
-
-IMPORTANT - COMMON ISSUES:
-17. Include all pre-detected common issues in your commonIssues array
-18. Add any additional issues you identify beyond the pre-detected ones
-19. Verify and expand on the pre-detected issues with additional context
-
-Respond ONLY with the JSON object, no additional text.`;
-
-  return { prompt, preDetectedIssues };
+Perform the analysis now and save the results.`;
 }

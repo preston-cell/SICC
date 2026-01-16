@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { motion } from "framer-motion";
 import { GlossaryButton } from "../components/Glossary";
 
 export default function IntakeLayout({
@@ -7,7 +10,12 @@ export default function IntakeLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.4, ease: "easeOut" }}
+      className="min-h-screen bg-gray-50 dark:bg-gray-900"
+    >
       {/* Header */}
       <header className="bg-white dark:bg-gray-800 shadow-sm">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
@@ -46,6 +54,6 @@ export default function IntakeLayout({
           </div>
         </div>
       </footer>
-    </div>
+    </motion.div>
   );
 }
