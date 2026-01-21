@@ -67,12 +67,66 @@ export async function POST(
     console.error('Failed to log life event:', error)
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Invalid request body', details: error.errors },
+        { error: 'Invalid request body', details: error.issues },
         { status: 400 }
       )
     }
     return NextResponse.json(
       { error: 'Failed to log life event' },
+      { status: 500 }
+    )
+  }
+}
+
+// Schema for marking a life event as addressed
+const MarkAddressedSchema = z.object({
+  eventId: z.string(),
+})
+
+// PATCH /api/estate-plans/[id]/life-events - Mark a life event as addressed
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id: estatePlanId } = await params
+    const body = await request.json()
+    const data = MarkAddressedSchema.parse(body)
+
+    // Verify the life event belongs to this estate plan
+    const lifeEvent = await prisma.lifeEvent.findFirst({
+      where: {
+        id: data.eventId,
+        estatePlanId,
+      },
+    })
+
+    if (!lifeEvent) {
+      return NextResponse.json(
+        { error: 'Life event not found' },
+        { status: 404 }
+      )
+    }
+
+    const updatedEvent = await prisma.lifeEvent.update({
+      where: { id: data.eventId },
+      data: {
+        planUpdated: true,
+        planUpdatedAt: new Date(),
+      },
+    })
+
+    return NextResponse.json(updatedEvent)
+  } catch (error) {
+    console.error('Failed to mark life event as addressed:', error)
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: 'Invalid request body', details: error.issues },
+        { status: 400 }
+      )
+    }
+    return NextResponse.json(
+      { error: 'Failed to mark life event as addressed' },
       { status: 500 }
     )
   }

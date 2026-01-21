@@ -19,7 +19,7 @@ export async function GET(
     const sectionStatus: Record<string, { exists: boolean; isComplete: boolean }> = {}
 
     for (const section of ALL_SECTIONS) {
-      const record = intakeRecords.find(r => r.section === section)
+      const record = intakeRecords.find((r: { section: string; isComplete: boolean }) => r.section === section)
       sectionStatus[section] = {
         exists: !!record,
         isComplete: record?.isComplete || false,

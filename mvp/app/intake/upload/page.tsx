@@ -2,9 +2,10 @@
 
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useMutation, useQuery, useAction } from "convex/react";
-import { api } from "../../../convex/_generated/api";
-import { Id } from "../../../convex/_generated/dataModel";
+import useSWR, { mutate } from "swr";
+import {
+  createEstatePlan,
+} from "../../hooks/usePrismaQueries";
 import Link from "next/link";
 
 type DocumentType =
@@ -31,10 +32,95 @@ const DOCUMENT_TYPE_OPTIONS: Array<{ value: DocumentType; label: string; descrip
 ];
 
 interface UploadedDoc {
-  _id: Id<"uploadedDocuments">;
+  id: string;
   fileName: string;
   documentType: DocumentType;
   analysisStatus: string;
+}
+
+interface ExtractedDataItem {
+  id: string;
+  section: string;
+  parsedData: Record<string, unknown>;
+  confidence: number;
+  status: string;
+}
+
+// Fetcher for SWR
+const fetcher = async (url: string) => {
+  const res = await fetch(url);
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({ error: "Request failed" }));
+    throw new Error(error.error || "Request failed");
+  }
+  return res.json();
+};
+
+// API functions for document upload operations
+async function uploadDocument(
+  estatePlanId: string,
+  file: File,
+  documentType: DocumentType
+): Promise<{ id: string }> {
+  // Create FormData for file upload
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("documentType", documentType);
+
+  const res = await fetch(`/api/estate-plans/${estatePlanId}/uploaded-documents`, {
+    method: "POST",
+    body: formData,
+  });
+
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({ error: "Upload failed" }));
+    throw new Error(error.error || "Upload failed");
+  }
+
+  const result = await res.json();
+
+  // Invalidate the uploaded documents cache
+  mutate(`/api/estate-plans/${estatePlanId}/uploaded-documents`);
+
+  return result;
+}
+
+async function deleteUploadedDocument(
+  estatePlanId: string,
+  documentId: string
+): Promise<void> {
+  const res = await fetch(`/api/estate-plans/${estatePlanId}/uploaded-documents/${documentId}`, {
+    method: "DELETE",
+  });
+
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({ error: "Delete failed" }));
+    throw new Error(error.error || "Delete failed");
+  }
+
+  // Invalidate the uploaded documents cache
+  mutate(`/api/estate-plans/${estatePlanId}/uploaded-documents`);
+}
+
+async function extractIntakeData(
+  estatePlanId: string
+): Promise<{ success: boolean; error?: string }> {
+  const res = await fetch(`/api/estate-plans/${estatePlanId}/extract-intake`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+  });
+
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({ error: "Extraction failed" }));
+    return { success: false, error: error.error || "Extraction failed" };
+  }
+
+  const result = await res.json();
+
+  // Invalidate the extracted data cache
+  mutate(`/api/estate-plans/${estatePlanId}/extracted-data`);
+
+  return result;
 }
 
 function UploadStepContent() {
@@ -44,8 +130,8 @@ function UploadStepContent() {
 
   // State
   const [isCreatingPlan, setIsCreatingPlan] = useState(false);
-  const [currentPlanId, setCurrentPlanId] = useState<Id<"estatePlans"> | null>(
-    planId ? (planId as Id<"estatePlans">) : null
+  const [currentPlanId, setCurrentPlanId] = useState<string | null>(
+    planId || null
   );
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -56,23 +142,15 @@ function UploadStepContent() {
   const [extractionComplete, setExtractionComplete] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Mutations & Actions
-  const createEstatePlan = useMutation(api.estatePlanning.createEstatePlan);
-  const generateUploadUrl = useMutation(api.uploadedDocuments.generateUploadUrl);
-  const saveUploadedDocument = useMutation(api.uploadedDocuments.saveUploadedDocument);
-  const deleteDocument = useMutation(api.uploadedDocuments.deleteUploadedDocument);
-  const analyzeDocument = useAction(api.documentAnalysis.analyzeDocument);
-  const extractIntakeData = useAction(api.documentExtraction.extractIntakeData);
+  // SWR Queries
+  const { data: uploadedDocs } = useSWR<UploadedDoc[]>(
+    currentPlanId ? `/api/estate-plans/${currentPlanId}/uploaded-documents` : null,
+    fetcher
+  );
 
-  // Queries
-  const uploadedDocs = useQuery(
-    api.uploadedDocuments.getUploadedDocuments,
-    currentPlanId ? { estatePlanId: currentPlanId } : "skip"
-  ) as UploadedDoc[] | undefined;
-
-  const extractedData = useQuery(
-    api.extractedData.getExtractedData,
-    currentPlanId ? { estatePlanId: currentPlanId } : "skip"
+  const { data: extractedData } = useSWR<ExtractedDataItem[]>(
+    currentPlanId ? `/api/estate-plans/${currentPlanId}/extracted-data` : null,
+    fetcher
   );
 
   // Create a new estate plan if needed
@@ -82,7 +160,7 @@ function UploadStepContent() {
         // Check localStorage for existing plan
         const savedPlanId = localStorage.getItem("estatePlanId");
         if (savedPlanId) {
-          setCurrentPlanId(savedPlanId as Id<"estatePlans">);
+          setCurrentPlanId(savedPlanId);
           router.replace(`/intake/upload?planId=${savedPlanId}`);
           return;
         }
@@ -91,14 +169,14 @@ function UploadStepContent() {
         setIsCreatingPlan(true);
         try {
           const sessionId = `session_${Date.now()}_${Math.random().toString(36).substring(7)}`;
-          const newPlanId = await createEstatePlan({
+          const newPlan = await createEstatePlan({
             sessionId,
             name: "My Estate Plan",
           });
           localStorage.setItem("estatePlanSessionId", sessionId);
-          localStorage.setItem("estatePlanId", newPlanId);
-          setCurrentPlanId(newPlanId);
-          router.replace(`/intake/upload?planId=${newPlanId}`);
+          localStorage.setItem("estatePlanId", newPlan.id);
+          setCurrentPlanId(newPlan.id);
+          router.replace(`/intake/upload?planId=${newPlan.id}`);
         } catch (error) {
           console.error("Failed to create estate plan:", error);
         } finally {
@@ -108,7 +186,7 @@ function UploadStepContent() {
     };
 
     initializePlan();
-  }, [planId, currentPlanId, isCreatingPlan, createEstatePlan, router]);
+  }, [planId, currentPlanId, isCreatingPlan, router]);
 
   // Handle file upload
   const handleFileUpload = useCallback(
@@ -130,37 +208,10 @@ function UploadStepContent() {
       setUploadError(null);
 
       try {
-        // Get upload URL
-        const uploadUrl = await generateUploadUrl();
         setUploadProgress(30);
 
-        // Upload file
-        const result = await fetch(uploadUrl, {
-          method: "POST",
-          headers: { "Content-Type": file.type },
-          body: file,
-        });
-
-        if (!result.ok) {
-          throw new Error("Upload failed");
-        }
-
-        const { storageId } = await result.json();
-        setUploadProgress(60);
-
-        // Save document metadata
-        const docId = await saveUploadedDocument({
-          estatePlanId: currentPlanId,
-          storageId,
-          fileName: file.name,
-          fileSize: file.size,
-          mimeType: file.type,
-          documentType: selectedType,
-        });
-        setUploadProgress(80);
-
-        // Start analysis (for document insights)
-        analyzeDocument({ documentId: docId });
+        // Upload file directly to API
+        await uploadDocument(currentPlanId, file, selectedType);
         setUploadProgress(100);
 
         // Reset
@@ -174,7 +225,7 @@ function UploadStepContent() {
         setUploadProgress(0);
       }
     },
-    [currentPlanId, selectedType, generateUploadUrl, saveUploadedDocument, analyzeDocument]
+    [currentPlanId, selectedType]
   );
 
   // Drag and drop handlers
@@ -202,12 +253,17 @@ function UploadStepContent() {
 
   // Handle document deletion
   const handleDelete = useCallback(
-    async (docId: Id<"uploadedDocuments">) => {
+    async (docId: string) => {
+      if (!currentPlanId) return;
       if (confirm("Delete this document?")) {
-        await deleteDocument({ documentId: docId });
+        try {
+          await deleteUploadedDocument(currentPlanId, docId);
+        } catch (error) {
+          setUploadError(error instanceof Error ? error.message : "Delete failed");
+        }
       }
     },
-    [deleteDocument]
+    [currentPlanId]
   );
 
   // Handle extraction
@@ -216,7 +272,7 @@ function UploadStepContent() {
 
     setIsExtracting(true);
     try {
-      const result = await extractIntakeData({ estatePlanId: currentPlanId });
+      const result = await extractIntakeData(currentPlanId);
       if (result.success) {
         setExtractionComplete(true);
       } else {
@@ -227,7 +283,7 @@ function UploadStepContent() {
     } finally {
       setIsExtracting(false);
     }
-  }, [currentPlanId, extractIntakeData]);
+  }, [currentPlanId]);
 
   // Continue to questionnaire
   const handleContinue = () => {
@@ -411,7 +467,7 @@ function UploadStepContent() {
             <div className="space-y-2">
               {uploadedDocs.map((doc) => (
                 <div
-                  key={doc._id}
+                  key={doc.id}
                   className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-900/30 rounded-lg"
                 >
                   <div className="flex items-center gap-3">
@@ -450,7 +506,7 @@ function UploadStepContent() {
                           : "Processing..."}
                     </span>
                     <button
-                      onClick={() => handleDelete(doc._id)}
+                      onClick={() => handleDelete(doc.id)}
                       className="p-1 text-gray-400 hover:text-red-500 transition-colors"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

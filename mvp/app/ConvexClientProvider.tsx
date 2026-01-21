@@ -1,16 +1,20 @@
 "use client";
 
-import { ConvexProvider, ConvexReactClient } from "convex/react";
-import { useAuthSync } from "./hooks/useAuthSync";
+import { useAuthSyncPrisma } from "./hooks/useAuthSyncPrisma";
 
-const convex = new ConvexReactClient(
-  process.env.NEXT_PUBLIC_CONVEX_URL!
-);
-
-// Component that syncs Clerk auth with Convex
+/**
+ * Auth Provider - Syncs Clerk authentication with PostgreSQL/Prisma
+ *
+ * This provider handles:
+ * - Syncing Clerk user data to the PostgreSQL database
+ * - Linking anonymous session data to authenticated users
+ *
+ * Note: This was previously ConvexClientProvider but has been migrated
+ * to use PostgreSQL/Prisma exclusively. The name is kept for backward
+ * compatibility with existing imports.
+ */
 function AuthSyncWrapper({ children }: { children: React.ReactNode }) {
-  // This hook handles syncing Clerk user with Convex database
-  useAuthSync();
+  useAuthSyncPrisma();
   return <>{children}</>;
 }
 
@@ -19,9 +23,5 @@ export default function ConvexClientProvider({
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <ConvexProvider client={convex}>
-      <AuthSyncWrapper>{children}</AuthSyncWrapper>
-    </ConvexProvider>
-  );
+  return <AuthSyncWrapper>{children}</AuthSyncWrapper>;
 }

@@ -82,7 +82,7 @@ export async function POST(
     console.error('Failed to create beneficiary designation:', error)
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Invalid request body', details: error.errors },
+        { error: 'Invalid request body', details: error.issues },
         { status: 400 }
       )
     }
@@ -107,8 +107,8 @@ export async function PUT(
     const existing = await prisma.beneficiaryDesignation.findMany({
       where: { estatePlanId },
     })
-    const existingIds = new Set(existing.map(d => d.id))
-    const submittedIds = new Set(designations.filter(d => d.id).map(d => d.id))
+    const existingIds = new Set(existing.map((d: { id: string }) => d.id))
+    const submittedIds = new Set(designations.filter((d: { id?: string }) => d.id).map(d => d.id))
 
     // Delete removed designations
     for (const existingDesignation of existing) {
@@ -152,7 +152,7 @@ export async function PUT(
     console.error('Failed to save beneficiary designations:', error)
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Invalid request body', details: error.errors },
+        { error: 'Invalid request body', details: error.issues },
         { status: 400 }
       )
     }

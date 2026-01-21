@@ -1,9 +1,12 @@
 "use client";
 
 import { useParams, useSearchParams } from "next/navigation";
-import { useQuery, useAction } from "convex/react";
-import { api } from "../../../../convex/_generated/api";
-import { Id } from "../../../../convex/_generated/dataModel";
+import {
+  useEstatePlan,
+  useDocuments,
+  useLatestGapAnalysis,
+  useIntakeProgress,
+} from "../../../hooks/usePrismaQueries";
 import Link from "next/link";
 import { useState, useCallback } from "react";
 import ReactMarkdown from "react-markdown";
@@ -101,7 +104,7 @@ interface PreviewState {
 export default function DocumentGeneratePage() {
   const params = useParams();
   const searchParams = useSearchParams();
-  const estatePlanId = params.estatePlanId as Id<"estatePlans">;
+  const estatePlanId = params.estatePlanId as string;
   const highlightType = searchParams.get("type");
 
   // State
@@ -119,19 +122,18 @@ export default function DocumentGeneratePage() {
   const [useAI, setUseAI] = useState(false);
 
   // Fetch estate plan
-  const estatePlan = useQuery(api.queries.getEstatePlan, { estatePlanId });
+  const { data: estatePlan, isLoading: estatePlanLoading } = useEstatePlan(estatePlanId);
 
   // Fetch existing documents
-  const existingDocs = useQuery(api.queries.getDocuments, { estatePlanId });
+  const { data: existingDocs } = useDocuments(estatePlanId);
 
   // Fetch gap analysis for recommendations
-  const gapAnalysis = useQuery(api.queries.getLatestGapAnalysis, { estatePlanId });
+  const { data: gapAnalysis } = useLatestGapAnalysis(estatePlanId);
 
   // Fetch intake progress
-  const intakeProgress = useQuery(api.queries.getIntakeProgress, { estatePlanId });
+  const { data: intakeProgress } = useIntakeProgress(estatePlanId);
 
   // Document generation action
-  const generateDocument = useAction(api.documentGeneration.generateDocument);
 
   // Parse missing documents from gap analysis
   const missingDocTypes = new Set<string>();
@@ -153,11 +155,21 @@ export default function DocumentGeneratePage() {
     });
 
     try {
-      const result = await generateDocument({
-        estatePlanId,
-        documentType: docType,
-        useAI,
+      const response = await fetch('/api/document-generation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          estatePlanId,
+          documentType: docType,
+          useAI,
+        }),
       });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to generate document');
+      }
 
       if (result.success && result.content) {
         const docInfo = DOCUMENT_TYPES.find(d => d.type === docType);
@@ -185,7 +197,7 @@ export default function DocumentGeneratePage() {
         generatingType: null,
       }));
     }
-  }, [estatePlanId, generateDocument, useAI]);
+  }, [estatePlanId, useAI]);
 
   // Handle download
   const handleDownload = useCallback(() => {
@@ -210,7 +222,7 @@ export default function DocumentGeneratePage() {
     }
   }, [previewState.content]);
 
-  if (!estatePlan) {
+  if (estatePlanLoading || !estatePlan) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -321,7 +333,7 @@ export default function DocumentGeneratePage() {
           {DOCUMENT_TYPES.map((doc) => {
             const isRecommended = missingDocTypes.has(doc.type);
             const isHighlighted = highlightType === doc.type;
-            const existingDoc = existingDocs?.find((d) => d.type === doc.type);
+            const existingDoc = existingDocs?.find((d: { type: string }) => d.type === doc.type);
             const isGenerating = generationState.isGenerating && generationState.generatingType === doc.type;
 
             return (
@@ -398,7 +410,7 @@ export default function DocumentGeneratePage() {
                               isOpen: true,
                               title: existingDoc.title,
                               content: existingDoc.content,
-                              documentId: existingDoc._id,
+                              documentId: existingDoc.id,
                             });
                           }}
                           className="px-4 py-2 bg-[var(--off-white)] text-[var(--text-body)] hover:bg-[var(--border)] rounded-lg text-sm font-medium transition-colors"

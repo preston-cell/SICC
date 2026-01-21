@@ -1,17 +1,20 @@
 "use client";
 
 import { useState, ReactNode } from "react";
-import { useMutation } from "convex/react";
-import { api } from "../../convex/_generated/api";
-import { Id } from "../../convex/_generated/dataModel";
+import {
+  completeReminder,
+  snoozeReminder,
+  dismissReminder,
+} from "../hooks/usePrismaQueries";
 
 interface Reminder {
-  _id: Id<"reminders">;
+  id?: string;
+  _id?: string; // Keep for backward compatibility
   type: "annual_review" | "life_event" | "document_update" | "beneficiary_review" | "custom";
   title: string;
   description?: string;
   lifeEvent?: string;
-  dueDate: number;
+  dueDate: number | string; // Can be number (timestamp) or string (ISO date from PostgreSQL)
   status: "pending" | "completed" | "snoozed" | "dismissed";
   priority: "low" | "medium" | "high" | "urgent";
   isRecurring: boolean;
@@ -20,6 +23,7 @@ interface Reminder {
 
 interface ReminderCardProps {
   reminder: Reminder;
+  estatePlanId: string;
   onComplete?: () => void;
 }
 
@@ -67,16 +71,20 @@ const TYPE_COLORS = {
   custom: "from-gray-500 to-slate-500",
 };
 
-export function ReminderCard({ reminder, onComplete }: ReminderCardProps) {
+export function ReminderCard({ reminder, estatePlanId, onComplete }: ReminderCardProps) {
   const [showSnoozeMenu, setShowSnoozeMenu] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
 
-  const completeReminder = useMutation(api.reminders.completeReminder);
-  const snoozeReminder = useMutation(api.reminders.snoozeReminder);
-  const dismissReminder = useMutation(api.reminders.dismissReminder);
+  // Get reminder ID (support both new id and legacy _id)
+  const reminderId = reminder.id || reminder._id;
 
-  const isOverdue = reminder.status === "pending" && reminder.dueDate < Date.now();
-  const daysUntilDue = Math.ceil((reminder.dueDate - Date.now()) / (1000 * 60 * 60 * 24));
+  // Normalize dueDate to timestamp (handle both number and ISO string)
+  const dueDateTimestamp = typeof reminder.dueDate === 'string'
+    ? new Date(reminder.dueDate).getTime()
+    : reminder.dueDate;
+
+  const isOverdue = reminder.status === "pending" && dueDateTimestamp < Date.now();
+  const daysUntilDue = Math.ceil((dueDateTimestamp - Date.now()) / (1000 * 60 * 60 * 24));
 
   const formatDueDate = (timestamp: number) => {
     const date = new Date(timestamp);
@@ -88,25 +96,21 @@ export function ReminderCard({ reminder, onComplete }: ReminderCardProps) {
   };
 
   const handleComplete = async () => {
-    await completeReminder({
-      reminderId: reminder._id,
-      createNextRecurrence: reminder.isRecurring,
-    });
+    if (!reminderId) return;
+    await completeReminder(reminderId, estatePlanId);
     onComplete?.();
   };
 
   const handleSnooze = async (days: number) => {
-    const snoozeUntil = Date.now() + (days * 24 * 60 * 60 * 1000);
-    await snoozeReminder({
-      reminderId: reminder._id,
-      snoozeUntil,
-    });
+    if (!reminderId) return;
+    await snoozeReminder(reminderId, estatePlanId, days);
     setShowSnoozeMenu(false);
     onComplete?.();
   };
 
   const handleDismiss = async () => {
-    await dismissReminder({ reminderId: reminder._id });
+    if (!reminderId) return;
+    await dismissReminder(reminderId, estatePlanId);
     onComplete?.();
   };
 
@@ -159,7 +163,7 @@ export function ReminderCard({ reminder, onComplete }: ReminderCardProps) {
                 ) : daysUntilDue === 1 ? (
                   "Due tomorrow"
                 ) : (
-                  <>Due {formatDueDate(reminder.dueDate)} ({daysUntilDue} days)</>
+                  <>Due {formatDueDate(dueDateTimestamp)} ({daysUntilDue} days)</>
                 )}
               </span>
 

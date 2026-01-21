@@ -1,8 +1,7 @@
 "use client";
 
-import { useMutation } from "convex/react";
-import { api } from "../../convex/_generated/api";
 import { useEffect, useRef } from "react";
+import { getOrCreateUser, linkSessionToUser } from "./usePrismaQueries";
 
 // Check if Clerk is configured
 const isClerkConfigured = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
@@ -15,7 +14,6 @@ let useClerkUser: () => { user: unknown; isSignedIn: boolean; isLoaded: boolean 
 });
 
 if (isClerkConfigured) {
-  // This will be tree-shaken if not used
   try {
     const clerk = require("@clerk/nextjs");
     useClerkUser = clerk.useUser;
@@ -25,16 +23,15 @@ if (isClerkConfigured) {
 }
 
 /**
- * Hook to sync Clerk authentication with Convex user database.
+ * Hook to sync Clerk authentication with PostgreSQL user database.
+ * This is the PostgreSQL/Prisma replacement for the Convex-based useAuthSync.
  *
  * When a user signs in:
- * 1. Creates or updates their user record in Convex
+ * 1. Creates or updates their user record via API
  * 2. Links any anonymous session data to their account
  */
-export function useAuthSync() {
+export function useAuthSyncPrisma() {
   const { user, isSignedIn, isLoaded } = useClerkUser();
-  const getOrCreateUser = useMutation(api.users.getOrCreateUser);
-  const linkSessionToUser = useMutation(api.users.linkSessionToUser);
 
   // Track if we've already synced this session
   const hasSynced = useRef(false);
@@ -47,13 +44,17 @@ export function useAuthSync() {
 
       try {
         // Get user's primary email
-        const typedUser = user as { id: string; primaryEmailAddress?: { emailAddress: string }; fullName?: string; firstName?: string };
+        const typedUser = user as { 
+          id: string; 
+          primaryEmailAddress?: { emailAddress: string }; 
+          fullName?: string; 
+          firstName?: string 
+        };
         const email = typedUser.primaryEmailAddress?.emailAddress;
         if (!email) return;
 
-        // Create or get user in Convex
-        const userId = await getOrCreateUser({
-          clerkId: typedUser.id,
+        // Create or get user via PostgreSQL API
+        const dbUser = await getOrCreateUser({
           email,
           name: typedUser.fullName || typedUser.firstName || email.split("@")[0],
         });
@@ -62,24 +63,21 @@ export function useAuthSync() {
         const sessionId = localStorage.getItem("estatePlanSessionId");
 
         // If there's a session, link it to the user
-        if (sessionId && userId) {
-          await linkSessionToUser({
-            sessionId,
-            userId,
-          });
+        if (sessionId && dbUser?.id) {
+          await linkSessionToUser(sessionId);
 
           // Store user ID for future reference
-          localStorage.setItem("estatePlanUserId", userId);
+          localStorage.setItem("estatePlanUserId", dbUser.id);
         }
 
         hasSynced.current = true;
       } catch (error) {
-        console.error("Error syncing user:", error);
+        console.error("Error syncing user with PostgreSQL:", error);
       }
     }
 
     syncUser();
-  }, [isLoaded, isSignedIn, user, getOrCreateUser, linkSessionToUser]);
+  }, [isLoaded, isSignedIn, user]);
 
   return {
     isLoaded,

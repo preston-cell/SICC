@@ -2,8 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { useQuery } from "convex/react";
-import { api } from "../convex/_generated/api";
+import { useRecentEstatePlans } from "./hooks/usePrismaQueries";
 import { SignInButton, SignUpButton, UserButton, useUser } from "./components/ClerkComponents";
 import { motion, useInView } from "framer-motion";
 import {
@@ -161,10 +160,10 @@ function EstatePlanCard({
   plan,
 }: {
   plan: {
-    _id: string;
+    id: string;
     name?: string;
     status: string;
-    updatedAt: number;
+    updatedAt: string | number;
     stateOfResidence?: string;
   };
 }) {
@@ -183,8 +182,8 @@ function EstatePlanCard({
     <Link
       href={
         plan.status === "draft" || plan.status === "intake_in_progress"
-          ? `/intake?planId=${plan._id}`
-          : `/analysis/${plan._id}`
+          ? `/intake?planId=${plan.id}`
+          : `/analysis/${plan.id}`
       }
     >
       <div className="group p-5 rounded-xl bg-white border border-[var(--border)] hover:border-[var(--accent-purple)] hover:shadow-md transition-all duration-200">
@@ -232,21 +231,8 @@ export default function Home() {
     if (storedSessionId) setSessionId(storedSessionId);
   }, []);
 
-  const convexUser = useQuery(
-    api.queries.getUserByEmail,
-    isSignedIn && user?.primaryEmailAddress?.emailAddress
-      ? { email: user.primaryEmailAddress.emailAddress }
-      : "skip"
-  );
-
-  const recentPlans = useQuery(
-    api.queries.listRecentEstatePlans,
-    convexUser?._id
-      ? { limit: 5, userId: convexUser._id }
-      : sessionId
-        ? { limit: 5, sessionId }
-        : "skip"
-  );
+  // Use SWR hook for recent plans - handles both authenticated and session-based users
+  const { data: recentPlans } = useRecentEstatePlans(sessionId || undefined, 5);
 
   return (
     <div className="min-h-screen bg-white text-[var(--foreground)] overflow-x-hidden">
@@ -366,8 +352,8 @@ export default function Home() {
               </Link>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {recentPlans.map((plan) => (
-                <EstatePlanCard key={plan._id} plan={plan} />
+              {recentPlans.map((plan: { id: string; name?: string; status: string; updatedAt: string | number; stateOfResidence?: string }) => (
+                <EstatePlanCard key={plan.id} plan={plan} />
               ))}
             </div>
           </div>

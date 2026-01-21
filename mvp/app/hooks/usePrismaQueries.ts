@@ -517,19 +517,59 @@ export async function logLifeEvent(
     eventType: string
     title: string
     description?: string
-    eventDate: string
+    eventDate: string | number
     requiresDocumentUpdate?: boolean
-    documentsAffected?: string
+    documentsAffected?: string[]
   }
 ) {
+  // Convert eventDate to ISO string if it's a timestamp
+  const eventDate = typeof data.eventDate === 'number'
+    ? new Date(data.eventDate).toISOString()
+    : data.eventDate
+
+  // Convert documentsAffected array to JSON string for storage
+  const documentsAffected = data.documentsAffected
+    ? JSON.stringify(data.documentsAffected)
+    : undefined
+
   const res = await fetch(`/api/estate-plans/${estatePlanId}/life-events`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
+    body: JSON.stringify({
+      ...data,
+      eventDate,
+      documentsAffected,
+    }),
   })
 
   if (!res.ok) {
     const error = await res.json().catch(() => ({ error: 'Failed to log life event' }))
+    throw new Error(error.error)
+  }
+
+  const result = await res.json()
+
+  // Invalidate cache
+  mutate(`/api/estate-plans/${estatePlanId}/life-events`)
+
+  return result
+}
+
+/**
+ * Mark a life event as addressed (plan updated)
+ */
+export async function markLifeEventAddressed(
+  estatePlanId: string,
+  eventId: string
+) {
+  const res = await fetch(`/api/estate-plans/${estatePlanId}/life-events`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ eventId }),
+  })
+
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({ error: 'Failed to mark life event as addressed' }))
     throw new Error(error.error)
   }
 
@@ -582,4 +622,72 @@ export async function linkSessionToUser(sessionId: string) {
   mutate((key: string) => typeof key === 'string' && key.startsWith('/api/estate-plans'))
 
   return res.json()
+}
+
+// ============================================
+// UPLOADED DOCUMENTS HOOKS (PLACEHOLDER)
+// ============================================
+
+/**
+ * Get uploaded documents for an estate plan
+ * TODO: Implement API route when document upload feature is needed
+ */
+export function useUploadedDocuments(estatePlanId: string | null) {
+  // Placeholder - returns empty array until document upload API is implemented
+  return {
+    data: [] as Array<{
+      id: string
+      fileName: string
+      documentType: string
+      analysisStatus: string
+      analysisResult?: string
+      description?: string
+      fileUrl?: string
+      fileSize?: number
+      uploadedAt?: string
+      analysisError?: string
+    }>,
+    isLoading: false,
+    error: null,
+    mutate: () => {},
+  }
+}
+
+// ============================================
+// EXTRACTED DATA HOOKS (PLACEHOLDER)
+// ============================================
+
+/**
+ * Get extracted data from uploaded documents
+ * TODO: Implement API route when document analysis feature is needed
+ */
+export function useExtractedData(estatePlanId: string | null) {
+  // Placeholder - returns empty array until document analysis API is implemented
+  return {
+    data: [] as Array<{
+      id: string
+      section: string
+      extractedData: string
+      confidence: number
+    }>,
+    isLoading: false,
+    error: null,
+    mutate: () => {},
+  }
+}
+
+
+/**
+ * Get extracted data for a specific section
+ */
+export function useExtractedDataBySection(
+  estatePlanId: string | null,
+  section: "personal" | "family" | "assets" | "existing_documents" | "goals" | null
+) {
+  return useSWR(
+    estatePlanId && section
+      ? `/api/estate-plans/${estatePlanId}/extracted-data/${section}`
+      : null,
+    fetcher
+  )
 }

@@ -2,9 +2,7 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useMutation, useQuery } from "convex/react";
-import { api } from "../../convex/_generated/api";
-import { Id } from "../../convex/_generated/dataModel";
+import { useEstatePlan, useIntakeProgress, createEstatePlan, useUploadedDocuments, useExtractedData } from "../hooks/usePrismaQueries";
 import Link from "next/link";
 import SaveProgressPrompt from "../components/SaveProgressPrompt";
 import {
@@ -31,27 +29,11 @@ function IntakeLandingContent() {
 
   const [isCreating, setIsCreating] = useState(false);
 
-  const createEstatePlan = useMutation(api.estatePlanning.createEstatePlan);
-
-  const existingPlan = useQuery(
-    api.queries.getEstatePlan,
-    planId ? { estatePlanId: planId as Id<"estatePlans"> } : "skip"
-  );
-
-  const intakeProgress = useQuery(
-    api.queries.getIntakeProgress,
-    planId ? { estatePlanId: planId as Id<"estatePlans"> } : "skip"
-  );
-
-  const extractedData = useQuery(
-    api.extractedData.getExtractedData,
-    planId ? { estatePlanId: planId as Id<"estatePlans"> } : "skip"
-  );
-
-  const uploadedDocs = useQuery(
-    api.uploadedDocuments.getUploadedDocuments,
-    planId ? { estatePlanId: planId as Id<"estatePlans"> } : "skip"
-  );
+// createEstatePlan is imported from usePrismaQueries
+  const { data: existingPlan } = useEstatePlan(planId);
+  const { data: intakeProgress } = useIntakeProgress(planId);
+  const { data: extractedData } = useExtractedData(planId);
+  const { data: uploadedDocs } = useUploadedDocuments(planId);
 
   const hasExtractedData = extractedData && extractedData.length > 0;
   const hasUploadedDocs = uploadedDocs && uploadedDocs.length > 0;
@@ -60,13 +42,13 @@ function IntakeLandingContent() {
     setIsCreating(true);
     try {
       const sessionId = `session_${Date.now()}_${Math.random().toString(36).substring(7)}`;
-      const newPlanId = await createEstatePlan({
+      const newPlan = await createEstatePlan({
         sessionId,
         name: "My Estate Plan",
       });
       localStorage.setItem("estatePlanSessionId", sessionId);
-      localStorage.setItem("estatePlanId", newPlanId);
-      router.push(`/intake/upload?planId=${newPlanId}`);
+      localStorage.setItem("estatePlanId", newPlan.id);
+      router.push(`/intake/upload?planId=${newPlan.id}`);
     } catch (error) {
       console.error("Failed to create estate plan:", error);
       setIsCreating(false);
@@ -77,13 +59,13 @@ function IntakeLandingContent() {
     setIsCreating(true);
     try {
       const sessionId = `session_${Date.now()}_${Math.random().toString(36).substring(7)}`;
-      const newPlanId = await createEstatePlan({
+      const newPlan = await createEstatePlan({
         sessionId,
         name: "My Estate Plan",
       });
       localStorage.setItem("estatePlanSessionId", sessionId);
-      localStorage.setItem("estatePlanId", newPlanId);
-      router.push(`/intake/personal?planId=${newPlanId}`);
+      localStorage.setItem("estatePlanId", newPlan.id);
+      router.push(`/intake/personal?planId=${newPlan.id}`);
     } catch (error) {
       console.error("Failed to create estate plan:", error);
       setIsCreating(false);
@@ -133,7 +115,7 @@ function IntakeLandingContent() {
 
   // Existing plan progress
   if (existingPlan && intakeProgress) {
-    const completedSections = Object.values(intakeProgress.sections).filter(s => s.isComplete).length;
+    const completedSections = (Object.values(intakeProgress.sections) as Array<{ isComplete: boolean }>).filter((s: { isComplete: boolean }) => s.isComplete).length;
 
     return (
       <div className="max-w-xl mx-auto space-y-6">
@@ -210,6 +192,7 @@ function IntakeLandingContent() {
 
           <div className="space-y-2">
             {Object.entries(intakeProgress.sections).map(([section, status]) => {
+              const s = status as { isComplete: boolean; exists: boolean };
               const sectionNames: Record<string, string> = {
                 personal: "Personal Information",
                 family: "Family Information",
@@ -232,9 +215,9 @@ function IntakeLandingContent() {
                   href={`/intake/${sectionPaths[section]}?planId=${planId}`}
                   className={`
                     flex items-center justify-between p-3 rounded-lg transition-all
-                    ${status.isComplete
+                    ${s.isComplete
                       ? "bg-[var(--success-muted)] hover:bg-[var(--success)]/15"
-                      : status.exists
+                      : s.exists
                         ? "bg-[var(--warning-muted)] hover:bg-[var(--warning)]/15"
                         : "bg-[var(--off-white)] hover:bg-[var(--light-gray)]"
                     }
@@ -244,17 +227,17 @@ function IntakeLandingContent() {
                     <div
                       className={`
                         w-5 h-5 rounded-full flex items-center justify-center
-                        ${status.isComplete
+                        ${s.isComplete
                           ? "bg-[var(--success)]"
-                          : status.exists
+                          : s.exists
                             ? "bg-[var(--warning)]"
                             : "border-2 border-[var(--border)]"
                         }
                       `}
                     >
-                      {status.isComplete ? (
+                      {s.isComplete ? (
                         <Check className="w-3 h-3 text-white" />
-                      ) : status.exists ? (
+                      ) : s.exists ? (
                         <span className="text-[10px] text-white font-bold">...</span>
                       ) : null}
                     </div>
@@ -265,15 +248,15 @@ function IntakeLandingContent() {
                   <span
                     className={`
                       text-xs font-medium
-                      ${status.isComplete
+                      ${s.isComplete
                         ? "text-[var(--success)]"
-                        : status.exists
+                        : s.exists
                           ? "text-[var(--warning)]"
                           : "text-[var(--text-muted)]"
                       }
                     `}
                   >
-                    {status.isComplete ? "Complete" : status.exists ? "In Progress" : "Not Started"}
+                    {s.isComplete ? "Complete" : s.exists ? "In Progress" : "Not Started"}
                   </span>
                 </Link>
               );

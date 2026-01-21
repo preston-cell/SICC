@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
     console.error('Failed to create estate plan:', error)
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Invalid request body', details: error.errors },
+        { error: 'Invalid request body', details: error.issues },
         { status: 400 }
       )
     }

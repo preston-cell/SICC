@@ -2,10 +2,14 @@
 
 import { useState, useMemo, useCallback } from "react";
 import { useParams } from "next/navigation";
-import { useQuery, useMutation } from "convex/react";
-import { api } from "../../../convex/_generated/api";
-import { Id } from "../../../convex/_generated/dataModel";
 import Link from "next/link";
+import {
+  useEstatePlan,
+  useEstatePlanFull,
+  useIntakeProgress,
+  useLatestGapAnalysis,
+  saveGapAnalysis,
+} from "../../hooks/usePrismaQueries";
 import { Tabs, TabPanel } from "../../components/ui/Tabs";
 import Badge from "../../components/ui/Badge";
 import Button from "../../components/ui/Button";
@@ -108,22 +112,20 @@ function getScoreInterpretation(score: number): {
 
 export default function AnalysisPage() {
   const params = useParams();
-  const estatePlanId = params.estatePlanId as Id<"estatePlans">;
+  const estatePlanId = params.estatePlanId as string;
 
   const [isRunning, setIsRunning] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("overview");
 
   // Fetch estate plan and analysis
-  const estatePlan = useQuery(api.queries.getEstatePlan, { estatePlanId });
-  const latestAnalysis = useQuery(api.queries.getLatestGapAnalysis, { estatePlanId });
-  const intakeProgress = useQuery(api.queries.getIntakeProgress, { estatePlanId });
+  const { data: estatePlan, isLoading: estatePlanLoading } = useEstatePlan(estatePlanId);
+  const { data: latestAnalysis } = useLatestGapAnalysis(estatePlanId);
+  const { data: intakeProgress } = useIntakeProgress(estatePlanId);
 
   // Get full intake data for analysis
-  const intakeData = useQuery(api.queries.getEstatePlanFull, { estatePlanId });
+  const { data: intakeData } = useEstatePlanFull(estatePlanId);
 
-  // Mutation to save gap analysis results
-  const saveGapAnalysis = useMutation(api.estatePlanning.saveGapAnalysisPublic);
 
   const handleRunAnalysis = useCallback(async () => {
     setIsRunning(true);
@@ -133,7 +135,7 @@ export default function AnalysisPage() {
       // Build intake data object for the API
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const rawIntakeData = intakeData as any;
-      console.log("Raw intakeData from Convex:", rawIntakeData);
+      console.log("Raw intakeData from Prisma:", rawIntakeData);
 
       const intakeArray = rawIntakeData?.intakeData || rawIntakeData?.intake || [];
       console.log("Intake array:", intakeArray);
@@ -154,7 +156,7 @@ export default function AnalysisPage() {
 
       console.log("Built apiIntakeData:", JSON.stringify(apiIntakeData, null, 2));
 
-      // Call the API route directly (bypasses Convex timeout issues)
+      // Call the API route directly (direct API call)
       const response = await fetch("/api/gap-analysis", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -190,16 +192,15 @@ export default function AnalysisPage() {
       }
 
       // Log what we're about to save
-      console.log("Saving to Convex:", {
+      console.log("Saving to Prisma:", {
         score: result.analysisResult?.score || 50,
         missingDocsCount: missingDocs.length,
         recommendationsCount: recommendations.length,
         stateNotesCount: stateNotes.length,
       });
 
-      // Save results to Convex
-      await saveGapAnalysis({
-        estatePlanId,
+      // Save results to Prisma via API
+      await saveGapAnalysis(estatePlanId, {
         score: result.analysisResult.score || 50,
         estateComplexity: result.analysisResult.estateComplexity
           ? JSON.stringify(result.analysisResult.estateComplexity)
@@ -226,7 +227,7 @@ export default function AnalysisPage() {
     } finally {
       setIsRunning(false);
     }
-  }, [estatePlanId, estatePlan, intakeData, saveGapAnalysis]);
+  }, [estatePlanId, estatePlan, intakeData]);
 
   // Parse analysis data
   const parseJsonArray = <T,>(jsonString: string | undefined): T[] => {
@@ -316,7 +317,7 @@ export default function AnalysisPage() {
     window.print();
   };
 
-  if (!estatePlan) {
+  if (estatePlanLoading || !estatePlan) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
