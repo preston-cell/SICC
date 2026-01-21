@@ -190,7 +190,7 @@ Output format: JSON with compliance_status, state_specific_issues, gaps, and rec
 const OUTPUT_DIR = "/home/user/generated";
 const SKILLS_DIR = "/home/user/.claude/skills";
 async function executeInE2B(options) {
-    const { prompt, outputFile, timeoutMs = 240000 } = options;
+    const { prompt, outputFile, timeoutMs = 240000, maxTurns = 5, enableWebSearch = false, runType } = options;
     const E2B_API_KEY = process.env.E2B_API_KEY;
     const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
     if (!E2B_API_KEY || !ANTHROPIC_API_KEY) {
@@ -200,8 +200,9 @@ async function executeInE2B(options) {
         };
     }
     // Create sandbox with very long timeout for comprehensive analysis
+    // Quality is the priority - allow up to 60 minutes for thorough analysis
     const sandbox = await __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$e2b$2f$dist$2f$index$2e$mjs__$5b$app$2d$route$5d$__$28$ecmascript$29$__["Sandbox"].create("base", {
-        timeoutMs: 1800000,
+        timeoutMs: 3600000,
         apiKey: E2B_API_KEY
     });
     try {
@@ -216,67 +217,137 @@ async function executeInE2B(options) {
                 await sandbox.files.write(`${skillDir}/${fileName}`, content);
             }
         }
-        // Create wrapper script
+        // Write the prompt to a file first - safer than embedding in shell script
+        await sandbox.files.write("/tmp/analysis_prompt.txt", prompt);
+        // Create wrapper script that reads from the prompt file
         const wrapperScript = `
 #!/bin/bash
-set -e
 
 cd ${OUTPUT_DIR}
 
+echo "=== E2B Sandbox Debug Info ==="
+echo "HOME: $HOME"
+echo "PWD: $(pwd)"
+echo "ANTHROPIC_API_KEY set: \${ANTHROPIC_API_KEY:+yes}"
+echo "ANTHROPIC_API_KEY length: \${#ANTHROPIC_API_KEY}"
+
+# Check prompt file
+echo "=== Prompt File ==="
+echo "Prompt file exists: $(test -f /tmp/analysis_prompt.txt && echo yes || echo no)"
+echo "Prompt file size: $(wc -c < /tmp/analysis_prompt.txt 2>/dev/null || echo 0) bytes"
+echo "Prompt preview (first 200 chars):"
+head -c 200 /tmp/analysis_prompt.txt 2>/dev/null || echo "(could not read)"
+echo ""
+
 # Install Claude Code CLI
+echo "=== Installing Claude Code CLI ==="
 npm install -g @anthropic-ai/claude-code 2>&1 || {
-    echo "Failed to install claude-code, trying npx..."
+    echo "Failed to install claude-code globally, trying npx..."
     export USE_NPX=1
 }
 
-# Create prompt file
-cat > /tmp/prompt.txt << 'PROMPT_EOF'
-${prompt.replace(/'/g, "'\\''")}
-PROMPT_EOF
+# Verify installation
+if [ "\${USE_NPX:-}" != "1" ]; then
+    which claude || echo "claude not found in PATH"
+    claude --version 2>&1 || echo "claude --version failed"
+fi
 
 echo "=== Starting Claude Code ==="
 echo "Working directory: $(pwd)"
+echo "Max turns: ${maxTurns}"
+echo "Run type: ${runType || 'general'}"
 echo "Available skills:"
 ls -la $HOME/.claude/skills/ 2>/dev/null || echo "(no skills)"
 
-# Run Claude Code with safety limits and structured output
+# Run Claude Code with stdin piping from prompt file
+# This is safer than embedding the prompt in the script
+CLAUDE_EXIT_CODE=0
 if [ "\${USE_NPX:-}" = "1" ]; then
-    npx -y @anthropic-ai/claude-code --print --dangerously-skip-permissions --output-format json --max-turns 5 -p "$(cat /tmp/prompt.txt)" 2>&1
+    echo "Running with npx..."
+    cat /tmp/analysis_prompt.txt | npx -y @anthropic-ai/claude-code --print --dangerously-skip-permissions --output-format json --max-turns ${maxTurns} 2>&1
+    CLAUDE_EXIT_CODE=\$?
 else
-    claude --print --dangerously-skip-permissions --output-format json --max-turns 5 -p "$(cat /tmp/prompt.txt)" 2>&1
+    echo "Running with claude CLI..."
+    cat /tmp/analysis_prompt.txt | claude --print --dangerously-skip-permissions --output-format json --max-turns ${maxTurns} 2>&1
+    CLAUDE_EXIT_CODE=\$?
 fi
 
 echo ""
-echo "=== Claude Code Finished ==="
+echo "=== Claude Code Finished (exit code: \$CLAUDE_EXIT_CODE) ==="
 echo "Generated files:"
 ls -la ${OUTPUT_DIR}/ 2>/dev/null || echo "(none)"
+
+# Also check if any json files were created anywhere
+echo "=== JSON files in sandbox ==="
+find /home/user -name "*.json" -type f 2>/dev/null || echo "(none found)"
+
+# Always exit 0 - we check for output file to determine success
+exit 0
 `;
         await sandbox.files.write("/tmp/run_claude.sh", wrapperScript);
         await sandbox.commands.run("chmod +x /tmp/run_claude.sh");
-        // Run Claude Code - use passed timeout (0 = no timeout for comprehensive analysis)
+        // Run Claude Code - use passed timeout (0 means use max timeout for comprehensive analysis)
         const commandOptions = {
             envs: {
                 ANTHROPIC_API_KEY,
                 HOME: "/home/user",
                 CI: "true"
-            }
+            },
+            // Quality is priority - allow up to 55 minutes per command (leaving 5 min buffer for sandbox lifetime)
+            // When timeoutMs is 0, use max. Otherwise use passed value or default 15 minutes.
+            timeoutMs: timeoutMs === 0 ? 3300000 : timeoutMs || 900000
         };
-        // Only set timeoutMs if it's not 0 (0 means no timeout)
-        if (timeoutMs !== 0) {
-            commandOptions.timeoutMs = timeoutMs || 900000; // Default 15 minutes if not specified
-        }
         const result = await sandbox.commands.run("bash /tmp/run_claude.sh", commandOptions);
+        // Log full output for debugging
+        console.log("E2B execution completed:", {
+            exitCode: result.exitCode,
+            stdoutLength: result.stdout?.length || 0,
+            stderrLength: result.stderr?.length || 0
+        });
+        // Log full stdout to see what Claude Code returned
+        console.log("E2B FULL STDOUT:", result.stdout);
+        if (result.stderr) {
+            console.log("E2B STDERR:", result.stderr);
+        }
+        // Try to parse Claude Code's JSON output to see if there's an error
+        try {
+            const claudeOutputMatch = result.stdout.match(/\{[\s\S]*"is_error"[\s\S]*\}/);
+            if (claudeOutputMatch) {
+                const claudeOutput = JSON.parse(claudeOutputMatch[0]);
+                console.log("Claude Code output parsed:", {
+                    is_error: claudeOutput.is_error,
+                    num_turns: claudeOutput.num_turns,
+                    result: typeof claudeOutput.result === 'string' ? claudeOutput.result.substring(0, 500) : claudeOutput.result
+                });
+                // If there's an error in Claude's output, report it
+                if (claudeOutput.is_error) {
+                    console.error("Claude Code returned an error:", claudeOutput.result);
+                }
+            }
+        } catch (parseErr) {
+            console.log("Could not parse Claude output as JSON");
+        }
         // Try to read output file if specified
         let fileContent = "";
         if (outputFile) {
+            const targetPath = `${OUTPUT_DIR}/${outputFile}`;
+            console.log("Attempting to read output file:", targetPath);
             try {
-                fileContent = await sandbox.files.read(`${OUTPUT_DIR}/${outputFile}`);
-            } catch  {
+                fileContent = await sandbox.files.read(targetPath);
+                console.log("Successfully read output file, length:", fileContent.length);
+            } catch (readError) {
+                console.log("Failed to read output file directly:", readError);
                 // Try to find any file with similar name
                 const listResult = await sandbox.commands.run(`find ${OUTPUT_DIR} -type f 2>/dev/null || true`);
                 const files = listResult.stdout.split("\n").filter((f)=>f.trim());
+                console.log("Files found in output directory:", files);
                 if (files.length > 0) {
-                    fileContent = await sandbox.files.read(files[0]);
+                    try {
+                        fileContent = await sandbox.files.read(files[0]);
+                        console.log("Read first available file:", files[0], "length:", fileContent.length);
+                    } catch (fallbackError) {
+                        console.log("Failed to read fallback file:", fallbackError);
+                    }
                 }
             }
         }
@@ -475,7 +546,92 @@ ${!ctx.hasPOAHealthcare ? '- 🔴 No healthcare POA - medical decision crisis ri
 ${ctx.isMarried && ctx.spouseAge && Math.abs(ctx.age - ctx.spouseAge) > 10 ? '- 🟠 Significant age gap between spouses - survivorship planning important' : ''}
 `;
 }
-// Build the comprehensive deep analysis prompt
+// Build a QUICK analysis prompt - faster, essential findings only
+function buildQuickAnalysisPrompt(parsed) {
+    const ctx = getClientContext(parsed);
+    return `You are an estate planning attorney reviewing a client's situation in ${parsed.state}.
+
+## CLIENT SUMMARY
+- State: ${parsed.state}
+- Marital Status: ${ctx.isMarried ? 'Married' : 'Single'}
+- Children: ${ctx.numberOfChildren} ${ctx.hasMinorChildren ? '(has minors)' : ''}
+- Estimated Estate Value: $${ctx.estimatedValue.toLocaleString()}
+- Has Will: ${ctx.hasWill ? 'Yes' : 'NO'}
+- Has Trust: ${ctx.hasTrust ? 'Yes' : 'NO'}
+- Has Financial POA: ${ctx.hasPOAFinancial ? 'Yes' : 'NO'}
+- Has Healthcare POA: ${ctx.hasPOAHealthcare ? 'Yes' : 'NO'}
+- Has Healthcare Directive: ${ctx.hasHealthcareDirective ? 'Yes' : 'NO'}
+- Has Business: ${ctx.hasBusinessInterests ? 'Yes' : 'No'}
+- Has Real Estate: ${ctx.hasRealEstate ? 'Yes' : 'No'}
+- Has Retirement Accounts: ${ctx.hasRetirementAccounts ? 'Yes' : 'No'}
+
+## ADDITIONAL DATA
+${JSON.stringify({
+        goals: parsed.goals,
+        beneficiaries: parsed.beneficiaries
+    }, null, 2)}
+
+---
+
+## TASK
+Analyze this estate planning situation and write a JSON file to /home/user/generated/analysis.json with this structure:
+
+{
+  "score": <0-100, deduct: no will -15, no trust with $500K+ -10, no POAs -10 each, no directive -5>,
+  "overallScore": {
+    "score": <same as above>,
+    "grade": "<A/B/C/D/F>",
+    "summary": "<2 sentence assessment>"
+  },
+  "executiveSummary": {
+    "oneLineSummary": "<key insight>",
+    "criticalIssues": ["<issue 1>", "<issue 2>"],
+    "immediateActions": ["<action 1>", "<action 2>"]
+  },
+  "missingDocuments": [
+    {
+      "document": "<name>",
+      "priority": "<critical/high/medium>",
+      "reason": "<why needed for THIS client>",
+      "consequences": "<what happens without it>"
+    }
+  ],
+  "outdatedDocuments": [
+    {"document": "<name>", "issue": "<problem>", "risk": "<risk>", "recommendation": "<action>"}
+  ],
+  "inconsistencies": [
+    {"type": "<type>", "severity": "<level>", "issue": "<description>", "resolution": "<fix>"}
+  ],
+  "financialExposure": {
+    "estimatedProbateCost": {"low": <number>, "high": <number>},
+    "estimatedEstateTax": {"federal": <number>, "state": <number>}
+  },
+  "stateSpecificNotes": [
+    {"topic": "<topic>", "rule": "<${parsed.state} rule>", "impact": "<effect>", "action": "<recommendation>"}
+  ],
+  "recommendations": [
+    {
+      "rank": <1-5>,
+      "action": "<specific recommendation>",
+      "category": "<documents/tax/beneficiaries>",
+      "priority": "<critical/high/medium>",
+      "timeline": "<immediate/30-days/90-days>",
+      "estimatedCost": {"low": <number>, "high": <number>}
+    }
+  ],
+  "scoreBreakdown": {
+    "startingScore": 100,
+    "deductions": [
+      {"reason": "<what's missing/wrong>", "points": <number deducted>, "category": "<documents/planning/beneficiaries>"}
+    ],
+    "finalScore": <calculated score>,
+    "summary": "<1 sentence explaining the score>"
+  }
+}
+
+Focus on the MOST IMPORTANT findings. Be concise. Write the JSON now.`;
+}
+// Build the comprehensive deep analysis prompt (for multi-phase mode)
 function buildDeepAnalysisPrompt(parsed) {
     const ctx = getClientContext(parsed);
     const contextAccumulator = buildContextAccumulator(parsed, ctx);
@@ -763,12 +919,107 @@ Write the complete JSON file now. Be thorough and specific.`;
 // Attempt to repair truncated JSON by closing open brackets
 function repairJSON(json) {
     let repaired = json.trim();
-    // Remove trailing incomplete key-value pairs
+    // First, try to find where the JSON becomes invalid by parsing progressively
+    // Find a valid truncation point
+    let validEnd = repaired.length;
+    // Try to parse, and if it fails, try truncating at different points
+    for(let attempts = 0; attempts < 50; attempts++){
+        try {
+            // Try to find a good truncation point - look for complete objects/arrays
+            let testJson = repaired.substring(0, validEnd);
+            // Remove trailing incomplete content
+            testJson = testJson.replace(/,\s*"[^"]*":\s*"[^"]*$/, ''); // incomplete string value
+            testJson = testJson.replace(/,\s*"[^"]*":\s*\[[^\]]*$/, ''); // incomplete array
+            testJson = testJson.replace(/,\s*"[^"]*":\s*\{[^}]*$/, ''); // incomplete object
+            testJson = testJson.replace(/,\s*"[^"]*":\s*"?[^",}\]]*$/, '');
+            testJson = testJson.replace(/,\s*"[^"]*":\s*$/, '');
+            testJson = testJson.replace(/,\s*"[^"]*$/, '');
+            testJson = testJson.replace(/,\s*$/, '');
+            // Count and close brackets
+            let openBraces = 0;
+            let openBrackets = 0;
+            let inString = false;
+            let escapeNext = false;
+            for (const char of testJson){
+                if (escapeNext) {
+                    escapeNext = false;
+                    continue;
+                }
+                if (char === '\\') {
+                    escapeNext = true;
+                    continue;
+                }
+                if (char === '"') {
+                    inString = !inString;
+                    continue;
+                }
+                if (!inString) {
+                    if (char === '{') openBraces++;
+                    if (char === '}') openBraces--;
+                    if (char === '[') openBrackets++;
+                    if (char === ']') openBrackets--;
+                }
+            }
+            // If we're in a string, close it
+            if (inString) {
+                testJson += '"';
+            }
+            // Close any open brackets/braces
+            while(openBrackets > 0){
+                testJson += ']';
+                openBrackets--;
+            }
+            while(openBraces > 0){
+                testJson += '}';
+                openBraces--;
+            }
+            // Try parsing
+            JSON.parse(testJson);
+            return testJson;
+        } catch (e) {
+            // Get error position if available
+            const errorMsg = e.message;
+            const posMatch = errorMsg.match(/position (\d+)/);
+            if (posMatch) {
+                const errorPos = parseInt(posMatch[1], 10);
+                // Truncate before the error and try again
+                validEnd = Math.min(validEnd - 100, errorPos - 10);
+            } else {
+                validEnd -= 500;
+            }
+            if (validEnd < 1000) {
+                break;
+            }
+        }
+    }
+    // Fallback: aggressive truncation to find last complete property
+    // Find the last complete "key": value pattern
+    const lastCompleteProperty = repaired.lastIndexOf('",');
+    if (lastCompleteProperty > 1000) {
+        let truncated = repaired.substring(0, lastCompleteProperty + 1);
+        // Close brackets
+        let openBraces = (truncated.match(/\{/g) || []).length - (truncated.match(/\}/g) || []).length;
+        let openBrackets = (truncated.match(/\[/g) || []).length - (truncated.match(/\]/g) || []).length;
+        while(openBrackets > 0){
+            truncated += ']';
+            openBrackets--;
+        }
+        while(openBraces > 0){
+            truncated += '}';
+            openBraces--;
+        }
+        try {
+            JSON.parse(truncated);
+            return truncated;
+        } catch  {
+        // Continue to original method
+        }
+    }
+    // Original repair logic as final fallback
     repaired = repaired.replace(/,\s*"[^"]*":\s*"?[^",}\]]*$/, '');
     repaired = repaired.replace(/,\s*"[^"]*":\s*$/, '');
     repaired = repaired.replace(/,\s*"[^"]*$/, '');
     repaired = repaired.replace(/,\s*$/, '');
-    // Count open brackets
     let openBraces = 0;
     let openBrackets = 0;
     let inString = false;
@@ -793,11 +1044,9 @@ function repairJSON(json) {
             if (char === ']') openBrackets--;
         }
     }
-    // If we're in a string, close it
     if (inString) {
         repaired += '"';
     }
-    // Close any open brackets/braces
     while(openBrackets > 0){
         repaired += ']';
         openBrackets--;
@@ -821,17 +1070,29 @@ function extractJSON(result) {
             console.error("fileContent preview:", result.fileContent.substring(0, 500));
             // Try to repair truncated JSON
             try {
+                console.log("Attempting to repair JSON, original length:", result.fileContent.length);
                 const repaired = repairJSON(result.fileContent);
+                console.log("Repaired JSON length:", repaired.length);
                 const parsed = JSON.parse(repaired);
                 console.log("Successfully parsed REPAIRED fileContent, keys:", Object.keys(parsed));
                 return parsed;
             } catch (repairError) {
                 console.error("Failed to repair JSON:", repairError);
+                // Log the area around the error
+                const errorMsg = repairError.message;
+                const posMatch = errorMsg.match(/position (\d+)/);
+                if (posMatch) {
+                    const pos = parseInt(posMatch[1], 10);
+                    console.error("Error context around position", pos, ":", result.fileContent.substring(Math.max(0, pos - 100), pos + 100));
+                }
             }
         }
     }
     // Try to extract from stdout
     if (result.stdout) {
+        console.log("Attempting to extract JSON from stdout, length:", result.stdout.length);
+        console.log("stdout preview (first 500 chars):", result.stdout.substring(0, 500));
+        console.log("stdout preview (last 500 chars):", result.stdout.slice(-500));
         // Try code block first
         const codeBlockMatch = result.stdout.match(/```(?:json)?\s*\n([\s\S]*?)\n```/);
         if (codeBlockMatch) {
@@ -843,7 +1104,7 @@ function extractJSON(result) {
                 console.error("Failed to parse code block JSON:", e);
             }
         }
-        // Try to find raw JSON object
+        // Try to find raw JSON object starting with {"score"
         const analysisMatch = result.stdout.match(/\{"score"[\s\S]*\}(?=\s*$|\s*\n\s*===)/);
         if (analysisMatch) {
             try {
@@ -854,7 +1115,7 @@ function extractJSON(result) {
                 console.error("Failed to parse analysis JSON:", e);
             }
         }
-        // Fallback: Try to find any large JSON object
+        // Fallback: Try to find JSON starting with {"score"
         const jsonStart = result.stdout.indexOf('{"score"');
         if (jsonStart !== -1) {
             let braceCount = 0;
@@ -876,11 +1137,55 @@ function extractJSON(result) {
                     return parsed;
                 } catch (e) {
                     console.error("Failed to parse JSON with brace matching:", e);
+                    // Try to repair truncated JSON
+                    try {
+                        const repaired = repairJSON(result.stdout.substring(jsonStart, jsonEnd + 1));
+                        const parsed = JSON.parse(repaired);
+                        console.log("Successfully parsed REPAIRED stdout JSON, keys:", Object.keys(parsed));
+                        return parsed;
+                    } catch (repairError) {
+                        console.error("Failed to repair stdout JSON:", repairError);
+                    }
+                }
+            }
+        }
+        // Try to find any JSON object containing analysis keys
+        const anyJsonMatch = result.stdout.match(/\{[^{}]*"missingDocuments"[^{}]*[\s\S]*\}/);
+        if (anyJsonMatch) {
+            try {
+                const parsed = JSON.parse(anyJsonMatch[0]);
+                console.log("Successfully parsed JSON with missingDocuments key, keys:", Object.keys(parsed));
+                return parsed;
+            } catch (e) {
+                // Try brace matching
+                const start = result.stdout.indexOf(anyJsonMatch[0]);
+                let braceCount = 0;
+                let end = -1;
+                for(let i = start; i < result.stdout.length; i++){
+                    if (result.stdout[i] === '{') braceCount++;
+                    if (result.stdout[i] === '}') {
+                        braceCount--;
+                        if (braceCount === 0) {
+                            end = i;
+                            break;
+                        }
+                    }
+                }
+                if (end !== -1) {
+                    try {
+                        const repaired = repairJSON(result.stdout.substring(start, end + 1));
+                        const parsed = JSON.parse(repaired);
+                        console.log("Successfully parsed repaired analysis JSON, keys:", Object.keys(parsed));
+                        return parsed;
+                    } catch  {
+                        console.error("Failed to repair analysis JSON");
+                    }
                 }
             }
         }
     }
     console.error("extractJSON: No valid JSON found");
+    console.error("Full stdout for debugging:", result.stdout?.slice(0, 2000));
     return null;
 }
 // Calculate score based on document completeness and risk factors
@@ -934,7 +1239,8 @@ function calculateScore(parsed, analysisResult) {
 }
 async function POST(req) {
     try {
-        const { intakeData } = await req.json();
+        const body = await req.json();
+        const { intakeData, mode = "quick", estatePlanId } = body;
         if (!intakeData) {
             return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
                 error: "Intake data is required"
@@ -942,17 +1248,47 @@ async function POST(req) {
                 status: 400
             });
         }
+        // If comprehensive mode, redirect to orchestration endpoint
+        if (mode === "comprehensive") {
+            if (!estatePlanId) {
+                return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
+                    error: "estatePlanId is required for comprehensive analysis"
+                }, {
+                    status: 400
+                });
+            }
+            // Forward to orchestration endpoint
+            const orchestrateUrl = new URL("/api/gap-analysis/orchestrate", req.url);
+            const orchestrateResponse = await fetch(orchestrateUrl.toString(), {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    estatePlanId,
+                    intakeData
+                })
+            });
+            const orchestrateResult = await orchestrateResponse.json();
+            return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
+                ...orchestrateResult,
+                mode: "comprehensive"
+            });
+        }
+        // Quick mode - single run with simplified prompt for faster results
         // Parse the intake data
         const parsed = parseIntakeData(intakeData);
         const ctx = getClientContext(parsed);
-        console.log("Starting DEEP gap analysis...");
+        console.log("Starting QUICK gap analysis...");
         console.log("Client context:", JSON.stringify(ctx));
-        // Build and execute comprehensive deep analysis prompt
-        const prompt = buildDeepAnalysisPrompt(parsed);
+        // Build simplified quick analysis prompt (faster, essential findings only)
+        const prompt = buildQuickAnalysisPrompt(parsed);
         const result = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$e2b$2d$executor$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["executeInE2B"])({
             prompt,
             outputFile: "analysis.json",
-            timeoutMs: 0
+            timeoutMs: 300000,
+            maxTurns: 5,
+            runType: "quick_analysis"
         });
         console.log("E2B result:", {
             success: result.success,

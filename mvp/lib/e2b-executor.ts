@@ -137,6 +137,9 @@ export interface E2BExecuteOptions {
   prompt: string;
   outputFile?: string;
   timeoutMs?: number;
+  maxTurns?: number;           // Configurable max turns (default: 5)
+  enableWebSearch?: boolean;   // Enable web search capability
+  runType?: string;            // For logging/tracking
 }
 
 /**
@@ -144,7 +147,7 @@ export interface E2BExecuteOptions {
  * This is a shared function that can be called directly without HTTP
  */
 export async function executeInE2B(options: E2BExecuteOptions): Promise<E2BExecuteResult> {
-  const { prompt, outputFile, timeoutMs = 240000 } = options;
+  const { prompt, outputFile, timeoutMs = 240000, maxTurns = 5, enableWebSearch = false, runType } = options;
 
   const E2B_API_KEY = process.env.E2B_API_KEY;
   const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
@@ -154,8 +157,9 @@ export async function executeInE2B(options: E2BExecuteOptions): Promise<E2BExecu
   }
 
   // Create sandbox with very long timeout for comprehensive analysis
+  // Quality is the priority - allow up to 60 minutes for thorough analysis
   const sandbox = await Sandbox.create("base", {
-    timeoutMs: 1800000, // 30 minutes sandbox lifetime
+    timeoutMs: 3600000, // 60 minutes sandbox lifetime - quality over speed
     apiKey: E2B_API_KEY,
   });
 
@@ -173,40 +177,73 @@ export async function executeInE2B(options: E2BExecuteOptions): Promise<E2BExecu
       }
     }
 
-    // Create wrapper script
+    // Write the prompt to a file first - safer than embedding in shell script
+    await sandbox.files.write("/tmp/analysis_prompt.txt", prompt);
+
+    // Create wrapper script that reads from the prompt file
     const wrapperScript = `
 #!/bin/bash
-set -e
 
 cd ${OUTPUT_DIR}
 
+echo "=== E2B Sandbox Debug Info ==="
+echo "HOME: $HOME"
+echo "PWD: $(pwd)"
+echo "ANTHROPIC_API_KEY set: \${ANTHROPIC_API_KEY:+yes}"
+echo "ANTHROPIC_API_KEY length: \${#ANTHROPIC_API_KEY}"
+
+# Check prompt file
+echo "=== Prompt File ==="
+echo "Prompt file exists: $(test -f /tmp/analysis_prompt.txt && echo yes || echo no)"
+echo "Prompt file size: $(wc -c < /tmp/analysis_prompt.txt 2>/dev/null || echo 0) bytes"
+echo "Prompt preview (first 200 chars):"
+head -c 200 /tmp/analysis_prompt.txt 2>/dev/null || echo "(could not read)"
+echo ""
+
 # Install Claude Code CLI
+echo "=== Installing Claude Code CLI ==="
 npm install -g @anthropic-ai/claude-code 2>&1 || {
-    echo "Failed to install claude-code, trying npx..."
+    echo "Failed to install claude-code globally, trying npx..."
     export USE_NPX=1
 }
 
-# Create prompt file
-cat > /tmp/prompt.txt << 'PROMPT_EOF'
-${prompt.replace(/'/g, "'\\''")}
-PROMPT_EOF
+# Verify installation
+if [ "\${USE_NPX:-}" != "1" ]; then
+    which claude || echo "claude not found in PATH"
+    claude --version 2>&1 || echo "claude --version failed"
+fi
 
 echo "=== Starting Claude Code ==="
 echo "Working directory: $(pwd)"
+echo "Max turns: ${maxTurns}"
+echo "Run type: ${runType || 'general'}"
 echo "Available skills:"
 ls -la $HOME/.claude/skills/ 2>/dev/null || echo "(no skills)"
 
-# Run Claude Code with safety limits and structured output
+# Run Claude Code with stdin piping from prompt file
+# This is safer than embedding the prompt in the script
+CLAUDE_EXIT_CODE=0
 if [ "\${USE_NPX:-}" = "1" ]; then
-    npx -y @anthropic-ai/claude-code --print --dangerously-skip-permissions --output-format json --max-turns 5 -p "$(cat /tmp/prompt.txt)" 2>&1
+    echo "Running with npx..."
+    cat /tmp/analysis_prompt.txt | npx -y @anthropic-ai/claude-code --print --dangerously-skip-permissions --output-format json --max-turns ${maxTurns} 2>&1
+    CLAUDE_EXIT_CODE=\$?
 else
-    claude --print --dangerously-skip-permissions --output-format json --max-turns 5 -p "$(cat /tmp/prompt.txt)" 2>&1
+    echo "Running with claude CLI..."
+    cat /tmp/analysis_prompt.txt | claude --print --dangerously-skip-permissions --output-format json --max-turns ${maxTurns} 2>&1
+    CLAUDE_EXIT_CODE=\$?
 fi
 
 echo ""
-echo "=== Claude Code Finished ==="
+echo "=== Claude Code Finished (exit code: \$CLAUDE_EXIT_CODE) ==="
 echo "Generated files:"
 ls -la ${OUTPUT_DIR}/ 2>/dev/null || echo "(none)"
+
+# Also check if any json files were created anywhere
+echo "=== JSON files in sandbox ==="
+find /home/user -name "*.json" -type f 2>/dev/null || echo "(none found)"
+
+# Always exit 0 - we check for output file to determine success
+exit 0
 `;
 
     await sandbox.files.write("/tmp/run_claude.sh", wrapperScript);
@@ -219,26 +256,74 @@ ls -la ${OUTPUT_DIR}/ 2>/dev/null || echo "(none)"
         HOME: "/home/user",
         CI: "true",
       },
-      // Use very large timeout (25 minutes) when timeoutMs is 0 or not specified
-      // This allows comprehensive analysis to complete
-      timeoutMs: timeoutMs === 0 ? 1500000 : (timeoutMs || 900000),
+      // Quality is priority - allow up to 55 minutes per command (leaving 5 min buffer for sandbox lifetime)
+      // When timeoutMs is 0, use max. Otherwise use passed value or default 15 minutes.
+      timeoutMs: timeoutMs === 0 ? 3300000 : (timeoutMs || 900000),
     };
 
     const result = await sandbox.commands.run("bash /tmp/run_claude.sh", commandOptions);
 
+    // Log full output for debugging
+    console.log("E2B execution completed:", {
+      exitCode: result.exitCode,
+      stdoutLength: result.stdout?.length || 0,
+      stderrLength: result.stderr?.length || 0,
+    });
+
+    // Log full stdout to see what Claude Code returned
+    console.log("E2B FULL STDOUT:", result.stdout);
+    if (result.stderr) {
+      console.log("E2B STDERR:", result.stderr);
+    }
+
+    // Try to parse Claude Code's JSON output to see if there's an error
+    try {
+      const claudeOutputMatch = result.stdout.match(/\{[\s\S]*"is_error"[\s\S]*\}/);
+      if (claudeOutputMatch) {
+        const claudeOutput = JSON.parse(claudeOutputMatch[0]);
+        console.log("Claude Code output parsed:", {
+          is_error: claudeOutput.is_error,
+          num_turns: claudeOutput.num_turns,
+          result: typeof claudeOutput.result === 'string'
+            ? claudeOutput.result.substring(0, 500)
+            : claudeOutput.result,
+        });
+
+        // If there's an error in Claude's output, report it
+        if (claudeOutput.is_error) {
+          console.error("Claude Code returned an error:", claudeOutput.result);
+        }
+      }
+    } catch (parseErr) {
+      console.log("Could not parse Claude output as JSON");
+    }
+
     // Try to read output file if specified
     let fileContent = "";
     if (outputFile) {
+      const targetPath = `${OUTPUT_DIR}/${outputFile}`;
+      console.log("Attempting to read output file:", targetPath);
+
       try {
-        fileContent = await sandbox.files.read(`${OUTPUT_DIR}/${outputFile}`);
-      } catch {
+        fileContent = await sandbox.files.read(targetPath);
+        console.log("Successfully read output file, length:", fileContent.length);
+      } catch (readError) {
+        console.log("Failed to read output file directly:", readError);
+
         // Try to find any file with similar name
         const listResult = await sandbox.commands.run(
           `find ${OUTPUT_DIR} -type f 2>/dev/null || true`
         );
         const files = listResult.stdout.split("\n").filter((f: string) => f.trim());
+        console.log("Files found in output directory:", files);
+
         if (files.length > 0) {
-          fileContent = await sandbox.files.read(files[0]);
+          try {
+            fileContent = await sandbox.files.read(files[0]);
+            console.log("Read first available file:", files[0], "length:", fileContent.length);
+          } catch (fallbackError) {
+            console.log("Failed to read fallback file:", fallbackError);
+          }
         }
       }
     }

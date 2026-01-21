@@ -365,6 +365,7 @@ export const saveGapAnalysisPublic = mutation({
   args: {
     estatePlanId: v.id("estatePlans"),
     score: v.optional(v.number()),
+    scoreBreakdown: v.optional(v.string()),
     estateComplexity: v.optional(v.string()),
     estimatedEstateTax: v.optional(v.string()),
     missingDocuments: v.string(),

@@ -80,7 +80,7 @@ function IntakeProgress({ currentStep, completedSteps, estatePlanId }) {
                     className: "relative",
                     children: [
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                            className: "absolute top-5 left-0 right-0 h-0.5 bg-gray-200 dark:bg-gray-700",
+                            className: "absolute top-5 left-0 right-0 h-0.5 bg-[var(--border)]",
                             style: {
                                 left: '2.5rem',
                                 right: '2.5rem'
@@ -91,7 +91,7 @@ function IntakeProgress({ currentStep, completedSteps, estatePlanId }) {
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                            className: "absolute top-5 h-0.5 bg-blue-600 transition-all duration-500",
+                            className: "absolute top-5 h-0.5 bg-[var(--accent-purple)] transition-all duration-500",
                             style: {
                                 left: '2.5rem',
                                 width: `calc(${currentIndex / (STEPS.length - 1) * 100}% - 2.5rem)`
@@ -117,9 +117,9 @@ function IntakeProgress({ currentStep, completedSteps, estatePlanId }) {
                                             disabled: !isClickable,
                                             className: `
                       relative flex h-10 w-10 items-center justify-center rounded-full
-                      transition-all duration-200 bg-white dark:bg-gray-800
-                      ${isComplete ? "bg-green-600 text-white ring-4 ring-green-100 dark:ring-green-900/30" : isCurrent ? "border-2 border-blue-600 ring-4 ring-blue-100 dark:ring-blue-900/30" : "border-2 border-gray-300 dark:border-gray-600"}
-                      ${isClickable && !isCurrent ? "cursor-pointer hover:ring-4 hover:ring-gray-100 dark:hover:ring-gray-700" : ""}
+                      transition-all duration-200 bg-white
+                      ${isComplete ? "bg-[var(--success)] text-white ring-4 ring-[var(--success-muted)]" : isCurrent ? "border-2 border-[var(--accent-purple)] ring-4 ring-[var(--accent-muted)]" : "border-2 border-[var(--border)]"}
+                      ${isClickable && !isCurrent ? "cursor-pointer hover:ring-4 hover:ring-[var(--off-white)]" : ""}
                       ${!isClickable ? "cursor-not-allowed opacity-60" : ""}
                     `,
                                             "aria-current": isCurrent ? "step" : undefined,
@@ -141,7 +141,7 @@ function IntakeProgress({ currentStep, completedSteps, estatePlanId }) {
                                                 lineNumber: 131,
                                                 columnNumber: 23
                                             }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                                className: `text-sm font-semibold ${isCurrent ? "text-blue-600" : "text-gray-500 dark:text-gray-400"}`,
+                                                className: `text-sm font-semibold ${isCurrent ? "text-[var(--accent-purple)]" : "text-[var(--text-muted)]"}`,
                                                 children: index + 1
                                             }, void 0, false, {
                                                 fileName: "[project]/app/components/IntakeProgress.tsx",
@@ -157,7 +157,7 @@ function IntakeProgress({ currentStep, completedSteps, estatePlanId }) {
                                             className: "mt-3 text-center",
                                             children: [
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                                    className: `text-sm font-medium block ${isCurrent ? "text-blue-600 dark:text-blue-400" : isComplete ? "text-green-600 dark:text-green-400" : "text-gray-500 dark:text-gray-400"}`,
+                                                    className: `text-sm font-medium block ${isCurrent ? "text-[var(--accent-purple)]" : isComplete ? "text-[var(--success)]" : "text-[var(--text-muted)]"}`,
                                                     children: step.name
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/components/IntakeProgress.tsx",
@@ -165,7 +165,7 @@ function IntakeProgress({ currentStep, completedSteps, estatePlanId }) {
                                                     columnNumber: 21
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                                    className: "text-xs text-gray-400 dark:text-gray-500 mt-0.5 max-w-[100px] hidden lg:block",
+                                                    className: "text-xs text-[var(--text-caption)] mt-0.5 max-w-[100px] hidden lg:block",
                                                     children: step.description
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/components/IntakeProgress.tsx",
@@ -205,13 +205,13 @@ function IntakeProgress({ currentStep, completedSteps, estatePlanId }) {
                 className: "md:hidden",
                 children: [
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                        className: "bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 mb-4",
+                        className: "bg-[var(--accent-muted)] rounded-lg p-4 mb-4",
                         children: [
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                 className: "flex items-center justify-between mb-2",
                                 children: [
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                        className: "text-xs font-medium text-blue-600 dark:text-blue-400 uppercase tracking-wide",
+                                        className: "text-xs font-medium text-[var(--accent-purple)] uppercase tracking-wide",
                                         children: [
                                             "Step ",
                                             currentIndex + 1,
@@ -224,7 +224,7 @@ function IntakeProgress({ currentStep, completedSteps, estatePlanId }) {
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                        className: "text-xs text-gray-500 dark:text-gray-400",
+                                        className: "text-xs text-[var(--text-muted)]",
                                         children: [
                                             Math.round((currentIndex + 1) / STEPS.length * 100),
                                             "% complete"
@@ -241,7 +241,7 @@ function IntakeProgress({ currentStep, completedSteps, estatePlanId }) {
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
-                                className: "font-semibold text-gray-900 dark:text-white",
+                                className: "font-semibold text-[var(--text-heading)]",
                                 children: STEPS[currentIndex].fullName
                             }, void 0, false, {
                                 fileName: "[project]/app/components/IntakeProgress.tsx",
@@ -249,7 +249,7 @@ function IntakeProgress({ currentStep, completedSteps, estatePlanId }) {
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                className: "text-sm text-gray-600 dark:text-gray-400 mt-1",
+                                className: "text-sm text-[var(--text-body)] mt-1",
                                 children: STEPS[currentIndex].description
                             }, void 0, false, {
                                 fileName: "[project]/app/components/IntakeProgress.tsx",
@@ -263,9 +263,9 @@ function IntakeProgress({ currentStep, completedSteps, estatePlanId }) {
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                        className: "w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mb-3",
+                        className: "w-full bg-[var(--border)] rounded-full h-2 mb-3",
                         children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                            className: "bg-blue-600 h-2 rounded-full transition-all duration-500",
+                            className: "bg-[var(--accent-purple)] h-2 rounded-full transition-all duration-500",
                             style: {
                                 width: `${(currentIndex + 1) / STEPS.length * 100}%`
                             }
@@ -292,7 +292,7 @@ function IntakeProgress({ currentStep, completedSteps, estatePlanId }) {
                                 className: `
                   flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium
                   transition-all duration-200
-                  ${isComplete ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" : isCurrent ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400"}
+                  ${isComplete ? "bg-[var(--success-muted)] text-[var(--success)]" : isCurrent ? "bg-[var(--accent-purple)] text-white" : "bg-[var(--off-white)] text-[var(--text-muted)]"}
                   ${!isClickable ? "opacity-50 cursor-not-allowed" : ""}
                 `,
                                 children: [
@@ -392,7 +392,7 @@ function SaveIndicator({ status, lastSaved, errorMessage }) {
         className: `
         inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm
         transition-all duration-300
-        ${status === "saving" ? "bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300" : status === "error" ? "bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-300" : showSaved ? "bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-300" : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"}
+        ${status === "saving" ? "bg-[var(--accent-muted)] text-[var(--accent-purple)]" : status === "error" ? "bg-[var(--error-muted)] text-[var(--error)]" : showSaved ? "bg-[var(--success-muted)] text-[var(--success)]" : "bg-[var(--off-white)] text-[var(--text-muted)]"}
       `,
         children: status === "saving" ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Fragment"], {
             children: [
@@ -537,7 +537,7 @@ _c = SaveIndicator;
 function SaveIndicatorInline({ status, lastSaved }) {
     if (status === "saving") {
         return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-            className: "inline-flex items-center gap-1.5 text-xs text-blue-600 dark:text-blue-400",
+            className: "inline-flex items-center gap-1.5 text-xs text-[var(--accent-purple)]",
             children: [
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("svg", {
                     className: "w-3 h-3 animate-spin",
@@ -581,7 +581,7 @@ function SaveIndicatorInline({ status, lastSaved }) {
     }
     if (status === "saved") {
         return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-            className: "inline-flex items-center gap-1.5 text-xs text-green-600 dark:text-green-400",
+            className: "inline-flex items-center gap-1.5 text-xs text-[var(--success)]",
             children: [
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("svg", {
                     className: "w-3 h-3",
@@ -611,7 +611,7 @@ function SaveIndicatorInline({ status, lastSaved }) {
     }
     if (status === "error") {
         return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-            className: "inline-flex items-center gap-1.5 text-xs text-red-600 dark:text-red-400",
+            className: "inline-flex items-center gap-1.5 text-xs text-[var(--error)]",
             children: [
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("svg", {
                     className: "w-3 h-3",
@@ -653,30 +653,37 @@ if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelper
 "use strict";
 
 __turbopack_context__.s([
+    "LinkButton",
+    ()=>LinkButton,
     "default",
     ()=>__TURBOPACK__default__export__
 ]);
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/compiled/react/jsx-dev-runtime.js [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/compiled/react/index.js [app-client] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$arrow$2d$right$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__ArrowRight$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/arrow-right.js [app-client] (ecmascript) <export default as ArrowRight>");
 "use client";
 ;
 ;
+;
+// Cohere-style button variants - pill-shaped, clean
 const variantStyles = {
-    primary: "bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800 disabled:bg-blue-300 dark:disabled:bg-blue-800",
-    secondary: "bg-gray-100 text-gray-900 hover:bg-gray-200 active:bg-gray-300 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600 disabled:bg-gray-100 disabled:text-gray-400 dark:disabled:bg-gray-800 dark:disabled:text-gray-600",
-    outline: "border-2 border-gray-300 text-gray-700 hover:bg-gray-50 active:bg-gray-100 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800 disabled:border-gray-200 disabled:text-gray-400 dark:disabled:border-gray-700 dark:disabled:text-gray-600",
-    ghost: "text-gray-700 hover:bg-gray-100 active:bg-gray-200 dark:text-gray-300 dark:hover:bg-gray-800 disabled:text-gray-400 dark:disabled:text-gray-600",
-    danger: "bg-red-600 text-white hover:bg-red-700 active:bg-red-800 disabled:bg-red-300 dark:disabled:bg-red-800"
+    primary: "bg-[var(--volcanic-black)] text-white hover:bg-[#2D2D2B] hover:-translate-y-[1px] hover:shadow-[var(--shadow-md)] active:translate-y-0 disabled:bg-[var(--stone-grey)] disabled:cursor-not-allowed",
+    secondary: "bg-transparent text-[var(--text-primary)] border border-[var(--border-strong)] hover:bg-[var(--cream)] hover:border-[var(--volcanic-black)] hover:-translate-y-[1px] active:translate-y-0 disabled:text-[var(--text-tertiary)] disabled:border-[var(--border)] disabled:cursor-not-allowed",
+    outline: "bg-transparent text-[var(--text-primary)] border border-[var(--border)] hover:bg-[var(--cream)] hover:border-[var(--text-primary)] hover:-translate-y-[1px] active:translate-y-0 disabled:text-[var(--text-tertiary)] disabled:border-[var(--border-light)] disabled:cursor-not-allowed",
+    accent: "bg-[var(--coral)] text-white hover:bg-[var(--coral-dark)] hover:-translate-y-[1px] hover:shadow-[var(--shadow-md)] active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed",
+    ghost: "bg-transparent text-[var(--text-secondary)] hover:bg-[var(--cream)] hover:text-[var(--text-primary)] disabled:text-[var(--text-tertiary)] disabled:cursor-not-allowed",
+    danger: "bg-[var(--error)] text-white hover:opacity-90 hover:-translate-y-[1px] active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed",
+    link: "text-[var(--text-primary)] font-medium hover:opacity-70 p-0 bg-transparent"
 };
 const sizeStyles = {
-    sm: "px-3 py-1.5 text-sm gap-1.5",
-    md: "px-4 py-2 text-base gap-2",
-    lg: "px-6 py-3 text-lg gap-2.5"
+    sm: "px-5 py-2.5 text-sm gap-2",
+    md: "px-7 py-3.5 text-base gap-2",
+    lg: "px-9 py-4 text-lg gap-3"
 };
 const iconSizes = {
     sm: "w-4 h-4",
     md: "w-5 h-5",
-    lg: "w-6 h-6"
+    lg: "w-5 h-5"
 };
 const Spinner = ({ size })=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("svg", {
         className: `animate-spin ${iconSizes[size]}`,
@@ -693,7 +700,7 @@ const Spinner = ({ size })=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b
                 strokeWidth: "4"
             }, void 0, false, {
                 fileName: "[project]/app/components/ui/Button.tsx",
-                lineNumber: 49,
+                lineNumber: 56,
                 columnNumber: 5
             }, ("TURBOPACK compile-time value", void 0)),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("path", {
@@ -702,30 +709,30 @@ const Spinner = ({ size })=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b
                 d: "M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
             }, void 0, false, {
                 fileName: "[project]/app/components/ui/Button.tsx",
-                lineNumber: 57,
+                lineNumber: 64,
                 columnNumber: 5
             }, ("TURBOPACK compile-time value", void 0))
         ]
     }, void 0, true, {
         fileName: "[project]/app/components/ui/Button.tsx",
-        lineNumber: 43,
+        lineNumber: 50,
         columnNumber: 3
     }, ("TURBOPACK compile-time value", void 0));
 _c = Spinner;
-const Button = /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["forwardRef"])(_c1 = ({ variant = "primary", size = "md", isLoading = false, leftIcon, rightIcon, fullWidth = false, disabled, className = "", children, ...props }, ref)=>{
+const Button = /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["forwardRef"])(_c1 = ({ variant = "primary", size = "md", isLoading = false, leftIcon, rightIcon, fullWidth = false, showArrow = false, disabled, className = "", children, ...props }, ref)=>{
     const isDisabled = disabled || isLoading;
+    const isLinkVariant = variant === "link";
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
         ref: ref,
         disabled: isDisabled,
         className: `
           inline-flex items-center justify-center
-          font-medium rounded-lg
-          transition-colors duration-150 ease-in-out
-          focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2
-          dark:focus-visible:ring-offset-gray-900
-          disabled:cursor-not-allowed
+          font-medium
+          transition-all duration-[250ms] ease-[cubic-bezier(0.16,1,0.3,1)]
+          focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--coral)] focus-visible:ring-offset-2
+          rounded-full
           ${variantStyles[variant]}
-          ${sizeStyles[size]}
+          ${isLinkVariant ? "" : sizeStyles[size]}
           ${fullWidth ? "w-full" : ""}
           ${className}
         `,
@@ -735,39 +742,90 @@ const Button = /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f
                 size: size
             }, void 0, false, {
                 fileName: "[project]/app/components/ui/Button.tsx",
-                lineNumber: 102,
+                lineNumber: 110,
                 columnNumber: 11
             }, ("TURBOPACK compile-time value", void 0)) : leftIcon ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                 className: iconSizes[size],
                 children: leftIcon
             }, void 0, false, {
                 fileName: "[project]/app/components/ui/Button.tsx",
-                lineNumber: 104,
+                lineNumber: 112,
                 columnNumber: 11
             }, ("TURBOPACK compile-time value", void 0)) : null,
-            children,
+            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                className: "relative z-10",
+                children: children
+            }, void 0, false, {
+                fileName: "[project]/app/components/ui/Button.tsx",
+                lineNumber: 114,
+                columnNumber: 9
+            }, ("TURBOPACK compile-time value", void 0)),
             !isLoading && rightIcon && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                 className: iconSizes[size],
                 children: rightIcon
             }, void 0, false, {
                 fileName: "[project]/app/components/ui/Button.tsx",
-                lineNumber: 108,
+                lineNumber: 116,
+                columnNumber: 11
+            }, ("TURBOPACK compile-time value", void 0)),
+            !isLoading && showArrow && !isLinkVariant && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$arrow$2d$right$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__ArrowRight$3e$__["ArrowRight"], {
+                className: `${iconSizes[size]} transition-transform duration-200`
+            }, void 0, false, {
+                fileName: "[project]/app/components/ui/Button.tsx",
+                lineNumber: 119,
+                columnNumber: 11
+            }, ("TURBOPACK compile-time value", void 0)),
+            !isLoading && isLinkVariant && showArrow && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$arrow$2d$right$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__ArrowRight$3e$__["ArrowRight"], {
+                className: "w-4 h-4 transition-transform group-hover:translate-x-1"
+            }, void 0, false, {
+                fileName: "[project]/app/components/ui/Button.tsx",
+                lineNumber: 122,
                 columnNumber: 11
             }, ("TURBOPACK compile-time value", void 0))
         ]
     }, void 0, true, {
         fileName: "[project]/app/components/ui/Button.tsx",
-        lineNumber: 84,
+        lineNumber: 93,
         columnNumber: 7
     }, ("TURBOPACK compile-time value", void 0));
 });
 _c2 = Button;
 Button.displayName = "Button";
 const __TURBOPACK__default__export__ = Button;
-var _c, _c1, _c2;
+const LinkButton = /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["forwardRef"])(_c3 = ({ children, className = "", showArrow = true, ...props }, ref)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("a", {
+        ref: ref,
+        className: `
+      inline-flex items-center gap-2
+      text-[var(--text-primary)] font-medium
+      transition-all duration-[250ms] ease-[cubic-bezier(0.16,1,0.3,1)]
+      hover:gap-3
+      group
+      ${className}
+    `,
+        ...props,
+        children: [
+            children,
+            showArrow && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$arrow$2d$right$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__ArrowRight$3e$__["ArrowRight"], {
+                className: "w-4 h-4 transition-transform group-hover:translate-x-1"
+            }, void 0, false, {
+                fileName: "[project]/app/components/ui/Button.tsx",
+                lineNumber: 152,
+                columnNumber: 7
+            }, ("TURBOPACK compile-time value", void 0))
+        ]
+    }, void 0, true, {
+        fileName: "[project]/app/components/ui/Button.tsx",
+        lineNumber: 138,
+        columnNumber: 3
+    }, ("TURBOPACK compile-time value", void 0)));
+_c4 = LinkButton;
+LinkButton.displayName = "LinkButton";
+var _c, _c1, _c2, _c3, _c4;
 __turbopack_context__.k.register(_c, "Spinner");
 __turbopack_context__.k.register(_c1, "Button$forwardRef");
 __turbopack_context__.k.register(_c2, "Button");
+__turbopack_context__.k.register(_c3, "LinkButton$forwardRef");
+__turbopack_context__.k.register(_c4, "LinkButton");
 if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelpers !== null) {
     __turbopack_context__.k.registerExports(__turbopack_context__.m, globalThis.$RefreshHelpers$);
 }
@@ -811,7 +869,7 @@ function IntakeNavigation({ currentStep, estatePlanId, onSaveAndExit, onSaveAndC
         return nextStep ? `Continue to ${nextStep.name}` : "Complete";
     };
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-        className: "space-y-4 pt-6 border-t border-gray-200 dark:border-gray-700",
+        className: "space-y-4 pt-6 border-t border-[var(--border)]",
         children: [
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                 className: "flex justify-end",
@@ -938,7 +996,7 @@ function IntakeNavigation({ currentStep, estatePlanId, onSaveAndExit, onSaveAndC
                 columnNumber: 7
             }, this),
             !canContinue && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                className: "text-sm text-amber-600 dark:text-amber-400 text-center sm:text-right",
+                className: "text-sm text-[var(--warning)] text-center sm:text-right",
                 children: "Please complete all required fields to continue"
             }, void 0, false, {
                 fileName: "[project]/app/components/IntakeNavigation.tsx",
@@ -1006,11 +1064,11 @@ function FormField({ label, required, error, hint, helpText, showSuccess, childr
                 children: [
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
                         htmlFor: id,
-                        className: "block text-sm font-medium text-gray-700 dark:text-gray-300",
+                        className: "block text-sm font-medium text-[var(--text-body)]",
                         children: [
                             label,
                             required && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                className: "text-red-500 ml-1",
+                                className: "text-[var(--error)] ml-1",
                                 children: "*"
                             }, void 0, false, {
                                 fileName: "[project]/app/components/FormFields.tsx",
@@ -1024,7 +1082,7 @@ function FormField({ label, required, error, hint, helpText, showSuccess, childr
                         columnNumber: 9
                     }, this),
                     showSuccessState && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                        className: "flex items-center text-xs text-green-600 dark:text-green-400",
+                        className: "flex items-center text-xs text-[var(--success)]",
                         children: [
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("svg", {
                                 className: "w-3.5 h-3.5 mr-1",
@@ -1058,10 +1116,10 @@ function FormField({ label, required, error, hint, helpText, showSuccess, childr
                 columnNumber: 7
             }, this),
             helpText && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                className: "text-xs text-gray-500 dark:text-gray-400 flex items-start gap-1.5",
+                className: "text-xs text-[var(--text-muted)] flex items-start gap-1.5",
                 children: [
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("svg", {
-                        className: "w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-gray-400",
+                        className: "w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-[var(--text-caption)]",
                         fill: "none",
                         stroke: "currentColor",
                         viewBox: "0 0 24 24",
@@ -1089,7 +1147,7 @@ function FormField({ label, required, error, hint, helpText, showSuccess, childr
             }, this),
             children,
             hint && !error && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                className: "text-xs text-gray-500 dark:text-gray-400",
+                className: "text-xs text-[var(--text-muted)]",
                 children: hint
             }, void 0, false, {
                 fileName: "[project]/app/components/FormFields.tsx",
@@ -1097,7 +1155,7 @@ function FormField({ label, required, error, hint, helpText, showSuccess, childr
                 columnNumber: 9
             }, this),
             error && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                className: "text-xs text-red-500 flex items-center gap-1",
+                className: "text-xs text-[var(--error)] flex items-center gap-1",
                 children: [
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("svg", {
                         className: "w-3.5 h-3.5",
@@ -1152,12 +1210,12 @@ function TextInput({ value, onChange, placeholder, type = "text", disabled, requ
         maxLength: maxLength,
         className: `
         w-full px-3 py-2.5 border rounded-lg
-        bg-white dark:bg-gray-800 text-gray-900 dark:text-white
-        placeholder-gray-400 dark:placeholder-gray-500
+        bg-white text-[var(--text-heading)]
+        placeholder-[var(--text-caption)]
         transition-all duration-150
         focus:outline-none focus:ring-2 focus:ring-offset-0
-        disabled:bg-gray-100 dark:disabled:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-60
-        ${error ? "border-red-500 focus:ring-red-500 focus:border-red-500" : success ? "border-green-500 focus:ring-green-500 focus:border-green-500" : "border-gray-300 dark:border-gray-600 focus:ring-blue-500 focus:border-blue-500"}
+        disabled:bg-[var(--off-white)] disabled:cursor-not-allowed disabled:opacity-60
+        ${error ? "border-[var(--error)] focus:ring-[var(--error)] focus:border-[var(--error)]" : success ? "border-[var(--success)] focus:ring-[var(--success)] focus:border-[var(--success)]" : "border-[var(--border)] focus:ring-[var(--accent-purple)] focus:border-[var(--accent-purple)]"}
       `
     }, void 0, false, {
         fileName: "[project]/app/components/FormFields.tsx",
@@ -1177,11 +1235,11 @@ function Select({ value, onChange, options, placeholder, disabled, error, succes
                 disabled: disabled,
                 className: `
           w-full px-3 py-2.5 border rounded-lg appearance-none
-          bg-white dark:bg-gray-800 text-gray-900 dark:text-white
+          bg-white text-[var(--text-heading)]
           transition-all duration-150
           focus:outline-none focus:ring-2 focus:ring-offset-0
-          disabled:bg-gray-100 dark:disabled:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-60
-          ${error ? "border-red-500 focus:ring-red-500 focus:border-red-500" : success ? "border-green-500 focus:ring-green-500 focus:border-green-500" : "border-gray-300 dark:border-gray-600 focus:ring-blue-500 focus:border-blue-500"}
+          disabled:bg-[var(--off-white)] disabled:cursor-not-allowed disabled:opacity-60
+          ${error ? "border-[var(--error)] focus:ring-[var(--error)] focus:border-[var(--error)]" : success ? "border-[var(--success)] focus:ring-[var(--success)] focus:border-[var(--success)]" : "border-[var(--border)] focus:ring-[var(--accent-purple)] focus:border-[var(--accent-purple)]"}
         `,
                 children: [
                     placeholder && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
@@ -1208,7 +1266,7 @@ function Select({ value, onChange, options, placeholder, disabled, error, succes
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                className: "absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400",
+                className: "absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[var(--text-caption)]",
                 children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("svg", {
                     className: "w-5 h-5",
                     fill: "none",
@@ -1249,7 +1307,7 @@ function RadioGroup({ value, onChange, options, name, disabled, columns = 1 }) {
                 className: `
             relative flex items-start p-4 border-2 rounded-xl cursor-pointer
             transition-all duration-200
-            ${value === opt.value ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20 ring-1 ring-blue-500" : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800/50"}
+            ${value === opt.value ? "border-[var(--accent-purple)] bg-[var(--accent-muted)] ring-1 ring-[var(--accent-purple)]" : "border-[var(--border)] hover:border-[var(--border-strong)] hover:bg-[var(--off-white)]"}
             ${disabled ? "opacity-50 cursor-not-allowed" : ""}
           `,
                 children: [
@@ -1260,7 +1318,7 @@ function RadioGroup({ value, onChange, options, name, disabled, columns = 1 }) {
                         checked: value === opt.value,
                         onChange: (e)=>onChange(e.target.value),
                         disabled: disabled,
-                        className: "mt-0.5 h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500 focus:ring-offset-0"
+                        className: "mt-0.5 h-4 w-4 text-[var(--accent-purple)] border-[var(--border)] focus:ring-[var(--accent-purple)] focus:ring-offset-0"
                     }, void 0, false, {
                         fileName: "[project]/app/components/FormFields.tsx",
                         lineNumber: 240,
@@ -1270,7 +1328,7 @@ function RadioGroup({ value, onChange, options, name, disabled, columns = 1 }) {
                         className: "ml-3 flex-1",
                         children: [
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                className: `text-sm font-medium ${value === opt.value ? "text-blue-700 dark:text-blue-300" : "text-gray-900 dark:text-white"}`,
+                                className: `text-sm font-medium ${value === opt.value ? "text-[var(--accent-purple)]" : "text-[var(--text-heading)]"}`,
                                 children: opt.label
                             }, void 0, false, {
                                 fileName: "[project]/app/components/FormFields.tsx",
@@ -1278,7 +1336,7 @@ function RadioGroup({ value, onChange, options, name, disabled, columns = 1 }) {
                                 columnNumber: 13
                             }, this),
                             opt.description && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                className: `text-xs mt-0.5 ${value === opt.value ? "text-blue-600 dark:text-blue-400" : "text-gray-500 dark:text-gray-400"}`,
+                                className: `text-xs mt-0.5 ${value === opt.value ? "text-[var(--accent-purple)]" : "text-[var(--text-muted)]"}`,
                                 children: opt.description
                             }, void 0, false, {
                                 fileName: "[project]/app/components/FormFields.tsx",
@@ -1294,7 +1352,7 @@ function RadioGroup({ value, onChange, options, name, disabled, columns = 1 }) {
                     value === opt.value && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                         className: "absolute top-3 right-3",
                         children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("svg", {
-                            className: "w-5 h-5 text-blue-600",
+                            className: "w-5 h-5 text-[var(--accent-purple)]",
                             fill: "currentColor",
                             viewBox: "0 0 20 20",
                             children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("path", {
@@ -1334,7 +1392,7 @@ function Checkbox({ checked, onChange, label, description, disabled }) {
         className: `
         relative flex items-start p-4 border-2 rounded-xl cursor-pointer
         transition-all duration-200
-        ${checked ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20 ring-1 ring-blue-500" : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800/50"}
+        ${checked ? "border-[var(--accent-purple)] bg-[var(--accent-muted)] ring-1 ring-[var(--accent-purple)]" : "border-[var(--border)] hover:border-[var(--border-strong)] hover:bg-[var(--off-white)]"}
         ${disabled ? "opacity-50 cursor-not-allowed" : ""}
       `,
         children: [
@@ -1343,7 +1401,7 @@ function Checkbox({ checked, onChange, label, description, disabled }) {
                 checked: checked,
                 onChange: (e)=>onChange(e.target.checked),
                 disabled: disabled,
-                className: "mt-0.5 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 focus:ring-offset-0"
+                className: "mt-0.5 h-4 w-4 text-[var(--accent-purple)] border-[var(--border)] rounded focus:ring-[var(--accent-purple)] focus:ring-offset-0"
             }, void 0, false, {
                 fileName: "[project]/app/components/FormFields.tsx",
                 lineNumber: 297,
@@ -1353,7 +1411,7 @@ function Checkbox({ checked, onChange, label, description, disabled }) {
                 className: "ml-3 flex-1",
                 children: [
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                        className: `text-sm font-medium ${checked ? "text-blue-700 dark:text-blue-300" : "text-gray-900 dark:text-white"}`,
+                        className: `text-sm font-medium ${checked ? "text-[var(--accent-purple)]" : "text-[var(--text-heading)]"}`,
                         children: label
                     }, void 0, false, {
                         fileName: "[project]/app/components/FormFields.tsx",
@@ -1361,7 +1419,7 @@ function Checkbox({ checked, onChange, label, description, disabled }) {
                         columnNumber: 9
                     }, this),
                     description && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                        className: `text-xs mt-0.5 ${checked ? "text-blue-600 dark:text-blue-400" : "text-gray-500 dark:text-gray-400"}`,
+                        className: `text-xs mt-0.5 ${checked ? "text-[var(--accent-purple)]" : "text-[var(--text-muted)]"}`,
                         children: description
                     }, void 0, false, {
                         fileName: "[project]/app/components/FormFields.tsx",
@@ -1377,7 +1435,7 @@ function Checkbox({ checked, onChange, label, description, disabled }) {
             checked && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                 className: "absolute top-3 right-3",
                 children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("svg", {
-                    className: "w-5 h-5 text-blue-600",
+                    className: "w-5 h-5 text-[var(--accent-purple)]",
                     fill: "currentColor",
                     viewBox: "0 0 20 20",
                     children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("path", {
@@ -1420,12 +1478,12 @@ function TextArea({ value, onChange, placeholder, rows = 3, disabled, error, suc
                 maxLength: maxLength,
                 className: `
           w-full px-3 py-2.5 border rounded-lg resize-none
-          bg-white dark:bg-gray-800 text-gray-900 dark:text-white
-          placeholder-gray-400 dark:placeholder-gray-500
+          bg-white text-[var(--text-heading)]
+          placeholder-[var(--text-caption)]
           transition-all duration-150
           focus:outline-none focus:ring-2 focus:ring-offset-0
-          disabled:bg-gray-100 dark:disabled:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-60
-          ${error ? "border-red-500 focus:ring-red-500 focus:border-red-500" : success ? "border-green-500 focus:ring-green-500 focus:border-green-500" : "border-gray-300 dark:border-gray-600 focus:ring-blue-500 focus:border-blue-500"}
+          disabled:bg-[var(--off-white)] disabled:cursor-not-allowed disabled:opacity-60
+          ${error ? "border-[var(--error)] focus:ring-[var(--error)] focus:border-[var(--error)]" : success ? "border-[var(--success)] focus:ring-[var(--success)] focus:border-[var(--success)]" : "border-[var(--border)] focus:ring-[var(--accent-purple)] focus:border-[var(--accent-purple)]"}
         `
             }, void 0, false, {
                 fileName: "[project]/app/components/FormFields.tsx",
@@ -1433,7 +1491,7 @@ function TextArea({ value, onChange, placeholder, rows = 3, disabled, error, suc
                 columnNumber: 7
             }, this),
             showCount && maxLength && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                className: "absolute bottom-2 right-3 text-xs text-gray-400",
+                className: "absolute bottom-2 right-3 text-xs text-[var(--text-caption)]",
                 children: [
                     value.length,
                     "/",
@@ -1457,13 +1515,13 @@ function FormSection({ title, description, children, badge }) {
         className: "space-y-4",
         children: [
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                className: "border-b border-gray-200 dark:border-gray-700 pb-3",
+                className: "border-b border-[var(--border)] pb-3",
                 children: [
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                         className: "flex items-center gap-3",
                         children: [
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
-                                className: "text-lg font-semibold text-gray-900 dark:text-white",
+                                className: "text-lg font-semibold text-[var(--text-heading)]",
                                 children: title
                             }, void 0, false, {
                                 fileName: "[project]/app/components/FormFields.tsx",
@@ -1478,7 +1536,7 @@ function FormSection({ title, description, children, badge }) {
                         columnNumber: 9
                     }, this),
                     description && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                        className: "text-sm text-gray-500 dark:text-gray-400 mt-1",
+                        className: "text-sm text-[var(--text-muted)] mt-1",
                         children: description
                     }, void 0, false, {
                         fileName: "[project]/app/components/FormFields.tsx",
@@ -1521,7 +1579,7 @@ function CurrencyInput({ value, onChange, placeholder = "0.00", disabled, error 
         className: "relative",
         children: [
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                className: "absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400",
+                className: "absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]",
                 children: "$"
             }, void 0, false, {
                 fileName: "[project]/app/components/FormFields.tsx",
@@ -1537,12 +1595,12 @@ function CurrencyInput({ value, onChange, placeholder = "0.00", disabled, error 
                 disabled: disabled,
                 className: `
           w-full pl-7 pr-3 py-2.5 border rounded-lg
-          bg-white dark:bg-gray-800 text-gray-900 dark:text-white
-          placeholder-gray-400 dark:placeholder-gray-500
+          bg-white text-[var(--text-heading)]
+          placeholder-[var(--text-caption)]
           transition-all duration-150
           focus:outline-none focus:ring-2 focus:ring-offset-0
-          disabled:bg-gray-100 dark:disabled:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-60
-          ${error ? "border-red-500 focus:ring-red-500 focus:border-red-500" : "border-gray-300 dark:border-gray-600 focus:ring-blue-500 focus:border-blue-500"}
+          disabled:bg-[var(--off-white)] disabled:cursor-not-allowed disabled:opacity-60
+          ${error ? "border-[var(--error)] focus:ring-[var(--error)] focus:border-[var(--error)]" : "border-[var(--border)] focus:ring-[var(--accent-purple)] focus:border-[var(--accent-purple)]"}
         `
             }, void 0, false, {
                 fileName: "[project]/app/components/FormFields.tsx",
@@ -1560,19 +1618,19 @@ _c7 = CurrencyInput;
 function InfoBox({ type = "info", title, children }) {
     const styles = {
         info: {
-            container: "bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800",
-            icon: "text-blue-600 dark:text-blue-400",
-            title: "text-blue-800 dark:text-blue-200"
+            container: "bg-[var(--info-muted)] border-[var(--info)]",
+            icon: "text-[var(--info)]",
+            title: "text-[var(--info)]"
         },
         warning: {
-            container: "bg-amber-50 border-amber-200 dark:bg-amber-900/20 dark:border-amber-800",
-            icon: "text-amber-600 dark:text-amber-400",
-            title: "text-amber-800 dark:text-amber-200"
+            container: "bg-[var(--warning-muted)] border-[var(--warning)]",
+            icon: "text-[var(--warning)]",
+            title: "text-[var(--warning)]"
         },
         tip: {
-            container: "bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800",
-            icon: "text-green-600 dark:text-green-400",
-            title: "text-green-800 dark:text-green-200"
+            container: "bg-[var(--success-muted)] border-[var(--success)]",
+            icon: "text-[var(--success)]",
+            title: "text-[var(--success)]"
         }
     };
     const icons = {
@@ -1662,7 +1720,7 @@ function InfoBox({ type = "info", title, children }) {
                             columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                            className: "text-sm text-gray-700 dark:text-gray-300",
+                            className: "text-sm text-[var(--text-body)]",
                             children: children
                         }, void 0, false, {
                             fileName: "[project]/app/components/FormFields.tsx",
@@ -3137,7 +3195,7 @@ function GoalsFormContent() {
             className: "text-center py-12",
             children: [
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                    className: "text-gray-500 dark:text-gray-400",
+                    className: "text-[var(--text-muted)]",
                     children: "No estate plan found. Please start from the beginning."
                 }, void 0, false, {
                     fileName: "[project]/app/intake/goals/page.tsx",
@@ -3146,7 +3204,7 @@ function GoalsFormContent() {
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("a", {
                     href: "/intake",
-                    className: "text-blue-600 hover:text-blue-700 mt-2 inline-block",
+                    className: "text-[var(--accent-purple)] hover:opacity-80 mt-2 inline-block",
                     children: "Start New Estate Plan"
                 }, void 0, false, {
                     fileName: "[project]/app/intake/goals/page.tsx",
@@ -3164,7 +3222,7 @@ function GoalsFormContent() {
         return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
             className: "flex items-center justify-center py-12",
             children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                className: "animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"
+                className: "animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--accent-purple)]"
             }, void 0, false, {
                 fileName: "[project]/app/intake/goals/page.tsx",
                 lineNumber: 207,
@@ -3191,7 +3249,7 @@ function GoalsFormContent() {
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                 children: [
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h1", {
-                        className: "text-2xl font-bold text-gray-900 dark:text-white",
+                        className: "text-2xl font-semibold text-[var(--text-heading)]",
                         children: "Goals & Wishes"
                     }, void 0, false, {
                         fileName: "[project]/app/intake/goals/page.tsx",
@@ -3199,7 +3257,7 @@ function GoalsFormContent() {
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                        className: "text-gray-600 dark:text-gray-400 mt-2",
+                        className: "text-[var(--text-body)] mt-2",
                         children: "Tell us about your wishes for your estate and end-of-life preferences. This is the most important part - it's about what matters most to you."
                     }, void 0, false, {
                         fileName: "[project]/app/intake/goals/page.tsx",
@@ -3225,7 +3283,7 @@ function GoalsFormContent() {
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                className: "bg-white dark:bg-gray-800 rounded-lg shadow p-6 space-y-8",
+                className: "bg-white rounded-xl border border-[var(--border)] p-6 space-y-8",
                 children: [
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["FormSection"], {
                         title: "Distribution of Assets",
@@ -3305,7 +3363,7 @@ function GoalsFormContent() {
                                 columnNumber: 11
                             }, this),
                             formData.executorPreference && formData.executorPreference !== "unsure" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                className: "space-y-4 mt-4 pl-4 border-l-2 border-blue-200 dark:border-blue-800",
+                                className: "space-y-4 mt-4 pl-4 border-l-2 border-[var(--accent-purple)]",
                                 children: [
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                         className: "grid grid-cols-1 md:grid-cols-2 gap-4",
@@ -3417,7 +3475,7 @@ function GoalsFormContent() {
                                 columnNumber: 13
                             }, this),
                             formData.hasMinorChildren && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                className: "space-y-4 mt-4 pl-4 border-l-2 border-blue-200 dark:border-blue-800",
+                                className: "space-y-4 mt-4 pl-4 border-l-2 border-[var(--accent-purple)]",
                                 children: [
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                         className: "grid grid-cols-1 md:grid-cols-2 gap-4",
@@ -3642,24 +3700,24 @@ function GoalsFormContent() {
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["FormSection"], {
                         title: "Charitable Giving",
-                        description: "Would you like to include charitable gifts in your estate plan?",
+                        description: "Optional: Leave gifts to charity",
                         children: [
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Checkbox"], {
                                 checked: formData.charitableGiving,
                                 onChange: (v)=>updateField("charitableGiving", v),
-                                label: "I want to include charitable giving in my estate plan"
+                                label: "I want to leave something to charity"
                             }, void 0, false, {
                                 fileName: "[project]/app/intake/goals/page.tsx",
                                 lineNumber: 452,
                                 columnNumber: 11
                             }, this),
                             formData.charitableGiving && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["FormField"], {
-                                label: "Charitable giving details",
+                                label: "Which organizations and how much?",
                                 children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["TextArea"], {
                                     value: formData.charitableDetails,
                                     onChange: (v)=>updateField("charitableDetails", v),
-                                    placeholder: "e.g., 10% to American Red Cross, $50,000 to my alma mater",
-                                    rows: 3
+                                    placeholder: "e.g., $5,000 to local food bank, 5% to church",
+                                    rows: 2
                                 }, void 0, false, {
                                     fileName: "[project]/app/intake/goals/page.tsx",
                                     lineNumber: 460,
@@ -3677,137 +3735,149 @@ function GoalsFormContent() {
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["FormSection"], {
-                        title: "Special Considerations",
-                        description: "Any unique circumstances we should know about?",
-                        children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                            className: "space-y-4",
-                            children: [
-                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Checkbox"], {
-                                    checked: formData.blendedFamily,
-                                    onChange: (v)=>updateField("blendedFamily", v),
-                                    label: "Blended family",
-                                    description: "Children from different relationships, stepchildren"
-                                }, void 0, false, {
-                                    fileName: "[project]/app/intake/goals/page.tsx",
-                                    lineNumber: 476,
-                                    columnNumber: 13
-                                }, this),
-                                formData.blendedFamily && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["FormField"], {
-                                    label: "Please explain",
-                                    children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["TextArea"], {
-                                        value: formData.blendedFamilyDetails,
-                                        onChange: (v)=>updateField("blendedFamilyDetails", v),
-                                        placeholder: "Describe your family situation",
-                                        rows: 2
+                        title: "Special Situations",
+                        description: "Do any of these apply to you? (Optional)",
+                        children: [
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Checkbox"], {
+                                checked: formData.hasSpecialConsiderations,
+                                onChange: (v)=>updateField("hasSpecialConsiderations", v),
+                                label: "I have a special situation to address",
+                                description: "Blended family, special needs beneficiary, business ownership, or international assets"
+                            }, void 0, false, {
+                                fileName: "[project]/app/intake/goals/page.tsx",
+                                lineNumber: 475,
+                                columnNumber: 11
+                            }, this),
+                            formData.hasSpecialConsiderations && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                className: "space-y-4 mt-4 pl-4 border-l-2 border-blue-200 dark:border-blue-800",
+                                children: [
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Checkbox"], {
+                                        checked: formData.blendedFamily,
+                                        onChange: (v)=>updateField("blendedFamily", v),
+                                        label: "Blended family",
+                                        description: "Children from different relationships, stepchildren"
                                     }, void 0, false, {
                                         fileName: "[project]/app/intake/goals/page.tsx",
                                         lineNumber: 484,
+                                        columnNumber: 15
+                                    }, this),
+                                    formData.blendedFamily && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["FormField"], {
+                                        label: "Please explain",
+                                        children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["TextArea"], {
+                                            value: formData.blendedFamilyDetails,
+                                            onChange: (v)=>updateField("blendedFamilyDetails", v),
+                                            placeholder: "Describe your family situation",
+                                            rows: 2
+                                        }, void 0, false, {
+                                            fileName: "[project]/app/intake/goals/page.tsx",
+                                            lineNumber: 492,
+                                            columnNumber: 19
+                                        }, this)
+                                    }, void 0, false, {
+                                        fileName: "[project]/app/intake/goals/page.tsx",
+                                        lineNumber: 491,
                                         columnNumber: 17
-                                    }, this)
-                                }, void 0, false, {
-                                    fileName: "[project]/app/intake/goals/page.tsx",
-                                    lineNumber: 483,
-                                    columnNumber: 15
-                                }, this),
-                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Checkbox"], {
-                                    checked: formData.specialNeedsBeneficiary,
-                                    onChange: (v)=>updateField("specialNeedsBeneficiary", v),
-                                    label: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Fragment"], {
-                                        children: [
-                                            "Beneficiary with special needs ",
-                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$GlossaryTooltip$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["GlossaryHelpIcon"], {
-                                                term: "Special Needs Trust"
-                                            }, void 0, false, {
-                                                fileName: "[project]/app/intake/goals/page.tsx",
-                                                lineNumber: 496,
-                                                columnNumber: 55
-                                            }, void 0)
-                                        ]
-                                    }, void 0, true),
-                                    description: "May require a special needs trust to preserve government benefits"
-                                }, void 0, false, {
-                                    fileName: "[project]/app/intake/goals/page.tsx",
-                                    lineNumber: 493,
-                                    columnNumber: 13
-                                }, this),
-                                formData.specialNeedsBeneficiary && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["FormField"], {
-                                    label: "Please explain",
-                                    children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["TextArea"], {
-                                        value: formData.specialNeedsDetails,
-                                        onChange: (v)=>updateField("specialNeedsDetails", v),
-                                        placeholder: "Describe the situation",
-                                        rows: 2
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Checkbox"], {
+                                        checked: formData.specialNeedsBeneficiary,
+                                        onChange: (v)=>updateField("specialNeedsBeneficiary", v),
+                                        label: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Fragment"], {
+                                            children: [
+                                                "Beneficiary with special needs ",
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$GlossaryTooltip$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["GlossaryHelpIcon"], {
+                                                    term: "Special Needs Trust"
+                                                }, void 0, false, {
+                                                    fileName: "[project]/app/intake/goals/page.tsx",
+                                                    lineNumber: 504,
+                                                    columnNumber: 57
+                                                }, void 0)
+                                            ]
+                                        }, void 0, true),
+                                        description: "May require a special needs trust"
                                     }, void 0, false, {
                                         fileName: "[project]/app/intake/goals/page.tsx",
                                         lineNumber: 501,
+                                        columnNumber: 15
+                                    }, this),
+                                    formData.specialNeedsBeneficiary && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["FormField"], {
+                                        label: "Please explain",
+                                        children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["TextArea"], {
+                                            value: formData.specialNeedsDetails,
+                                            onChange: (v)=>updateField("specialNeedsDetails", v),
+                                            placeholder: "Describe the situation",
+                                            rows: 2
+                                        }, void 0, false, {
+                                            fileName: "[project]/app/intake/goals/page.tsx",
+                                            lineNumber: 509,
+                                            columnNumber: 19
+                                        }, this)
+                                    }, void 0, false, {
+                                        fileName: "[project]/app/intake/goals/page.tsx",
+                                        lineNumber: 508,
                                         columnNumber: 17
-                                    }, this)
-                                }, void 0, false, {
-                                    fileName: "[project]/app/intake/goals/page.tsx",
-                                    lineNumber: 500,
-                                    columnNumber: 15
-                                }, this),
-                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Checkbox"], {
-                                    checked: formData.businessSuccession,
-                                    onChange: (v)=>updateField("businessSuccession", v),
-                                    label: "Business succession planning needed",
-                                    description: "You own a business that needs transition planning"
-                                }, void 0, false, {
-                                    fileName: "[project]/app/intake/goals/page.tsx",
-                                    lineNumber: 510,
-                                    columnNumber: 13
-                                }, this),
-                                formData.businessSuccession && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["FormField"], {
-                                    label: "Please explain",
-                                    children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["TextArea"], {
-                                        value: formData.businessSuccessionDetails,
-                                        onChange: (v)=>updateField("businessSuccessionDetails", v),
-                                        placeholder: "Describe your business succession goals",
-                                        rows: 2
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Checkbox"], {
+                                        checked: formData.businessSuccession,
+                                        onChange: (v)=>updateField("businessSuccession", v),
+                                        label: "I own a business",
+                                        description: "We'll help plan for what happens to it"
                                     }, void 0, false, {
                                         fileName: "[project]/app/intake/goals/page.tsx",
                                         lineNumber: 518,
+                                        columnNumber: 15
+                                    }, this),
+                                    formData.businessSuccession && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["FormField"], {
+                                        label: "Who should take over the business?",
+                                        children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["TextArea"], {
+                                            value: formData.businessSuccessionDetails,
+                                            onChange: (v)=>updateField("businessSuccessionDetails", v),
+                                            placeholder: "e.g., My son John, sell to partner, close it down",
+                                            rows: 2
+                                        }, void 0, false, {
+                                            fileName: "[project]/app/intake/goals/page.tsx",
+                                            lineNumber: 526,
+                                            columnNumber: 19
+                                        }, this)
+                                    }, void 0, false, {
+                                        fileName: "[project]/app/intake/goals/page.tsx",
+                                        lineNumber: 525,
                                         columnNumber: 17
-                                    }, this)
-                                }, void 0, false, {
-                                    fileName: "[project]/app/intake/goals/page.tsx",
-                                    lineNumber: 517,
-                                    columnNumber: 15
-                                }, this),
-                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Checkbox"], {
-                                    checked: formData.internationalAssets,
-                                    onChange: (v)=>updateField("internationalAssets", v),
-                                    label: "International assets or beneficiaries",
-                                    description: "Property abroad or beneficiaries in other countries"
-                                }, void 0, false, {
-                                    fileName: "[project]/app/intake/goals/page.tsx",
-                                    lineNumber: 527,
-                                    columnNumber: 13
-                                }, this),
-                                formData.internationalAssets && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["FormField"], {
-                                    label: "Please explain",
-                                    children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["TextArea"], {
-                                        value: formData.internationalDetails,
-                                        onChange: (v)=>updateField("internationalDetails", v),
-                                        placeholder: "Describe international considerations",
-                                        rows: 2
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Checkbox"], {
+                                        checked: formData.internationalAssets,
+                                        onChange: (v)=>updateField("internationalAssets", v),
+                                        label: "International assets or beneficiaries",
+                                        description: "Property abroad or beneficiaries in other countries"
                                     }, void 0, false, {
                                         fileName: "[project]/app/intake/goals/page.tsx",
                                         lineNumber: 535,
+                                        columnNumber: 15
+                                    }, this),
+                                    formData.internationalAssets && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["FormField"], {
+                                        label: "Please explain",
+                                        children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["TextArea"], {
+                                            value: formData.internationalDetails,
+                                            onChange: (v)=>updateField("internationalDetails", v),
+                                            placeholder: "Describe international considerations",
+                                            rows: 2
+                                        }, void 0, false, {
+                                            fileName: "[project]/app/intake/goals/page.tsx",
+                                            lineNumber: 543,
+                                            columnNumber: 19
+                                        }, this)
+                                    }, void 0, false, {
+                                        fileName: "[project]/app/intake/goals/page.tsx",
+                                        lineNumber: 542,
                                         columnNumber: 17
                                     }, this)
-                                }, void 0, false, {
-                                    fileName: "[project]/app/intake/goals/page.tsx",
-                                    lineNumber: 534,
-                                    columnNumber: 15
-                                }, this)
-                            ]
-                        }, void 0, true, {
-                            fileName: "[project]/app/intake/goals/page.tsx",
-                            lineNumber: 475,
-                            columnNumber: 11
-                        }, this)
-                    }, void 0, false, {
+                                ]
+                            }, void 0, true, {
+                                fileName: "[project]/app/intake/goals/page.tsx",
+                                lineNumber: 483,
+                                columnNumber: 13
+                            }, this)
+                        ]
+                    }, void 0, true, {
                         fileName: "[project]/app/intake/goals/page.tsx",
                         lineNumber: 471,
                         columnNumber: 9
@@ -3825,12 +3895,12 @@ function GoalsFormContent() {
                                     rows: 4
                                 }, void 0, false, {
                                     fileName: "[project]/app/intake/goals/page.tsx",
-                                    lineNumber: 552,
+                                    lineNumber: 561,
                                     columnNumber: 13
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/app/intake/goals/page.tsx",
-                                lineNumber: 551,
+                                lineNumber: 560,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$FormFields$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["FormField"], {
@@ -3842,18 +3912,18 @@ function GoalsFormContent() {
                                     rows: 4
                                 }, void 0, false, {
                                     fileName: "[project]/app/intake/goals/page.tsx",
-                                    lineNumber: 561,
+                                    lineNumber: 570,
                                     columnNumber: 13
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/app/intake/goals/page.tsx",
-                                lineNumber: 560,
+                                lineNumber: 569,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/intake/goals/page.tsx",
-                        lineNumber: 547,
+                        lineNumber: 556,
                         columnNumber: 9
                     }, this)
                 ]
@@ -3875,7 +3945,7 @@ function GoalsFormContent() {
                 isLastStep: true
             }, void 0, false, {
                 fileName: "[project]/app/intake/goals/page.tsx",
-                lineNumber: 572,
+                lineNumber: 581,
                 columnNumber: 7
             }, this)
         ]
@@ -3898,25 +3968,25 @@ function GoalsPage() {
         fallback: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
             className: "flex items-center justify-center py-12",
             children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                className: "animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"
+                className: "animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--accent-purple)]"
             }, void 0, false, {
                 fileName: "[project]/app/intake/goals/page.tsx",
-                lineNumber: 592,
+                lineNumber: 601,
                 columnNumber: 9
             }, void 0)
         }, void 0, false, {
             fileName: "[project]/app/intake/goals/page.tsx",
-            lineNumber: 591,
+            lineNumber: 600,
             columnNumber: 7
         }, void 0),
         children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(GoalsFormContent, {}, void 0, false, {
             fileName: "[project]/app/intake/goals/page.tsx",
-            lineNumber: 595,
+            lineNumber: 604,
             columnNumber: 7
         }, this)
     }, void 0, false, {
         fileName: "[project]/app/intake/goals/page.tsx",
-        lineNumber: 590,
+        lineNumber: 599,
         columnNumber: 5
     }, this);
 }

@@ -211,7 +211,91 @@ ${ctx.isMarried && ctx.spouseAge && Math.abs(ctx.age - ctx.spouseAge) > 10 ? '- 
 `;
 }
 
-// Build the comprehensive deep analysis prompt
+// Build a QUICK analysis prompt - faster, essential findings only
+function buildQuickAnalysisPrompt(parsed: ParsedIntake): string {
+  const ctx = getClientContext(parsed);
+
+  return `You are an estate planning attorney reviewing a client's situation in ${parsed.state}.
+
+## CLIENT SUMMARY
+- State: ${parsed.state}
+- Marital Status: ${ctx.isMarried ? 'Married' : 'Single'}
+- Children: ${ctx.numberOfChildren} ${ctx.hasMinorChildren ? '(has minors)' : ''}
+- Estimated Estate Value: $${ctx.estimatedValue.toLocaleString()}
+- Has Will: ${ctx.hasWill ? 'Yes' : 'NO'}
+- Has Trust: ${ctx.hasTrust ? 'Yes' : 'NO'}
+- Has Financial POA: ${ctx.hasPOAFinancial ? 'Yes' : 'NO'}
+- Has Healthcare POA: ${ctx.hasPOAHealthcare ? 'Yes' : 'NO'}
+- Has Healthcare Directive: ${ctx.hasHealthcareDirective ? 'Yes' : 'NO'}
+- Has Business: ${ctx.hasBusinessInterests ? 'Yes' : 'No'}
+- Has Real Estate: ${ctx.hasRealEstate ? 'Yes' : 'No'}
+- Has Retirement Accounts: ${ctx.hasRetirementAccounts ? 'Yes' : 'No'}
+
+## ADDITIONAL DATA
+${JSON.stringify({ goals: parsed.goals, beneficiaries: parsed.beneficiaries }, null, 2)}
+
+---
+
+## TASK
+Analyze this estate planning situation and write a JSON file to /home/user/generated/analysis.json with this structure:
+
+{
+  "score": <0-100, deduct: no will -15, no trust with $500K+ -10, no POAs -10 each, no directive -5>,
+  "overallScore": {
+    "score": <same as above>,
+    "grade": "<A/B/C/D/F>",
+    "summary": "<2 sentence assessment>"
+  },
+  "executiveSummary": {
+    "oneLineSummary": "<key insight>",
+    "criticalIssues": ["<issue 1>", "<issue 2>"],
+    "immediateActions": ["<action 1>", "<action 2>"]
+  },
+  "missingDocuments": [
+    {
+      "document": "<name>",
+      "priority": "<critical/high/medium>",
+      "reason": "<why needed for THIS client>",
+      "consequences": "<what happens without it>"
+    }
+  ],
+  "outdatedDocuments": [
+    {"document": "<name>", "issue": "<problem>", "risk": "<risk>", "recommendation": "<action>"}
+  ],
+  "inconsistencies": [
+    {"type": "<type>", "severity": "<level>", "issue": "<description>", "resolution": "<fix>"}
+  ],
+  "financialExposure": {
+    "estimatedProbateCost": {"low": <number>, "high": <number>},
+    "estimatedEstateTax": {"federal": <number>, "state": <number>}
+  },
+  "stateSpecificNotes": [
+    {"topic": "<topic>", "rule": "<${parsed.state} rule>", "impact": "<effect>", "action": "<recommendation>"}
+  ],
+  "recommendations": [
+    {
+      "rank": <1-5>,
+      "action": "<specific recommendation>",
+      "category": "<documents/tax/beneficiaries>",
+      "priority": "<critical/high/medium>",
+      "timeline": "<immediate/30-days/90-days>",
+      "estimatedCost": {"low": <number>, "high": <number>}
+    }
+  ],
+  "scoreBreakdown": {
+    "startingScore": 100,
+    "deductions": [
+      {"reason": "<what's missing/wrong>", "points": <number deducted>, "category": "<documents/planning/beneficiaries>"}
+    ],
+    "finalScore": <calculated score>,
+    "summary": "<1 sentence explaining the score>"
+  }
+}
+
+Focus on the MOST IMPORTANT findings. Be concise. Write the JSON now.`;
+}
+
+// Build the comprehensive deep analysis prompt (for multi-phase mode)
 function buildDeepAnalysisPrompt(parsed: ParsedIntake): string {
   const ctx = getClientContext(parsed);
   const contextAccumulator = buildContextAccumulator(parsed, ctx);
@@ -496,13 +580,122 @@ Write the complete JSON file now. Be thorough and specific.`;
 function repairJSON(json: string): string {
   let repaired = json.trim();
 
-  // Remove trailing incomplete key-value pairs
+  // First, try to find where the JSON becomes invalid by parsing progressively
+  // Find a valid truncation point
+  let validEnd = repaired.length;
+
+  // Try to parse, and if it fails, try truncating at different points
+  for (let attempts = 0; attempts < 50; attempts++) {
+    try {
+      // Try to find a good truncation point - look for complete objects/arrays
+      let testJson = repaired.substring(0, validEnd);
+
+      // Remove trailing incomplete content
+      testJson = testJson.replace(/,\s*"[^"]*":\s*"[^"]*$/, '');  // incomplete string value
+      testJson = testJson.replace(/,\s*"[^"]*":\s*\[[^\]]*$/, ''); // incomplete array
+      testJson = testJson.replace(/,\s*"[^"]*":\s*\{[^}]*$/, '');  // incomplete object
+      testJson = testJson.replace(/,\s*"[^"]*":\s*"?[^",}\]]*$/, '');
+      testJson = testJson.replace(/,\s*"[^"]*":\s*$/, '');
+      testJson = testJson.replace(/,\s*"[^"]*$/, '');
+      testJson = testJson.replace(/,\s*$/, '');
+
+      // Count and close brackets
+      let openBraces = 0;
+      let openBrackets = 0;
+      let inString = false;
+      let escapeNext = false;
+
+      for (const char of testJson) {
+        if (escapeNext) {
+          escapeNext = false;
+          continue;
+        }
+        if (char === '\\') {
+          escapeNext = true;
+          continue;
+        }
+        if (char === '"') {
+          inString = !inString;
+          continue;
+        }
+        if (!inString) {
+          if (char === '{') openBraces++;
+          if (char === '}') openBraces--;
+          if (char === '[') openBrackets++;
+          if (char === ']') openBrackets--;
+        }
+      }
+
+      // If we're in a string, close it
+      if (inString) {
+        testJson += '"';
+      }
+
+      // Close any open brackets/braces
+      while (openBrackets > 0) {
+        testJson += ']';
+        openBrackets--;
+      }
+      while (openBraces > 0) {
+        testJson += '}';
+        openBraces--;
+      }
+
+      // Try parsing
+      JSON.parse(testJson);
+      return testJson;
+    } catch (e) {
+      // Get error position if available
+      const errorMsg = (e as Error).message;
+      const posMatch = errorMsg.match(/position (\d+)/);
+      if (posMatch) {
+        const errorPos = parseInt(posMatch[1], 10);
+        // Truncate before the error and try again
+        validEnd = Math.min(validEnd - 100, errorPos - 10);
+      } else {
+        validEnd -= 500;
+      }
+
+      if (validEnd < 1000) {
+        // Give up - too much truncation
+        break;
+      }
+    }
+  }
+
+  // Fallback: aggressive truncation to find last complete property
+  // Find the last complete "key": value pattern
+  const lastCompleteProperty = repaired.lastIndexOf('",');
+  if (lastCompleteProperty > 1000) {
+    let truncated = repaired.substring(0, lastCompleteProperty + 1);
+
+    // Close brackets
+    let openBraces = (truncated.match(/\{/g) || []).length - (truncated.match(/\}/g) || []).length;
+    let openBrackets = (truncated.match(/\[/g) || []).length - (truncated.match(/\]/g) || []).length;
+
+    while (openBrackets > 0) {
+      truncated += ']';
+      openBrackets--;
+    }
+    while (openBraces > 0) {
+      truncated += '}';
+      openBraces--;
+    }
+
+    try {
+      JSON.parse(truncated);
+      return truncated;
+    } catch {
+      // Continue to original method
+    }
+  }
+
+  // Original repair logic as final fallback
   repaired = repaired.replace(/,\s*"[^"]*":\s*"?[^",}\]]*$/, '');
   repaired = repaired.replace(/,\s*"[^"]*":\s*$/, '');
   repaired = repaired.replace(/,\s*"[^"]*$/, '');
   repaired = repaired.replace(/,\s*$/, '');
 
-  // Count open brackets
   let openBraces = 0;
   let openBrackets = 0;
   let inString = false;
@@ -529,12 +722,10 @@ function repairJSON(json: string): string {
     }
   }
 
-  // If we're in a string, close it
   if (inString) {
     repaired += '"';
   }
 
-  // Close any open brackets/braces
   while (openBrackets > 0) {
     repaired += ']';
     openBrackets--;
@@ -562,18 +753,31 @@ function extractJSON(result: { stdout?: string; fileContent?: string }): Record<
 
       // Try to repair truncated JSON
       try {
+        console.log("Attempting to repair JSON, original length:", result.fileContent.length);
         const repaired = repairJSON(result.fileContent);
+        console.log("Repaired JSON length:", repaired.length);
         const parsed = JSON.parse(repaired);
         console.log("Successfully parsed REPAIRED fileContent, keys:", Object.keys(parsed));
         return parsed;
       } catch (repairError) {
         console.error("Failed to repair JSON:", repairError);
+        // Log the area around the error
+        const errorMsg = (repairError as Error).message;
+        const posMatch = errorMsg.match(/position (\d+)/);
+        if (posMatch) {
+          const pos = parseInt(posMatch[1], 10);
+          console.error("Error context around position", pos, ":", result.fileContent.substring(Math.max(0, pos - 100), pos + 100));
+        }
       }
     }
   }
 
   // Try to extract from stdout
   if (result.stdout) {
+    console.log("Attempting to extract JSON from stdout, length:", result.stdout.length);
+    console.log("stdout preview (first 500 chars):", result.stdout.substring(0, 500));
+    console.log("stdout preview (last 500 chars):", result.stdout.slice(-500));
+
     // Try code block first
     const codeBlockMatch = result.stdout.match(/```(?:json)?\s*\n([\s\S]*?)\n```/);
     if (codeBlockMatch) {
@@ -586,7 +790,7 @@ function extractJSON(result: { stdout?: string; fileContent?: string }): Record<
       }
     }
 
-    // Try to find raw JSON object
+    // Try to find raw JSON object starting with {"score"
     const analysisMatch = result.stdout.match(/\{"score"[\s\S]*\}(?=\s*$|\s*\n\s*===)/);
     if (analysisMatch) {
       try {
@@ -598,7 +802,7 @@ function extractJSON(result: { stdout?: string; fileContent?: string }): Record<
       }
     }
 
-    // Fallback: Try to find any large JSON object
+    // Fallback: Try to find JSON starting with {"score"
     const jsonStart = result.stdout.indexOf('{"score"');
     if (jsonStart !== -1) {
       let braceCount = 0;
@@ -620,12 +824,57 @@ function extractJSON(result: { stdout?: string; fileContent?: string }): Record<
           return parsed;
         } catch (e) {
           console.error("Failed to parse JSON with brace matching:", e);
+          // Try to repair truncated JSON
+          try {
+            const repaired = repairJSON(result.stdout.substring(jsonStart, jsonEnd + 1));
+            const parsed = JSON.parse(repaired);
+            console.log("Successfully parsed REPAIRED stdout JSON, keys:", Object.keys(parsed));
+            return parsed;
+          } catch (repairError) {
+            console.error("Failed to repair stdout JSON:", repairError);
+          }
+        }
+      }
+    }
+
+    // Try to find any JSON object containing analysis keys
+    const anyJsonMatch = result.stdout.match(/\{[^{}]*"missingDocuments"[^{}]*[\s\S]*\}/);
+    if (anyJsonMatch) {
+      try {
+        const parsed = JSON.parse(anyJsonMatch[0]);
+        console.log("Successfully parsed JSON with missingDocuments key, keys:", Object.keys(parsed));
+        return parsed;
+      } catch (e) {
+        // Try brace matching
+        const start = result.stdout.indexOf(anyJsonMatch[0]);
+        let braceCount = 0;
+        let end = -1;
+        for (let i = start; i < result.stdout.length; i++) {
+          if (result.stdout[i] === '{') braceCount++;
+          if (result.stdout[i] === '}') {
+            braceCount--;
+            if (braceCount === 0) {
+              end = i;
+              break;
+            }
+          }
+        }
+        if (end !== -1) {
+          try {
+            const repaired = repairJSON(result.stdout.substring(start, end + 1));
+            const parsed = JSON.parse(repaired);
+            console.log("Successfully parsed repaired analysis JSON, keys:", Object.keys(parsed));
+            return parsed;
+          } catch {
+            console.error("Failed to repair analysis JSON");
+          }
         }
       }
     }
   }
 
   console.error("extractJSON: No valid JSON found");
+  console.error("Full stdout for debugging:", result.stdout?.slice(0, 2000));
   return null;
 }
 
@@ -682,25 +931,53 @@ function calculateScore(parsed: ParsedIntake, analysisResult: Record<string, unk
 
 export async function POST(req: Request) {
   try {
-    const { intakeData } = await req.json();
+    const body = await req.json();
+    const { intakeData, mode = "quick", estatePlanId } = body;
 
     if (!intakeData) {
       return NextResponse.json({ error: "Intake data is required" }, { status: 400 });
     }
 
+    // If comprehensive mode, redirect to orchestration endpoint
+    if (mode === "comprehensive") {
+      if (!estatePlanId) {
+        return NextResponse.json(
+          { error: "estatePlanId is required for comprehensive analysis" },
+          { status: 400 }
+        );
+      }
+
+      // Forward to orchestration endpoint
+      const orchestrateUrl = new URL("/api/gap-analysis/orchestrate", req.url);
+      const orchestrateResponse = await fetch(orchestrateUrl.toString(), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ estatePlanId, intakeData }),
+      });
+
+      const orchestrateResult = await orchestrateResponse.json();
+      return NextResponse.json({
+        ...orchestrateResult,
+        mode: "comprehensive",
+      });
+    }
+
+    // Quick mode - single run with simplified prompt for faster results
     // Parse the intake data
     const parsed = parseIntakeData(intakeData);
     const ctx = getClientContext(parsed);
 
-    console.log("Starting DEEP gap analysis...");
+    console.log("Starting QUICK gap analysis...");
     console.log("Client context:", JSON.stringify(ctx));
 
-    // Build and execute comprehensive deep analysis prompt
-    const prompt = buildDeepAnalysisPrompt(parsed);
+    // Build simplified quick analysis prompt (faster, essential findings only)
+    const prompt = buildQuickAnalysisPrompt(parsed);
     const result = await executeInE2B({
       prompt,
       outputFile: "analysis.json",
-      timeoutMs: 0, // Disable timeout - comprehensive analysis needs time
+      timeoutMs: 300000, // 5 minute timeout for quick analysis
+      maxTurns: 5,
+      runType: "quick_analysis",
     });
 
     console.log("E2B result:", {

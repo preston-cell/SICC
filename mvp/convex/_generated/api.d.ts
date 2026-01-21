@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as attorneyQuestions from "../attorneyQuestions.js";
 import type * as documentAnalysis from "../documentAnalysis.js";
 import type * as documentExtraction from "../documentExtraction.js";
 import type * as documentGeneration from "../documentGeneration.js";
@@ -15,9 +16,14 @@ import type * as documentGenerationMutations from "../documentGenerationMutation
 import type * as e2bClient from "../e2bClient.js";
 import type * as estatePlanning from "../estatePlanning.js";
 import type * as extractedData from "../extractedData.js";
+import type * as familyContacts from "../familyContacts.js";
 import type * as gapAnalysis from "../gapAnalysis.js";
+import type * as gapAnalysisOrchestration from "../gapAnalysisOrchestration.js";
+import type * as gapAnalysisProgress from "../gapAnalysisProgress.js";
 import type * as gapAnalysisQueries from "../gapAnalysisQueries.js";
+import type * as guidedIntake from "../guidedIntake.js";
 import type * as mutations from "../mutations.js";
+import type * as preparationTasks from "../preparationTasks.js";
 import type * as queries from "../queries.js";
 import type * as reminders from "../reminders.js";
 import type * as runAgent from "../runAgent.js";
@@ -33,6 +39,7 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  attorneyQuestions: typeof attorneyQuestions;
   documentAnalysis: typeof documentAnalysis;
   documentExtraction: typeof documentExtraction;
   documentGeneration: typeof documentGeneration;
@@ -40,9 +47,14 @@ declare const fullApi: ApiFromModules<{
   e2bClient: typeof e2bClient;
   estatePlanning: typeof estatePlanning;
   extractedData: typeof extractedData;
+  familyContacts: typeof familyContacts;
   gapAnalysis: typeof gapAnalysis;
+  gapAnalysisOrchestration: typeof gapAnalysisOrchestration;
+  gapAnalysisProgress: typeof gapAnalysisProgress;
   gapAnalysisQueries: typeof gapAnalysisQueries;
+  guidedIntake: typeof guidedIntake;
   mutations: typeof mutations;
+  preparationTasks: typeof preparationTasks;
   queries: typeof queries;
   reminders: typeof reminders;
   runAgent: typeof runAgent;

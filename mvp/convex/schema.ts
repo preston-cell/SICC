@@ -86,6 +86,25 @@ export default defineSchema({
   }).index("by_estate_plan", ["estatePlanId"])
     .index("by_estate_plan_section", ["estatePlanId", "section"]),
 
+  // Guided intake progress - tracks step-by-step progress for conversational flow
+  guidedIntakeProgress: defineTable({
+    estatePlanId: v.id("estatePlans"),
+    // Current step (1-8)
+    currentStep: v.number(),
+    // Completed steps array
+    completedSteps: v.array(v.number()),
+    // Flow mode
+    flowMode: v.union(v.literal("guided"), v.literal("comprehensive")),
+    // Current question within step (for mobile one-question-at-a-time mode)
+    currentQuestionIndex: v.optional(v.number()),
+    // Step-specific data (JSON for conditional reveals, skipped questions, etc.)
+    stepData: v.optional(v.string()),
+    // Timestamps
+    createdAt: v.number(),
+    updatedAt: v.number(),
+    lastSavedAt: v.optional(v.number()),
+  }).index("by_estate_plan", ["estatePlanId"]),
+
   // Generated legal documents
   documents: defineTable({
     estatePlanId: v.id("estatePlans"),
@@ -123,6 +142,8 @@ export default defineSchema({
     runId: v.optional(v.id("agentRuns")), // Links to the analysis run
     // Completeness score 0-100
     score: v.optional(v.number()),
+    // Score breakdown explaining how the score was calculated (JSON)
+    scoreBreakdown: v.optional(v.string()),
     // Estate complexity classification
     estateComplexity: v.optional(v.string()),
     // Estimated estate tax (JSON object with state, federal, notes)
@@ -146,8 +167,118 @@ export default defineSchema({
     // Raw analysis output from the agent
     rawAnalysis: v.optional(v.string()),
     createdAt: v.number(),
+    // Multi-phase analysis fields
+    multiPhaseRunId: v.optional(v.id("gapAnalysisRuns")),
+    analysisType: v.optional(v.union(v.literal("quick"), v.literal("comprehensive"))),
+    scenarioAnalysis: v.optional(v.string()),      // JSON: 8 what-if scenarios
+    priorityMatrix: v.optional(v.string()),        // JSON: priority matrix
+    stateResearch: v.optional(v.string()),         // JSON: Phase 1 state law research
+    documentInventory: v.optional(v.string()),     // JSON: complete document inventory
+    familyProtectionAnalysis: v.optional(v.string()), // JSON: family protection details
+    assetProtectionAnalysis: v.optional(v.string()),  // JSON: asset protection details
+    totalDurationMs: v.optional(v.number()),
+    totalCostUsd: v.optional(v.number()),
   }).index("by_estate_plan", ["estatePlanId"])
     .index("by_created", ["estatePlanId", "createdAt"]),
+
+  // ============================================
+  // MULTI-PHASE GAP ANALYSIS ORCHESTRATION
+  // ============================================
+
+  // Tracks overall multi-phase analysis runs
+  gapAnalysisRuns: defineTable({
+    estatePlanId: v.id("estatePlans"),
+    // Overall status
+    status: v.union(
+      v.literal("pending"),
+      v.literal("phase1_running"),
+      v.literal("phase1_complete"),
+      v.literal("phase2_running"),
+      v.literal("phase2_complete"),
+      v.literal("phase3_running"),
+      v.literal("completed"),
+      v.literal("failed"),
+      v.literal("partial")  // Completed with some failures
+    ),
+    // Progress tracking (0-100)
+    overallProgress: v.number(),
+    currentPhase: v.optional(v.number()),
+    currentPhaseProgress: v.optional(v.number()),
+    // Timing
+    startedAt: v.number(),
+    phase1CompletedAt: v.optional(v.number()),
+    phase2CompletedAt: v.optional(v.number()),
+    completedAt: v.optional(v.number()),
+    // Configuration
+    config: v.optional(v.string()),  // JSON: which runs to execute, max turns per run
+    // Error handling
+    lastError: v.optional(v.string()),
+    retryCount: v.number(),
+    // Final result reference
+    finalAnalysisId: v.optional(v.id("gapAnalysis")),
+  }).index("by_estate_plan", ["estatePlanId"])
+    .index("by_status", ["status"])
+    .index("by_created", ["startedAt"]),
+
+  // Tracks individual phases within a run
+  gapAnalysisPhases: defineTable({
+    runId: v.id("gapAnalysisRuns"),
+    phaseNumber: v.number(),  // 1, 2, or 3
+    // Phase type for UI
+    phaseType: v.union(
+      v.literal("research"),    // Phase 1
+      v.literal("analysis"),    // Phase 2
+      v.literal("synthesis")    // Phase 3
+    ),
+    status: v.union(
+      v.literal("pending"),
+      v.literal("running"),
+      v.literal("completed"),
+      v.literal("failed")
+    ),
+    // Runs in this phase
+    totalRuns: v.number(),
+    completedRuns: v.number(),
+    failedRuns: v.number(),
+    // Timing
+    startedAt: v.optional(v.number()),
+    completedAt: v.optional(v.number()),
+    // Aggregated results from this phase (JSON)
+    aggregatedResults: v.optional(v.string()),
+  }).index("by_run", ["runId"])
+    .index("by_run_phase", ["runId", "phaseNumber"]),
+
+  // Individual run results within a phase
+  gapAnalysisRunResults: defineTable({
+    runId: v.id("gapAnalysisRuns"),
+    phaseId: v.id("gapAnalysisPhases"),
+    // Run identification
+    runType: v.string(),  // e.g., "state_law_research", "tax_optimization", etc.
+    status: v.union(
+      v.literal("pending"),
+      v.literal("running"),
+      v.literal("completed"),
+      v.literal("failed")
+    ),
+    // Execution details
+    prompt: v.optional(v.string()),
+    maxTurns: v.number(),
+    webSearchEnabled: v.boolean(),
+    // Results
+    result: v.optional(v.string()),  // JSON
+    rawOutput: v.optional(v.string()),
+    // Metadata
+    startedAt: v.optional(v.number()),
+    completedAt: v.optional(v.number()),
+    durationMs: v.optional(v.number()),
+    turnsUsed: v.optional(v.number()),
+    costUsd: v.optional(v.number()),
+    // Error tracking
+    error: v.optional(v.string()),
+    retryCount: v.number(),
+  }).index("by_run", ["runId"])
+    .index("by_phase", ["phaseId"])
+    .index("by_type", ["runId", "runType"]),
 
   // Extracted intake data from uploaded documents
   extractedIntakeData: defineTable({
@@ -191,7 +322,8 @@ export default defineSchema({
       v.literal("life_event"),         // Marriage, birth, death, divorce, etc.
       v.literal("document_update"),    // Specific document needs update
       v.literal("beneficiary_review"), // Review beneficiary designations
-      v.literal("custom")              // User-defined reminder
+      v.literal("custom"),             // User-defined reminder
+      v.literal("preparation_task")    // Tasks to complete during comprehensive analysis
     ),
     // The reminder title and description
     title: v.string(),
@@ -245,6 +377,14 @@ export default defineSchema({
     )),
     sourceId: v.optional(v.string()), // Reference to source recommendation/document
     isAutoGenerated: v.optional(v.boolean()), // Whether this was auto-generated
+    // Preparation task fields (for comprehensive analysis waiting experience)
+    preparationCategory: v.optional(v.union(
+      v.literal("document_gathering"),
+      v.literal("contact_collection"),
+      v.literal("questions")
+    )),
+    preparationData: v.optional(v.string()), // JSON for checklist items, etc.
+    linkedRunId: v.optional(v.id("gapAnalysisRuns")), // Link to running analysis
     // Timestamps
     createdAt: v.number(),
     updatedAt: v.number(),
@@ -379,4 +519,77 @@ export default defineSchema({
     updatedAt: v.number(),
   }).index("by_estate_plan", ["estatePlanId"])
     .index("by_asset_type", ["estatePlanId", "assetType"]),
+
+  // ============================================
+  // PREPARATION TASKS (for comprehensive analysis)
+  // ============================================
+
+  // Family contacts - key people in the estate plan
+  familyContacts: defineTable({
+    estatePlanId: v.id("estatePlans"),
+    name: v.string(),
+    relationship: v.string(),
+    role: v.union(
+      v.literal("executor"),
+      v.literal("trustee"),
+      v.literal("healthcare_proxy"),
+      v.literal("financial_poa"),
+      v.literal("guardian"),
+      v.literal("beneficiary"),
+      v.literal("advisor"),
+      v.literal("attorney"),
+      v.literal("other")
+    ),
+    phone: v.optional(v.string()),
+    email: v.optional(v.string()),
+    address: v.optional(v.string()),
+    notes: v.optional(v.string()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index("by_estate_plan", ["estatePlanId"])
+    .index("by_role", ["estatePlanId", "role"]),
+
+  // Attorney questions - questions to ask during consultation
+  attorneyQuestions: defineTable({
+    estatePlanId: v.id("estatePlans"),
+    question: v.string(),
+    category: v.optional(v.union(
+      v.literal("documents"),
+      v.literal("assets"),
+      v.literal("beneficiaries"),
+      v.literal("tax"),
+      v.literal("general")
+    )),
+    isAnswered: v.boolean(),
+    answer: v.optional(v.string()),
+    createdAt: v.number(),
+    updatedAt: v.optional(v.number()),
+  }).index("by_estate_plan", ["estatePlanId"])
+    .index("by_category", ["estatePlanId", "category"]),
+
+  // Document checklist items - documents to gather
+  documentChecklistItems: defineTable({
+    estatePlanId: v.id("estatePlans"),
+    category: v.union(
+      v.literal("real_estate"),
+      v.literal("financial"),
+      v.literal("retirement"),
+      v.literal("insurance"),
+      v.literal("business"),
+      v.literal("personal"),
+      v.literal("existing_documents")
+    ),
+    title: v.string(),
+    description: v.optional(v.string()),
+    status: v.union(
+      v.literal("not_gathered"),
+      v.literal("in_progress"),
+      v.literal("gathered")
+    ),
+    notes: v.optional(v.string()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index("by_estate_plan", ["estatePlanId"])
+    .index("by_category", ["estatePlanId", "category"])
+    .index("by_status", ["estatePlanId", "status"]),
 });

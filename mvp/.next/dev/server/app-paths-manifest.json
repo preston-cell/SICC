@@ -1,10 +1,11 @@
 {
   "/analysis/[estatePlanId]/page": "app/analysis/[estatePlanId]/page.js",
-  "/analysis/[estatePlanId]/reminders/page": "app/analysis/[estatePlanId]/reminders/page.js",
-  "/api/document-generation/route": "app/api/document-generation/route.js",
-  "/api/e2b/execute/route": "app/api/e2b/execute/route.js",
+  "/analysis/[estatePlanId]/prepare/page": "app/analysis/[estatePlanId]/prepare/page.js",
+  "/analysis/[estatePlanId]/prepare/questions/page": "app/analysis/[estatePlanId]/prepare/questions/page.js",
+  "/api/gap-analysis/orchestrate/route": "app/api/gap-analysis/orchestrate/route.js",
   "/api/gap-analysis/route": "app/api/gap-analysis/route.js",
-  "/documents/generate/[estatePlanId]/page": "app/documents/generate/[estatePlanId]/page.js",
+  "/intake/guided/[step]/page": "app/intake/guided/[step]/page.js",
+  "/intake/guided/page": "app/intake/guided/page.js",
   "/intake/page": "app/intake/page.js",
   "/intake/personal/page": "app/intake/personal/page.js",
   "/page": "app/page.js"
