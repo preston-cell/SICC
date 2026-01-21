@@ -691,3 +691,297 @@ export function useExtractedDataBySection(
     fetcher
   )
 }
+
+// ============================================
+// GUIDED INTAKE HOOKS
+// ============================================
+
+export function useGuidedIntakeProgress(estatePlanId: string | null) {
+  return useSWR(
+    estatePlanId ? `/api/estate-plans/${estatePlanId}/guided-intake` : null,
+    fetcher
+  )
+}
+
+export async function initializeGuidedIntake(estatePlanId: string) {
+  const res = await fetch(`/api/estate-plans/${estatePlanId}/guided-intake`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+  })
+  if (!res.ok) throw new Error('Failed to initialize guided intake')
+  const result = await res.json()
+  mutate(`/api/estate-plans/${estatePlanId}/guided-intake`)
+  return result
+}
+
+export async function saveGuidedStepData(
+  estatePlanId: string,
+  step: number,
+  data: Record<string, unknown>,
+  complete = false
+) {
+  const res = await fetch(`/api/estate-plans/${estatePlanId}/guided-intake`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ step, data, complete }),
+  })
+  if (!res.ok) throw new Error('Failed to save step data')
+  const result = await res.json()
+  mutate(`/api/estate-plans/${estatePlanId}/guided-intake`)
+  return result
+}
+
+// ============================================
+// FAMILY CONTACTS HOOKS
+// ============================================
+
+export function useFamilyContacts(estatePlanId: string | null, role?: string) {
+  const url = estatePlanId
+    ? role
+      ? `/api/estate-plans/${estatePlanId}/family-contacts?role=${role}`
+      : `/api/estate-plans/${estatePlanId}/family-contacts`
+    : null
+  return useSWR(url, fetcher)
+}
+
+export function useFamilyContactCount(estatePlanId: string | null) {
+  const { data: contacts } = useFamilyContacts(estatePlanId)
+  return { data: contacts?.length || 0 }
+}
+
+export async function createFamilyContact(
+  estatePlanId: string,
+  data: { name: string; role: string; relationship?: string; phone?: string; email?: string; address?: string; notes?: string }
+) {
+  const res = await fetch(`/api/estate-plans/${estatePlanId}/family-contacts`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+  if (!res.ok) throw new Error('Failed to create contact')
+  const result = await res.json()
+  mutate(`/api/estate-plans/${estatePlanId}/family-contacts`)
+  return result
+}
+
+export async function updateFamilyContact(
+  estatePlanId: string,
+  contactId: string,
+  data: { name?: string; role?: string; relationship?: string; phone?: string; email?: string; address?: string; notes?: string }
+) {
+  const res = await fetch(`/api/estate-plans/${estatePlanId}/family-contacts`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id: contactId, ...data }),
+  })
+  if (!res.ok) throw new Error('Failed to update contact')
+  const result = await res.json()
+  mutate(`/api/estate-plans/${estatePlanId}/family-contacts`)
+  return result
+}
+
+export async function deleteFamilyContact(estatePlanId: string, contactId: string) {
+  const res = await fetch(`/api/estate-plans/${estatePlanId}/family-contacts?contactId=${contactId}`, { method: 'DELETE' })
+  if (!res.ok) throw new Error('Failed to delete contact')
+  mutate(`/api/estate-plans/${estatePlanId}/family-contacts`)
+  return res.json()
+}
+
+// ============================================
+// ATTORNEY QUESTIONS HOOKS
+// ============================================
+
+export function useAttorneyQuestions(estatePlanId: string | null, category?: string) {
+  const url = estatePlanId
+    ? category
+      ? `/api/estate-plans/${estatePlanId}/attorney-questions?category=${category}`
+      : `/api/estate-plans/${estatePlanId}/attorney-questions`
+    : null
+  return useSWR(url, fetcher)
+}
+
+export function useAttorneyQuestionCount(estatePlanId: string | null) {
+  return useSWR(
+    estatePlanId ? `/api/estate-plans/${estatePlanId}/attorney-questions?count=true` : null,
+    fetcher
+  )
+}
+
+export async function createAttorneyQuestion(estatePlanId: string, data: { question: string; category: string }) {
+  const res = await fetch(`/api/estate-plans/${estatePlanId}/attorney-questions`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+  if (!res.ok) throw new Error('Failed to create question')
+  const result = await res.json()
+  mutate(`/api/estate-plans/${estatePlanId}/attorney-questions`)
+  mutate(`/api/estate-plans/${estatePlanId}/attorney-questions?count=true`)
+  return result
+}
+
+export async function updateAttorneyQuestion(
+  estatePlanId: string,
+  questionId: string,
+  data: { question?: string; category?: string; isAnswered?: boolean; answer?: string }
+) {
+  const res = await fetch(`/api/estate-plans/${estatePlanId}/attorney-questions`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id: questionId, ...data }),
+  })
+  if (!res.ok) throw new Error('Failed to update question')
+  const result = await res.json()
+  mutate(`/api/estate-plans/${estatePlanId}/attorney-questions`)
+  mutate(`/api/estate-plans/${estatePlanId}/attorney-questions?count=true`)
+  return result
+}
+
+export async function deleteAttorneyQuestion(estatePlanId: string, questionId: string) {
+  const res = await fetch(`/api/estate-plans/${estatePlanId}/attorney-questions?questionId=${questionId}`, { method: 'DELETE' })
+  if (!res.ok) throw new Error('Failed to delete question')
+  mutate(`/api/estate-plans/${estatePlanId}/attorney-questions`)
+  mutate(`/api/estate-plans/${estatePlanId}/attorney-questions?count=true`)
+  return res.json()
+}
+
+// ============================================
+// DOCUMENT CHECKLIST HOOKS
+// ============================================
+
+export function useDocumentChecklist(estatePlanId: string | null, category?: string) {
+  const url = estatePlanId
+    ? category
+      ? `/api/estate-plans/${estatePlanId}/document-checklist?category=${category}`
+      : `/api/estate-plans/${estatePlanId}/document-checklist`
+    : null
+  return useSWR(url, fetcher)
+}
+
+export function useChecklistProgress(estatePlanId: string | null) {
+  return useSWR(
+    estatePlanId ? `/api/estate-plans/${estatePlanId}/document-checklist?progress=true` : null,
+    fetcher
+  )
+}
+
+export async function generateDocumentChecklist(estatePlanId: string) {
+  const res = await fetch(`/api/estate-plans/${estatePlanId}/document-checklist`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+  })
+  if (!res.ok) throw new Error('Failed to generate checklist')
+  const result = await res.json()
+  mutate(`/api/estate-plans/${estatePlanId}/document-checklist`)
+  mutate(`/api/estate-plans/${estatePlanId}/document-checklist?progress=true`)
+  return result
+}
+
+export async function updateChecklistItemStatus(
+  estatePlanId: string,
+  itemId: string,
+  status: 'not_gathered' | 'in_progress' | 'gathered'
+) {
+  const res = await fetch(`/api/estate-plans/${estatePlanId}/document-checklist`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id: itemId, status }),
+  })
+  if (!res.ok) throw new Error('Failed to update item status')
+  const result = await res.json()
+  mutate(`/api/estate-plans/${estatePlanId}/document-checklist`)
+  mutate(`/api/estate-plans/${estatePlanId}/document-checklist?progress=true`)
+  return result
+}
+
+// ============================================
+// GAP ANALYSIS RUNS HOOKS
+// ============================================
+
+export function useLatestGapAnalysisRun(estatePlanId: string | null) {
+  return useSWR(
+    estatePlanId ? `/api/estate-plans/${estatePlanId}/gap-analysis-runs?latest=true` : null,
+    fetcher,
+    { refreshInterval: 2000 }
+  )
+}
+
+export function useActiveGapAnalysisRun(estatePlanId: string | null) {
+  return useSWR(
+    estatePlanId ? `/api/estate-plans/${estatePlanId}/gap-analysis-runs?active=true` : null,
+    fetcher,
+    { refreshInterval: 1000 }
+  )
+}
+
+export function useGapAnalysisRunHistory(estatePlanId: string | null) {
+  return useSWR(
+    estatePlanId ? `/api/estate-plans/${estatePlanId}/gap-analysis-runs?history=true` : null,
+    fetcher
+  )
+}
+
+export async function createGapAnalysisRun(estatePlanId: string, analysisType: 'quick' | 'comprehensive' = 'comprehensive') {
+  const res = await fetch(`/api/estate-plans/${estatePlanId}/gap-analysis-runs`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ analysisType }),
+  })
+  if (!res.ok) throw new Error('Failed to create analysis run')
+  const result = await res.json()
+  mutate(`/api/estate-plans/${estatePlanId}/gap-analysis-runs?latest=true`)
+  mutate(`/api/estate-plans/${estatePlanId}/gap-analysis-runs?active=true`)
+  return result
+}
+
+export async function updateGapAnalysisRun(
+  estatePlanId: string,
+  runId: string,
+  data: { status?: string; currentPhase?: number; progressPercent?: number; error?: string }
+) {
+  const res = await fetch(`/api/estate-plans/${estatePlanId}/gap-analysis-runs`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ runId, ...data }),
+  })
+  if (!res.ok) throw new Error('Failed to update analysis run')
+  const result = await res.json()
+  mutate(`/api/estate-plans/${estatePlanId}/gap-analysis-runs?latest=true`)
+  mutate(`/api/estate-plans/${estatePlanId}/gap-analysis-runs?active=true`)
+  return result
+}
+
+// ============================================
+// PREPARATION PROGRESS (AGGREGATE)
+// ============================================
+
+export function usePreparationProgress(estatePlanId: string | null) {
+  const { data: checklistProgress } = useChecklistProgress(estatePlanId)
+  const { data: contactCount } = useFamilyContactCount(estatePlanId)
+  const { data: questionCount } = useAttorneyQuestionCount(estatePlanId)
+
+  if (!estatePlanId) return { data: null, isLoading: false }
+  const isLoading = !checklistProgress && !contactCount && !questionCount
+  if (isLoading) return { data: null, isLoading: true }
+
+  return {
+    data: {
+      documents: {
+        total: checklistProgress?.total || 0,
+        completed: checklistProgress?.gathered || 0,
+        percentComplete: checklistProgress?.percentComplete || 0,
+      },
+      contacts: {
+        total: contactCount || 0,
+        required: 2,
+        isComplete: (contactCount || 0) >= 2,
+      },
+      questions: {
+        total: questionCount?.total || 0,
+        answered: questionCount?.answered || 0,
+        percentComplete: questionCount?.total ? Math.round((questionCount.answered / questionCount.total) * 100) : 0,
+      },
+    },
+    isLoading: false,
+  }
+}

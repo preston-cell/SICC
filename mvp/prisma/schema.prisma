@@ -89,6 +89,11 @@ model EstatePlan {
   lifeEvents              LifeEvent[]
   beneficiaryDesignations BeneficiaryDesignation[]
   agentRuns               AgentRun[]
+  guidedIntakeProgress    GuidedIntakeProgress?
+  familyContacts          FamilyContact[]
+  attorneyQuestions       AttorneyQuestion[]
+  documentChecklistItems  DocumentChecklistItem[]
+  gapAnalysisRuns         GapAnalysisRun[]
 
   @@index([userId])
   @@index([sessionId])
@@ -412,4 +417,183 @@ enum BeneficiaryAssetType {
   brokerage_tod
   real_estate_tod
   other
+}
+
+// ============================================
+// GUIDED INTAKE (New Feature)
+// ============================================
+
+model GuidedIntakeProgress {
+  id             String     @id @default(cuid())
+  estatePlanId   String     @unique
+  estatePlan     EstatePlan @relation(fields: [estatePlanId], references: [id], onDelete: Cascade)
+  currentStep    Int        @default(1)
+  completedSteps Int[]      @default([])
+  stepData       Json       @default("{}")
+  flowMode       String     @default("guided")
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+}
+
+// ============================================
+// FAMILY CONTACTS (Preparation Phase)
+// ============================================
+
+model FamilyContact {
+  id           String      @id @default(cuid())
+  estatePlanId String
+  estatePlan   EstatePlan  @relation(fields: [estatePlanId], references: [id], onDelete: Cascade)
+  name         String
+  relationship String?
+  role         ContactRole
+  phone        String?
+  email        String?
+  address      String?
+  notes        String?     @db.Text
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  @@index([estatePlanId])
+  @@index([estatePlanId, role])
+}
+
+enum ContactRole {
+  executor
+  trustee
+  healthcare_proxy
+  financial_poa
+  guardian
+  beneficiary
+  advisor
+  attorney
+  other
+}
+
+// ============================================
+// ATTORNEY QUESTIONS (Preparation Phase)
+// ============================================
+
+model AttorneyQuestion {
+  id           String           @id @default(cuid())
+  estatePlanId String
+  estatePlan   EstatePlan       @relation(fields: [estatePlanId], references: [id], onDelete: Cascade)
+  question     String           @db.Text
+  category     QuestionCategory
+  isAnswered   Boolean          @default(false)
+  answer       String?          @db.Text
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  @@index([estatePlanId])
+  @@index([estatePlanId, category])
+}
+
+enum QuestionCategory {
+  documents
+  assets
+  beneficiaries
+  tax
+  general
+}
+
+// ============================================
+// DOCUMENT CHECKLIST (Preparation Phase)
+// ============================================
+
+model DocumentChecklistItem {
+  id           String            @id @default(cuid())
+  estatePlanId String
+  estatePlan   EstatePlan        @relation(fields: [estatePlanId], references: [id], onDelete: Cascade)
+  title        String
+  description  String?
+  category     ChecklistCategory
+  status       ChecklistStatus   @default(not_gathered)
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  @@index([estatePlanId])
+  @@index([estatePlanId, category])
+}
+
+enum ChecklistCategory {
+  real_estate
+  financial
+  retirement
+  insurance
+  business
+  personal
+  existing_documents
+}
+
+enum ChecklistStatus {
+  not_gathered
+  in_progress
+  gathered
+}
+
+// ============================================
+// GAP ANALYSIS ORCHESTRATION (Multi-Phase)
+// ============================================
+
+model GapAnalysisRun {
+  id              String             @id @default(cuid())
+  estatePlanId    String
+  estatePlan      EstatePlan         @relation(fields: [estatePlanId], references: [id], onDelete: Cascade)
+  status          GapRunStatus       @default(pending)
+  analysisType    String             @default("comprehensive")
+  currentPhase    Int                @default(1)
+  totalPhases     Int                @default(3)
+  progressPercent Int                @default(0)
+  startedAt       DateTime?
+  completedAt     DateTime?
+  error           String?            @db.Text
+  phases          GapAnalysisPhase[]
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  @@index([estatePlanId])
+  @@index([estatePlanId, status])
+}
+
+enum GapRunStatus {
+  pending
+  running
+  completed
+  failed
+}
+
+model GapAnalysisPhase {
+  id            String                 @id @default(cuid())
+  runId         String
+  run           GapAnalysisRun         @relation(fields: [runId], references: [id], onDelete: Cascade)
+  phaseNumber   Int
+  name          String
+  status        GapRunStatus           @default(pending)
+  totalRuns     Int                    @default(0)
+  completedRuns Int                    @default(0)
+  failedRuns    Int                    @default(0)
+  startedAt     DateTime?
+  completedAt   DateTime?
+  runResults    GapAnalysisRunResult[]
+  createdAt     DateTime               @default(now())
+  updatedAt     DateTime               @updatedAt
+
+  @@index([runId])
+}
+
+model GapAnalysisRunResult {
+  id          String           @id @default(cuid())
+  phaseId     String
+  phase       GapAnalysisPhase @relation(fields: [phaseId], references: [id], onDelete: Cascade)
+  runType     String
+  status      GapRunStatus     @default(pending)
+  result      Json?
+  rawOutput   String?          @db.Text
+  error       String?          @db.Text
+  startedAt   DateTime?
+  completedAt DateTime?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@index([phaseId])
 }
