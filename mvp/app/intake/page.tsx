@@ -14,6 +14,9 @@ import {
   Sparkles,
   CheckCircle2,
   Loader2,
+  MessageCircle,
+  ListChecks,
+  Heart,
 } from "lucide-react";
 import { Button } from "../components/ui";
 
@@ -66,6 +69,23 @@ function IntakeLandingContent() {
       localStorage.setItem("estatePlanSessionId", sessionId);
       localStorage.setItem("estatePlanId", newPlan.id);
       router.push(`/intake/personal?planId=${newPlan.id}`);
+    } catch (error) {
+      console.error("Failed to create estate plan:", error);
+      setIsCreating(false);
+    }
+  };
+
+  const handleStartGuided = async () => {
+    setIsCreating(true);
+    try {
+      const sessionId = `session_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+      const newPlanId = await createEstatePlan({
+        sessionId,
+        name: "My Estate Plan",
+      });
+      localStorage.setItem("estatePlanSessionId", sessionId);
+      localStorage.setItem("estatePlanId", newPlanId);
+      router.push(`/intake/guided?planId=${newPlanId}`);
     } catch (error) {
       console.error("Failed to create estate plan:", error);
       setIsCreating(false);
@@ -294,58 +314,114 @@ function IntakeLandingContent() {
     );
   }
 
-  // New user - document-first flow
+  // New user - mode selector
   return (
     <div className="max-w-xl mx-auto space-y-8">
+      {/* Emotional Banner */}
+      <div className="bg-[var(--accent-muted)] border border-[var(--accent-purple)]/20 rounded-xl p-4">
+        <div className="flex items-start gap-3">
+          <Heart className="w-5 h-5 flex-shrink-0 mt-0.5 text-[var(--accent-purple)]" />
+          <p className="text-sm text-[var(--accent-purple)]">
+            Taking this step shows you care about your loved ones.
+            <span className="block mt-1 opacity-80">
+              There&apos;s no rush - save your progress and return anytime.
+            </span>
+          </p>
+        </div>
+      </div>
+
       {/* Hero Section */}
       <div className="text-center space-y-3">
         <div className="inline-flex items-center justify-center w-14 h-14 rounded-xl mb-2 bg-[var(--accent-muted)]">
           <FileText className="w-7 h-7 text-[var(--accent-purple)]" />
         </div>
         <h1 className="text-section text-[var(--text-heading)]">
-          Estate Plan Intake
+          Create Your Estate Plan
         </h1>
         <p className="text-[var(--text-muted)] max-w-md mx-auto">
-          Upload your existing documents or start with a blank questionnaire.
+          Choose how you&apos;d like to get started
         </p>
       </div>
 
-      {/* Primary CTA - Upload Documents */}
+      {/* Mode Selection */}
       <div className="space-y-4">
+        {/* Quick Start - Guided Flow (Recommended) */}
         <button
-          onClick={handleStartWithDocuments}
+          onClick={handleStartGuided}
           disabled={isCreating}
-          className="w-full rounded-xl p-5 bg-[var(--accent-purple)] hover:bg-[var(--accent-hover)] disabled:opacity-50 disabled:cursor-not-allowed transition-all group"
+          className="w-full rounded-xl p-5 bg-[var(--accent-purple)] hover:bg-[var(--accent-hover)] disabled:opacity-50 disabled:cursor-not-allowed transition-all group text-left"
         >
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
-              <Upload className="w-6 h-6 text-white" />
+              <MessageCircle className="w-6 h-6 text-white" />
             </div>
-            <div className="text-left flex-1">
-              <h3 className="font-medium text-white mb-0.5">Upload Documents</h3>
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-0.5">
+                <h3 className="font-medium text-white">Quick Start</h3>
+                <span className="text-xs bg-white/20 px-2 py-0.5 rounded-full text-white/90">Recommended</span>
+              </div>
               <p className="text-white/70 text-sm">
-                Wills, trusts, powers of attorney
+                Guided conversation • 15-20 minutes
               </p>
             </div>
             <ChevronRight className="w-5 h-5 text-white/70 group-hover:translate-x-0.5 transition-transform" />
           </div>
+          <div className="flex items-center gap-4 mt-4 pt-4 border-t border-white/10 text-sm text-white/80">
+            <span className="flex items-center gap-1.5">
+              <Check className="w-4 h-4" /> Simple questions
+            </span>
+            <span className="flex items-center gap-1.5">
+              <Check className="w-4 h-4" /> No jargon
+            </span>
+            <span className="flex items-center gap-1.5">
+              <Check className="w-4 h-4" /> Mobile friendly
+            </span>
+          </div>
         </button>
 
-        {/* Benefits */}
-        <div className="grid grid-cols-3 gap-2 text-sm">
-          <div className="flex flex-col items-center gap-2 p-3 bg-white border border-[var(--border)] rounded-lg">
-            <Clock className="w-4 h-4 text-[var(--success)]" />
-            <span className="text-[var(--text-muted)] text-xs">Save 15+ min</span>
+        {/* Comprehensive Form Option */}
+        <button
+          onClick={handleStartNew}
+          disabled={isCreating}
+          className="w-full rounded-xl p-5 bg-white border-2 border-[var(--border)] hover:border-[var(--accent-purple)] disabled:opacity-50 disabled:cursor-not-allowed transition-all group text-left"
+        >
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-[var(--off-white)] rounded-lg flex items-center justify-center">
+              <ListChecks className="w-6 h-6 text-[var(--text-heading)]" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-medium text-[var(--text-heading)] mb-0.5">
+                Comprehensive Form
+              </h3>
+              <p className="text-[var(--text-muted)] text-sm">
+                All sections at once • For detailed input
+              </p>
+            </div>
+            <ChevronRight className="w-5 h-5 text-[var(--text-muted)] group-hover:translate-x-0.5 group-hover:text-[var(--accent-purple)] transition-all" />
           </div>
-          <div className="flex flex-col items-center gap-2 p-3 bg-white border border-[var(--border)] rounded-lg">
-            <CheckCircle2 className="w-4 h-4 text-[var(--info)]" />
-            <span className="text-[var(--text-muted)] text-xs">Auto-fill forms</span>
+        </button>
+
+        {/* Upload Documents Option */}
+        <button
+          onClick={handleStartWithDocuments}
+          disabled={isCreating}
+          className="w-full rounded-xl p-5 bg-white border-2 border-[var(--border)] hover:border-[var(--accent-purple)] disabled:opacity-50 disabled:cursor-not-allowed transition-all group text-left"
+        >
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-[var(--off-white)] rounded-lg flex items-center justify-center">
+              <Upload className="w-6 h-6 text-[var(--text-heading)]" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-medium text-[var(--text-heading)] mb-0.5">
+                Upload Existing Documents
+              </h3>
+              <p className="text-[var(--text-muted)] text-sm">
+                AI extracts info from your files
+              </p>
+            </div>
+            <ChevronRight className="w-5 h-5 text-[var(--text-muted)] group-hover:translate-x-0.5 group-hover:text-[var(--accent-purple)] transition-all" />
           </div>
-          <div className="flex flex-col items-center gap-2 p-3 bg-white border border-[var(--border)] rounded-lg">
-            <Sparkles className="w-4 h-4 text-[var(--accent-purple)]" />
-            <span className="text-[var(--text-muted)] text-xs">AI analysis</span>
-          </div>
-        </div>
+        </button>
       </div>
 
       {/* Loading State */}
@@ -356,49 +432,46 @@ function IntakeLandingContent() {
         </div>
       )}
 
-      {/* Supported Document Types */}
-      <div className="bg-[var(--off-white)] border border-[var(--border)] rounded-xl p-5">
-        <h2 className="text-label mb-4 flex items-center gap-2">
-          <FileText className="w-3.5 h-3.5" />
-          Supported Documents
+      {/* Info Section */}
+      <div className="bg-[var(--off-white)] border border-[var(--border)] rounded-xl p-5 space-y-4">
+        <h2 className="text-sm font-medium text-[var(--text-heading)]">
+          What happens next?
         </h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-sm">
-          {[
-            "Will",
-            "Living Trust",
-            "Irrevocable Trust",
-            "Power of Attorney",
-            "Healthcare Proxy",
-            "Advance Directive",
-            "Beneficiary Forms",
-            "Property Deeds",
-            "Insurance Policies",
-          ].map((doc) => (
-            <div key={doc} className="flex items-center gap-2 text-[var(--text-body)]">
-              <Check className="w-3.5 h-3.5 flex-shrink-0 text-[var(--success)]" />
-              <span>{doc}</span>
+        <div className="space-y-3 text-sm">
+          <div className="flex items-start gap-3">
+            <div className="w-6 h-6 rounded-full bg-[var(--accent-muted)] text-[var(--accent-purple)] flex items-center justify-center text-xs font-medium flex-shrink-0">
+              1
             </div>
-          ))}
+            <div>
+              <p className="font-medium text-[var(--text-heading)]">Answer a few questions</p>
+              <p className="text-[var(--text-muted)]">About you, your family, and what you own</p>
+            </div>
+          </div>
+          <div className="flex items-start gap-3">
+            <div className="w-6 h-6 rounded-full bg-[var(--accent-muted)] text-[var(--accent-purple)] flex items-center justify-center text-xs font-medium flex-shrink-0">
+              2
+            </div>
+            <div>
+              <p className="font-medium text-[var(--text-heading)]">Get a personalized analysis</p>
+              <p className="text-[var(--text-muted)]">AI reviews your situation and identifies gaps</p>
+            </div>
+          </div>
+          <div className="flex items-start gap-3">
+            <div className="w-6 h-6 rounded-full bg-[var(--accent-muted)] text-[var(--accent-purple)] flex items-center justify-center text-xs font-medium flex-shrink-0">
+              3
+            </div>
+            <div>
+              <p className="font-medium text-[var(--text-heading)]">Receive your documents</p>
+              <p className="text-[var(--text-muted)]">Draft documents ready for attorney review</p>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Secondary Option - Start Fresh */}
-      <div className="pt-4 border-t border-[var(--border)] text-center">
-        <p className="text-sm text-[var(--text-muted)] mb-2">
-          Don&apos;t have documents yet?
-        </p>
-        <button
-          onClick={handleStartNew}
-          disabled={isCreating}
-          className="font-medium text-sm inline-flex items-center gap-1 text-[var(--accent-purple)] disabled:opacity-50 hover:gap-1.5 transition-all"
-        >
-          Start with blank questionnaire
-          <ChevronRight className="w-4 h-4" />
-        </button>
-        <p className="text-xs text-[var(--text-caption)] mt-1">
-          Takes about 15-20 minutes
-        </p>
-      </div>
+      {/* Privacy Note */}
+      <p className="text-xs text-[var(--text-caption)] text-center">
+        Your information is encrypted and never shared without your permission.
+      </p>
     </div>
   );
 }

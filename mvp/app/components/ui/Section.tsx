@@ -2,7 +2,7 @@
 
 import { forwardRef, HTMLAttributes } from "react";
 
-type SectionVariant = "default" | "cream" | "lavender" | "dark" | "deep-purple";
+type SectionVariant = "default" | "cream" | "lavender" | "dark" | "gradient";
 type SectionSize = "sm" | "md" | "lg";
 
 interface SectionProps extends HTMLAttributes<HTMLElement> {
@@ -12,17 +12,18 @@ interface SectionProps extends HTMLAttributes<HTMLElement> {
   containerNarrow?: boolean;
 }
 
+// Cohere-style section backgrounds
 const variantStyles: Record<SectionVariant, string> = {
-  default: "bg-white text-[var(--foreground)]",
-  cream: "bg-[var(--off-white)] text-[var(--foreground)]",
-  lavender: "bg-gradient-to-b from-[var(--lavender)] to-[#A89CF5] text-[var(--foreground)]",
-  dark: "bg-gradient-to-br from-[#1A1A2E] to-[#16213E] text-white",
-  "deep-purple": "bg-[var(--deep-purple)] text-white",
+  default: "bg-white text-[var(--text-primary)]",
+  cream: "bg-[var(--cream)] text-[var(--text-primary)]",
+  lavender: "bg-[var(--soft-lavender)] text-[var(--text-primary)]",
+  dark: "bg-[var(--volcanic-black)] text-white",
+  gradient: "bg-[var(--gradient-hero)] text-[var(--text-primary)]",
 };
 
 const sizeStyles: Record<SectionSize, string> = {
   sm: "py-12 md:py-16",
-  md: "py-16 md:py-20",
+  md: "py-16 md:py-24",
   lg: "py-20 md:py-32",
 };
 
@@ -83,15 +84,15 @@ export function SectionHeader({
   return (
     <div className={`${centered ? "text-center" : ""} mb-12 md:mb-16 ${className}`}>
       {label && (
-        <span className="text-label mb-4 block">
+        <span className="inline-flex items-center px-4 py-1.5 rounded-full text-xs font-medium uppercase tracking-wider border border-[var(--coral)] text-[var(--coral)] mb-6">
           {label}
         </span>
       )}
-      <h2 className="text-section text-[#1D1D1F] mb-4">
+      <h2 className="text-section text-[var(--text-primary)] mb-4">
         {title}
       </h2>
       {description && (
-        <p className={`text-body-lg text-[var(--foreground-muted)] ${centered ? "max-w-2xl mx-auto" : "max-w-2xl"}`}>
+        <p className={`text-body-lg text-[var(--text-secondary)] ${centered ? "max-w-2xl mx-auto" : "max-w-2xl"}`}>
           {description}
         </p>
       )}

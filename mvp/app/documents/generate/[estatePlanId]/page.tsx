@@ -8,7 +8,8 @@ import {
   useIntakeProgress,
 } from "../../../hooks/usePrismaQueries";
 import Link from "next/link";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
+import Button from "../../../components/ui/Button";
 import ReactMarkdown from "react-markdown";
 
 type DocumentType = "will" | "trust" | "poa_financial" | "poa_healthcare" | "healthcare_directive" | "hipaa";
@@ -120,6 +121,8 @@ export default function DocumentGeneratePage() {
     documentId: null,
   });
   const [useAI, setUseAI] = useState(false);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const pdfContentRef = useRef<HTMLDivElement>(null);
 
   // Fetch estate plan
   const { data: estatePlan, isLoading: estatePlanLoading } = useEstatePlan(estatePlanId);
@@ -133,8 +136,6 @@ export default function DocumentGeneratePage() {
   // Fetch intake progress
   const { data: intakeProgress } = useIntakeProgress(estatePlanId);
 
-  // Document generation action
-
   // Parse missing documents from gap analysis
   const missingDocTypes = new Set<string>();
   if (gapAnalysis?.missingDocuments) {
@@ -146,7 +147,7 @@ export default function DocumentGeneratePage() {
     }
   }
 
-  // Handle document generation
+  // Handle document generation - calls API directly (bypasses Convex timeout)
   const handleGenerate = useCallback(async (docType: DocumentType) => {
     setGenerationState({
       isGenerating: true,
@@ -222,9 +223,89 @@ export default function DocumentGeneratePage() {
     }
   }, [previewState.content]);
 
+  // Download as PDF
+  const handleDownloadPDF = useCallback(async () => {
+    if (!pdfContentRef.current) return;
+
+    setIsGeneratingPDF(true);
+    try {
+      // Dynamically import html2pdf to avoid SSR issues
+      const html2pdfModule = await import("html2pdf.js");
+      const html2pdf = html2pdfModule.default;
+
+      const element = pdfContentRef.current;
+      const filename = `${previewState.title.replace(/\s+/g, "_")}.pdf`;
+
+      // Temporarily apply print-friendly styles for PDF generation
+      const originalStyle = element.getAttribute("style") || "";
+      element.style.cssText = `
+        background-color: white !important;
+        color: black !important;
+        font-family: 'Times New Roman', Times, serif !important;
+        font-size: 12pt !important;
+        line-height: 1.6 !important;
+        padding: 0 !important;
+      `;
+
+      // Apply styles to all child elements
+      const allElements = element.querySelectorAll("*");
+      const originalStyles: string[] = [];
+      allElements.forEach((el, index) => {
+        const htmlEl = el as HTMLElement;
+        originalStyles[index] = htmlEl.getAttribute("style") || "";
+        htmlEl.style.color = "black";
+        htmlEl.style.backgroundColor = "transparent";
+      });
+
+      // Style headings specifically
+      element.querySelectorAll("h1, h2, h3, h4, h5, h6").forEach((heading) => {
+        const h = heading as HTMLElement;
+        h.style.fontWeight = "bold";
+        h.style.marginTop = "1em";
+        h.style.marginBottom = "0.5em";
+      });
+
+      element.querySelectorAll("h1").forEach((h) => {
+        (h as HTMLElement).style.fontSize = "18pt";
+      });
+      element.querySelectorAll("h2").forEach((h) => {
+        (h as HTMLElement).style.fontSize = "16pt";
+      });
+      element.querySelectorAll("h3").forEach((h) => {
+        (h as HTMLElement).style.fontSize = "14pt";
+      });
+
+      const opt = {
+        margin: [0.75, 0.75, 0.75, 0.75] as [number, number, number, number],
+        filename,
+        image: { type: "jpeg" as const, quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, logging: false, backgroundColor: "#ffffff" },
+        jsPDF: { unit: "in", format: "letter", orientation: "portrait" as const },
+        pagebreak: { mode: ["avoid-all", "css", "legacy"] },
+      };
+
+      await html2pdf().set(opt).from(element).save();
+
+      // Restore original styles
+      element.setAttribute("style", originalStyle);
+      allElements.forEach((el, index) => {
+        const htmlEl = el as HTMLElement;
+        if (originalStyles[index]) {
+          htmlEl.setAttribute("style", originalStyles[index]);
+        } else {
+          htmlEl.removeAttribute("style");
+        }
+      });
+    } catch (error) {
+      console.error("Failed to generate PDF:", error);
+    } finally {
+      setIsGeneratingPDF(false);
+    }
+  }, [previewState.title]);
+
   if (estatePlanLoading || !estatePlan) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
       </div>
     );
@@ -233,19 +314,19 @@ export default function DocumentGeneratePage() {
   const hasEnoughData = intakeProgress && intakeProgress.percentComplete >= 40;
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Header */}
-      <header className="bg-white shadow-sm">
+      <header className="bg-white dark:bg-gray-800 shadow-sm">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
           <Link
             href="/"
-            className="text-xl font-bold text-[var(--text-heading)] hover:text-[var(--accent-purple)] transition-colors"
+            className="text-xl font-bold text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
           >
             Estate Planning Assistant
           </Link>
           <Link
             href={`/analysis/${estatePlanId}`}
-            className="text-sm text-[var(--text-muted)] hover:text-[var(--text-body)]"
+            className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
           >
             Back to Analysis
           </Link>
@@ -255,24 +336,24 @@ export default function DocumentGeneratePage() {
       <main className="max-w-4xl mx-auto px-4 py-8">
         {/* Page Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-[var(--text-heading)]">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
             Generate Documents
           </h1>
-          <p className="text-[var(--text-body)] mt-2">
+          <p className="text-gray-600 dark:text-gray-400 mt-2">
             Select a document type to generate a customized draft based on your information.
           </p>
         </div>
 
         {/* Progress Warning */}
         {!hasEnoughData && (
-          <div className="mb-6 bg-[var(--warning-muted)] border border-[var(--warning)] rounded-lg p-4">
+          <div className="mb-6 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
             <div className="flex gap-3">
               <svg className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
               </svg>
               <div>
-                <h3 className="font-medium text-[var(--warning)]">More Information Needed</h3>
-                <p className="text-sm text-[var(--warning)] mt-1">
+                <h3 className="font-medium text-amber-800 dark:text-amber-200">More Information Needed</h3>
+                <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
                   Your intake questionnaire is only {intakeProgress?.percentComplete || 0}% complete.
                   Documents generated with incomplete information will have placeholder values.{" "}
                   <Link href={`/intake/${estatePlanId}`} className="underline hover:no-underline">
@@ -286,11 +367,11 @@ export default function DocumentGeneratePage() {
         )}
 
         {/* AI Enhancement Toggle */}
-        <div className="mb-6 bg-white rounded-lg shadow p-4">
+        <div className="mb-6 bg-white dark:bg-gray-800 rounded-lg shadow p-4">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="font-medium text-[var(--text-heading)]">AI-Enhanced Generation</h3>
-              <p className="text-sm text-[var(--text-muted)]">
+              <h3 className="font-medium text-gray-900 dark:text-white">AI-Enhanced Generation</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 Use Claude AI to generate more detailed and customized documents
               </p>
             </div>
@@ -299,7 +380,7 @@ export default function DocumentGeneratePage() {
               className={`
                 relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent
                 transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2
-                ${useAI ? "bg-blue-600" : "bg-[var(--border)]"}
+                ${useAI ? "bg-blue-600" : "bg-gray-200 dark:bg-gray-600"}
               `}
             >
               <span
@@ -315,14 +396,14 @@ export default function DocumentGeneratePage() {
 
         {/* Error Display */}
         {generationState.error && (
-          <div className="mb-6 bg-[var(--error-muted)] border border-[var(--error)] rounded-lg p-4">
+          <div className="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
             <div className="flex gap-3">
               <svg className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <div>
-                <h3 className="font-medium text-[var(--error)]">Generation Error</h3>
-                <p className="text-sm text-[var(--error)] mt-1">{generationState.error}</p>
+                <h3 className="font-medium text-red-800 dark:text-red-200">Generation Error</h3>
+                <p className="text-sm text-red-700 dark:text-red-300 mt-1">{generationState.error}</p>
               </div>
             </div>
           </div>
@@ -340,11 +421,11 @@ export default function DocumentGeneratePage() {
               <div
                 key={doc.type}
                 className={`
-                  bg-white rounded-lg shadow p-6 border-2 transition-colors
+                  bg-white dark:bg-gray-800 rounded-lg shadow p-6 border-2 transition-colors
                   ${isHighlighted
-                    ? "border-blue-500 ring-2 ring-[var(--accent-muted)]"
+                    ? "border-blue-500 ring-2 ring-blue-200 dark:ring-blue-800"
                     : isRecommended
-                      ? "border-[var(--error)]"
+                      ? "border-red-200 dark:border-red-800"
                       : "border-transparent"
                   }
                 `}
@@ -355,56 +436,40 @@ export default function DocumentGeneratePage() {
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="font-semibold text-[var(--text-heading)]">
+                      <h3 className="font-semibold text-gray-900 dark:text-white">
                         {doc.name}
                       </h3>
                       {isRecommended && (
-                        <span className="text-xs px-2 py-0.5 bg-[var(--error-muted)] text-[var(--error)] rounded-full">
+                        <span className="text-xs px-2 py-0.5 bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300 rounded-full">
                           Recommended
                         </span>
                       )}
                       {existingDoc && (
-                        <span className="text-xs px-2 py-0.5 bg-[var(--success-muted)] text-[var(--success)] rounded-full">
+                        <span className="text-xs px-2 py-0.5 bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 rounded-full">
                           Draft v{existingDoc.version}
                         </span>
                       )}
                     </div>
-                    <p className="text-sm text-[var(--text-body)] mt-1">
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                       {doc.description}
                     </p>
-                    <p className="text-xs text-[var(--text-caption)] mt-1">
+                    <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
                       Est. time: {doc.estimatedTime}
                     </p>
                     <div className="mt-4 flex gap-2">
-                      <button
+                      <Button
+                        variant="primary"
+                        size="sm"
                         onClick={() => handleGenerate(doc.type)}
                         disabled={generationState.isGenerating}
-                        className={`
-                          px-4 py-2 rounded-lg text-sm font-medium transition-colors
-                          ${isGenerating
-                            ? "bg-[var(--accent-muted)] text-[var(--accent-purple)] cursor-wait"
-                            : generationState.isGenerating
-                              ? "bg-[var(--off-white)] text-[var(--text-caption)] cursor-not-allowed"
-                              : "bg-[var(--accent-purple)] hover:opacity-90 text-white"
-                          }
-                        `}
+                        isLoading={isGenerating}
                       >
-                        {isGenerating ? (
-                          <span className="flex items-center gap-2">
-                            <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                            </svg>
-                            Generating...
-                          </span>
-                        ) : existingDoc ? (
-                          "Regenerate"
-                        ) : (
-                          "Generate"
-                        )}
-                      </button>
+                        {isGenerating ? "Generating..." : existingDoc ? "Regenerate" : "Generate"}
+                      </Button>
                       {existingDoc && (
-                        <button
+                        <Button
+                          variant="secondary"
+                          size="sm"
                           onClick={() => {
                             setPreviewState({
                               isOpen: true,
@@ -413,10 +478,9 @@ export default function DocumentGeneratePage() {
                               documentId: existingDoc.id,
                             });
                           }}
-                          className="px-4 py-2 bg-[var(--off-white)] text-[var(--text-body)] hover:bg-[var(--border)] rounded-lg text-sm font-medium transition-colors"
                         >
                           View Draft
-                        </button>
+                        </Button>
                       )}
                     </div>
                   </div>
@@ -427,8 +491,8 @@ export default function DocumentGeneratePage() {
         </div>
 
         {/* Disclaimer */}
-        <div className="mt-8 bg-[var(--warning-muted)] border border-[var(--warning)] rounded-lg p-4">
-          <p className="text-sm text-[var(--warning)]">
+        <div className="mt-8 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+          <p className="text-sm text-yellow-700 dark:text-yellow-300">
             <strong>Disclaimer:</strong> Generated documents are drafts for informational purposes only and do not constitute legal advice.
             All documents should be reviewed by a licensed attorney in your state before signing or relying upon them.
           </p>
@@ -440,16 +504,16 @@ export default function DocumentGeneratePage() {
         <div className="fixed inset-0 z-50 overflow-y-auto">
           <div className="fixed inset-0 bg-black/50" onClick={() => setPreviewState(prev => ({ ...prev, isOpen: false }))} />
           <div className="relative min-h-screen flex items-center justify-center p-4">
-            <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col">
+            <div className="relative bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col">
               {/* Modal Header */}
-              <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border)]">
-                <h2 className="text-xl font-semibold text-[var(--text-heading)]">
+              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
                   {previewState.title}
                 </h2>
                 <div className="flex items-center gap-2">
                   <button
                     onClick={handleCopy}
-                    className="p-2 text-[var(--text-muted)] hover:text-[var(--text-body)] hover:bg-[var(--off-white)] rounded-lg transition-colors"
+                    className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                     title="Copy to clipboard"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -458,7 +522,7 @@ export default function DocumentGeneratePage() {
                   </button>
                   <button
                     onClick={handleDownload}
-                    className="p-2 text-[var(--text-muted)] hover:text-[var(--text-body)] hover:bg-[var(--off-white)] rounded-lg transition-colors"
+                    className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                     title="Download as Markdown"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -466,8 +530,26 @@ export default function DocumentGeneratePage() {
                     </svg>
                   </button>
                   <button
+                    onClick={handleDownloadPDF}
+                    disabled={isGeneratingPDF}
+                    className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors disabled:opacity-50"
+                    title="Download as PDF"
+                  >
+                    {isGeneratingPDF ? (
+                      <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
+                    ) : (
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 11v6m-3-3h6" />
+                      </svg>
+                    )}
+                  </button>
+                  <button
                     onClick={() => setPreviewState(prev => ({ ...prev, isOpen: false }))}
-                    className="p-2 text-[var(--text-muted)] hover:text-[var(--text-body)] hover:bg-[var(--off-white)] rounded-lg transition-colors"
+                    className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -478,28 +560,52 @@ export default function DocumentGeneratePage() {
 
               {/* Modal Body - Document Content */}
               <div className="flex-1 overflow-y-auto p-6">
-                <div className="prose prose-sm max-w-none">
-                  <ReactMarkdown>{previewState.content}</ReactMarkdown>
+                <div ref={pdfContentRef} className="prose dark:prose-invert prose-sm max-w-none bg-white dark:bg-gray-800 pdf-content [&>hr]:hidden [&_hr]:hidden">
+                  <ReactMarkdown>{
+                    previewState.content
+                      .replace(/<br\s*\/?>/gi, "\n\n")
+                      .replace(/<hr\s*\/?>/gi, "\n\n")
+                      .replace(/^---+$/gm, "")
+                      .replace(/^\*\*\*+$/gm, "")
+                      .replace(/^___+$/gm, "")
+                  }</ReactMarkdown>
                 </div>
               </div>
 
               {/* Modal Footer */}
-              <div className="flex items-center justify-between px-6 py-4 border-t border-[var(--border)] bg-white/50 rounded-b-xl">
-                <p className="text-xs text-[var(--text-muted)]">
+              <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 rounded-b-xl">
+                <p className="text-xs text-gray-500 dark:text-gray-400">
                   This is a draft document. Please review with an attorney before signing.
                 </p>
                 <div className="flex gap-3">
                   <button
                     onClick={() => setPreviewState(prev => ({ ...prev, isOpen: false }))}
-                    className="px-4 py-2 text-[var(--text-body)] hover:bg-[var(--off-white)] rounded-lg text-sm font-medium transition-colors"
+                    className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-sm font-medium transition-colors"
                   >
                     Close
                   </button>
                   <button
                     onClick={handleDownload}
-                    className="px-4 py-2 bg-[var(--accent-purple)] hover:opacity-90 text-white rounded-lg text-sm font-medium transition-colors"
+                    className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-lg text-sm font-medium transition-colors"
                   >
-                    Download
+                    Download MD
+                  </button>
+                  <button
+                    onClick={handleDownloadPDF}
+                    disabled={isGeneratingPDF}
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50 flex items-center gap-2"
+                  >
+                    {isGeneratingPDF ? (
+                      <>
+                        <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                        </svg>
+                        Generating...
+                      </>
+                    ) : (
+                      "Download PDF"
+                    )}
                   </button>
                 </div>
               </div>

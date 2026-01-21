@@ -3,7 +3,7 @@
 import { forwardRef, ButtonHTMLAttributes, ReactNode } from "react";
 import { ArrowRight } from "lucide-react";
 
-type ButtonVariant = "primary" | "secondary" | "outline" | "ghost" | "danger" | "cta" | "link";
+type ButtonVariant = "primary" | "secondary" | "outline" | "accent" | "ghost" | "danger" | "link";
 type ButtonSize = "sm" | "md" | "lg";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -13,37 +13,37 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   leftIcon?: ReactNode;
   rightIcon?: ReactNode;
   fullWidth?: boolean;
-  pill?: boolean;
   showArrow?: boolean;
 }
 
+// Cohere-style button variants - pill-shaped, clean
 const variantStyles: Record<ButtonVariant, string> = {
   primary:
-    "bg-[#1D1D1F] text-white relative overflow-hidden hover:-translate-y-[1px] active:translate-y-0 disabled:bg-gray-300 disabled:opacity-100 btn-gradient-primary",
+    "bg-[var(--volcanic-black)] text-white hover:bg-[#2D2D2B] hover:-translate-y-[1px] hover:shadow-[var(--shadow-md)] active:translate-y-0 disabled:bg-[var(--stone-grey)] disabled:cursor-not-allowed",
   secondary:
-    "bg-transparent text-[#1D1D1F] border border-[var(--light-gray)] relative overflow-hidden hover:-translate-y-[1px] hover:border-transparent active:translate-y-0 disabled:bg-transparent disabled:text-gray-400 disabled:border-gray-200 btn-gradient-secondary",
+    "bg-transparent text-[var(--text-primary)] border border-[var(--border-strong)] hover:bg-[var(--cream)] hover:border-[var(--volcanic-black)] hover:-translate-y-[1px] active:translate-y-0 disabled:text-[var(--text-tertiary)] disabled:border-[var(--border)] disabled:cursor-not-allowed",
   outline:
-    "border border-[var(--light-gray)] text-[#1D1D1F] hover:bg-[var(--off-white)] hover:-translate-y-[1px] active:translate-y-0 disabled:border-gray-200 disabled:text-gray-400",
+    "bg-transparent text-[var(--text-primary)] border border-[var(--border)] hover:bg-[var(--cream)] hover:border-[var(--text-primary)] hover:-translate-y-[1px] active:translate-y-0 disabled:text-[var(--text-tertiary)] disabled:border-[var(--border-light)] disabled:cursor-not-allowed",
+  accent:
+    "bg-[var(--coral)] text-white hover:bg-[var(--coral-dark)] hover:-translate-y-[1px] hover:shadow-[var(--shadow-md)] active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed",
   ghost:
-    "text-[var(--foreground)] hover:bg-[var(--off-white)] hover:-translate-y-[1px] active:translate-y-0 disabled:text-gray-400",
+    "bg-transparent text-[var(--text-secondary)] hover:bg-[var(--cream)] hover:text-[var(--text-primary)] disabled:text-[var(--text-tertiary)] disabled:cursor-not-allowed",
   danger:
-    "bg-[var(--error)] text-white hover:opacity-90 hover:-translate-y-[1px] active:translate-y-0 disabled:bg-red-300",
-  cta:
-    "bg-[#1D1D1F] text-white relative overflow-hidden hover:-translate-y-[1px] active:translate-y-0 disabled:bg-gray-400 btn-gradient-primary",
+    "bg-[var(--error)] text-white hover:opacity-90 hover:-translate-y-[1px] active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed",
   link:
-    "text-[#1D1D1F] font-medium hover:opacity-70 p-0 bg-transparent",
+    "text-[var(--text-primary)] font-medium hover:opacity-70 p-0 bg-transparent",
 };
 
 const sizeStyles: Record<ButtonSize, string> = {
-  sm: "px-4 py-2 text-sm gap-2",
-  md: "px-6 py-3 text-base gap-2",
-  lg: "px-8 py-4 text-lg gap-3",
+  sm: "px-5 py-2.5 text-sm gap-2",
+  md: "px-7 py-3.5 text-base gap-2",
+  lg: "px-9 py-4 text-lg gap-3",
 };
 
 const iconSizes: Record<ButtonSize, string> = {
   sm: "w-4 h-4",
   md: "w-5 h-5",
-  lg: "w-6 h-6",
+  lg: "w-5 h-5",
 };
 
 const Spinner = ({ size }: { size: ButtonSize }) => (
@@ -78,7 +78,6 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       leftIcon,
       rightIcon,
       fullWidth = false,
-      pill = false,
       showArrow = false,
       disabled,
       className = "",
@@ -89,7 +88,6 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ) => {
     const isDisabled = disabled || isLoading;
     const isLinkVariant = variant === "link";
-    const showCtaArrow = variant === "cta" && showArrow;
 
     return (
       <button
@@ -98,10 +96,9 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         className={`
           inline-flex items-center justify-center
           font-medium
-          transition-all duration-200 ease-in-out
-          focus:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2
-          disabled:cursor-not-allowed
-          ${pill ? "rounded-[50px]" : "rounded-lg"}
+          transition-all duration-[250ms] ease-[cubic-bezier(0.16,1,0.3,1)]
+          focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--coral)] focus-visible:ring-offset-2
+          rounded-full
           ${variantStyles[variant]}
           ${isLinkVariant ? "" : sizeStyles[size]}
           ${fullWidth ? "w-full" : ""}
@@ -114,14 +111,12 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         ) : leftIcon ? (
           <span className={iconSizes[size]}>{leftIcon}</span>
         ) : null}
-        {children}
+        <span className="relative z-10">{children}</span>
         {!isLoading && rightIcon && (
           <span className={iconSizes[size]}>{rightIcon}</span>
         )}
-        {!isLoading && showCtaArrow && (
-          <span className="inline-flex items-center justify-center w-7 h-7 bg-white/10 rounded">
-            <ArrowRight className="w-4 h-4" />
-          </span>
+        {!isLoading && showArrow && !isLinkVariant && (
+          <ArrowRight className={`${iconSizes[size]} transition-transform duration-200`} />
         )}
         {!isLoading && isLinkVariant && showArrow && (
           <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
@@ -135,6 +130,7 @@ Button.displayName = "Button";
 
 export default Button;
 
+// Link button with arrow animation
 export const LinkButton = forwardRef<
   HTMLAnchorElement,
   React.AnchorHTMLAttributes<HTMLAnchorElement> & { showArrow?: boolean }
@@ -143,8 +139,8 @@ export const LinkButton = forwardRef<
     ref={ref}
     className={`
       inline-flex items-center gap-2
-      text-black font-medium
-      transition-all duration-200 ease-in-out
+      text-[var(--text-primary)] font-medium
+      transition-all duration-[250ms] ease-[cubic-bezier(0.16,1,0.3,1)]
       hover:gap-3
       group
       ${className}

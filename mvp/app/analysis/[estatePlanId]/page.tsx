@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useCallback } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   useEstatePlan,
@@ -14,6 +14,7 @@ import { Tabs, TabPanel } from "../../components/ui/Tabs";
 import Badge from "../../components/ui/Badge";
 import Button from "../../components/ui/Button";
 import GapAnalysisCard, { ScoreRing, DOCUMENT_TYPE_NAMES } from "../../components/GapAnalysisCard";
+import { GapAnalysisProgress } from "@/components/GapAnalysisProgress";
 
 interface MissingDocument {
   // New API fields
@@ -21,7 +22,7 @@ interface MissingDocument {
   priority?: "critical" | "high" | "medium" | "low";
   urgency?: string;
   reason?: string;
-  consequences?: string;
+  consequences?: string | string[];
   estimatedCostToCreate?: { low: number; high: number };
   stateRequirements?: string;
   // Legacy fields for backward compatibility
@@ -57,7 +58,7 @@ interface Recommendation {
   priority?: "critical" | "high" | "medium" | "low";
   timeline?: string;
   estimatedCost?: { low: number; high: number };
-  estimatedBenefit?: string;
+  estimatedBenefit?: string | { low: number; high: number };
   detailedSteps?: string[];
   professionalNeeded?: string;
   riskOfDelay?: string;
@@ -110,13 +111,30 @@ function getScoreInterpretation(score: number): {
   };
 }
 
+// Score breakdown interface
+interface ScoreBreakdown {
+  startingScore: number;
+  deductions: Array<{
+    reason: string;
+    points: number;
+    category: string;
+  }>;
+  finalScore: number;
+  summary: string;
+}
+
 export default function AnalysisPage() {
   const params = useParams();
+  const router = useRouter();
   const estatePlanId = params.estatePlanId as string;
 
   const [isRunning, setIsRunning] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("overview");
+  const [analysisMode, setAnalysisMode] = useState<"quick" | "comprehensive">("quick");
+  const [progressStep, setProgressStep] = useState<string>("");
+  const [progressLog, setProgressLog] = useState<string[]>([]);
+  const [comprehensiveRunId, setComprehensiveRunId] = useState<string | null>(null);
 
   // Fetch estate plan and analysis
   const { data: estatePlan, isLoading: estatePlanLoading } = useEstatePlan(estatePlanId);
@@ -127,9 +145,38 @@ export default function AnalysisPage() {
   const { data: intakeData } = useEstatePlanFull(estatePlanId);
 
 
-  const handleRunAnalysis = useCallback(async () => {
+  const handleRunAnalysis = useCallback(async (mode: "quick" | "comprehensive" = "quick") => {
     setIsRunning(true);
     setError(null);
+    setProgressLog([]);
+    setProgressStep(mode === "quick" ? "Initializing analysis..." : "Starting comprehensive analysis...");
+
+    // Simulate progress updates for better UX
+    const progressSteps = mode === "quick"
+      ? [
+          "Connecting to AI assistant...",
+          "Analyzing your documents...",
+          "Reviewing state requirements...",
+          "Identifying gaps...",
+          "Generating recommendations...",
+        ]
+      : [
+          "Phase 1: Researching state laws...",
+          "Phase 1: Analyzing client context...",
+          "Phase 1: Creating document inventory...",
+          "Phase 2: Deep analysis in progress...",
+          "Phase 3: Synthesizing findings...",
+          "Generating final report...",
+        ];
+
+    let stepIndex = 0;
+    const progressInterval = setInterval(() => {
+      if (stepIndex < progressSteps.length) {
+        setProgressStep(progressSteps[stepIndex]);
+        setProgressLog(prev => [...prev, progressSteps[stepIndex]]);
+        stepIndex++;
+      }
+    }, mode === "quick" ? 8000 : 30000);
 
     try {
       // Build intake data object for the API
@@ -156,14 +203,38 @@ export default function AnalysisPage() {
 
       console.log("Built apiIntakeData:", JSON.stringify(apiIntakeData, null, 2));
 
-      // Call the API route directly (direct API call)
-      const response = await fetch("/api/gap-analysis", {
+      // Call different endpoints based on mode
+      // Comprehensive mode calls orchestrate directly to avoid nested fetch timeout
+      const endpoint = mode === "comprehensive"
+        ? "/api/gap-analysis/orchestrate"
+        : "/api/gap-analysis";
+
+      const response = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ intakeData: apiIntakeData }),
+        body: JSON.stringify({ intakeData: apiIntakeData, mode, estatePlanId }),
       });
 
       const result = await response.json();
+
+      // For comprehensive mode, the orchestration is async - we get a runId back
+      if (mode === "comprehensive") {
+        if (result.runId) {
+          // Orchestration started - redirect to preparation tasks page
+          console.log("Comprehensive analysis started, runId:", result.runId);
+          setComprehensiveRunId(result.runId as string);
+          clearInterval(progressInterval);
+          // Redirect to preparation tasks page where user can work while analysis runs
+          router.push(`/analysis/${estatePlanId}/prepare?runId=${result.runId}`);
+          setIsRunning(false);
+          return;
+        } else if (!result.success) {
+          clearInterval(progressInterval);
+          setError(result.error || "Failed to start comprehensive analysis");
+          setIsRunning(false);
+          return;
+        }
+      }
 
       if (!result.success) {
         setError(result.error || "Analysis failed");
@@ -180,6 +251,10 @@ export default function AnalysisPage() {
         recommendationsCount: (result.analysisResult?.recommendations || result.analysisResult?.prioritizedRecommendations)?.length || 0,
         stateNotesCount: (result.analysisResult?.stateSpecificNotes || result.analysisResult?.stateSpecificConsiderations)?.length || 0,
       });
+
+      // Clear progress interval
+      clearInterval(progressInterval);
+      setProgressStep("Analysis complete!");
 
       // Validate we got meaningful data
       const missingDocs = result.analysisResult?.missingDocuments || [];
@@ -202,6 +277,9 @@ export default function AnalysisPage() {
       // Save results to Prisma via API
       await saveGapAnalysis(estatePlanId, {
         score: result.analysisResult.score || 50,
+        scoreBreakdown: result.analysisResult.scoreBreakdown
+          ? JSON.stringify(result.analysisResult.scoreBreakdown)
+          : undefined,
         estateComplexity: result.analysisResult.estateComplexity
           ? JSON.stringify(result.analysisResult.estateComplexity)
           : undefined,
@@ -223,9 +301,12 @@ export default function AnalysisPage() {
       });
 
     } catch (err) {
+      clearInterval(progressInterval);
       setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
+      clearInterval(progressInterval);
       setIsRunning(false);
+      setProgressStep("");
     }
   }, [estatePlanId, estatePlan, intakeData]);
 
@@ -244,6 +325,16 @@ export default function AnalysisPage() {
   const inconsistencies = parseJsonArray<Inconsistency>(latestAnalysis?.inconsistencies);
   const recommendations = parseJsonArray<Recommendation>(latestAnalysis?.recommendations);
   const stateNotes = parseJsonArray<StateNote>(latestAnalysis?.stateSpecificNotes);
+
+  // Parse score breakdown
+  const scoreBreakdown: ScoreBreakdown | null = useMemo(() => {
+    if (!latestAnalysis?.scoreBreakdown) return null;
+    try {
+      return JSON.parse(latestAnalysis.scoreBreakdown) as ScoreBreakdown;
+    } catch {
+      return null;
+    }
+  }, [latestAnalysis?.scoreBreakdown]);
 
   // Compute issues count (outdated + inconsistencies)
   const issuesCount = outdatedDocs.length + inconsistencies.length;
@@ -400,28 +491,97 @@ export default function AnalysisPage() {
             <h2 className="text-2xl font-bold text-[var(--text-heading)] mb-3">
               Ready to Analyze Your Estate Plan
             </h2>
-            <p className="text-[var(--text-body)] mb-8 max-w-lg mx-auto">
+            <p className="text-[var(--text-body)] mb-6 max-w-lg mx-auto">
               Our AI will review your intake data and identify gaps, outdated documents, and provide personalized recommendations based on your state&apos;s laws.
             </p>
-            <Button onClick={handleRunAnalysis} size="lg">
-              Run Gap Analysis
+
+            {/* Mode Selection */}
+            <div className="mb-6">
+              <p className="text-sm text-[var(--text-muted)] mb-3">Choose analysis depth:</p>
+              <div className="flex justify-center gap-3">
+                <button
+                  onClick={() => setAnalysisMode("quick")}
+                  className={`px-4 py-2 rounded-lg border-2 transition-all ${
+                    analysisMode === "quick"
+                      ? "border-[var(--accent-purple)] bg-[var(--accent-muted)] text-[var(--accent-purple)]"
+                      : "border-gray-200 hover:border-gray-300"
+                  }`}
+                >
+                  <div className="font-medium">Quick Analysis</div>
+                  <div className="text-xs text-[var(--text-muted)]">~1-2 min</div>
+                </button>
+                <button
+                  onClick={() => setAnalysisMode("comprehensive")}
+                  className={`px-4 py-2 rounded-lg border-2 transition-all ${
+                    analysisMode === "comprehensive"
+                      ? "border-[var(--accent-purple)] bg-[var(--accent-muted)] text-[var(--accent-purple)]"
+                      : "border-gray-200 hover:border-gray-300"
+                  }`}
+                >
+                  <div className="font-medium">Comprehensive</div>
+                  <div className="text-xs text-[var(--text-muted)]">~15-20 min (detailed)</div>
+                </button>
+              </div>
+            </div>
+
+            <Button onClick={() => handleRunAnalysis(analysisMode)} size="lg">
+              Run {analysisMode === "quick" ? "Quick" : "Comprehensive"} Analysis
             </Button>
           </div>
         )}
 
         {/* Running State */}
-        {isRunning && (
-          <div className="mb-8 bg-white rounded-xl shadow-lg p-8 text-center">
-            <div className="relative w-20 h-20 mx-auto mb-6">
-              <div className="absolute inset-0 rounded-full border-4 border-[var(--accent-muted)]"></div>
-              <div className="absolute inset-0 rounded-full border-4 border-[var(--accent-purple)] border-t-transparent animate-spin"></div>
+        {isRunning && !comprehensiveRunId && (
+          <div className="mb-8 bg-white rounded-xl shadow-lg p-8">
+            <div className="text-center mb-6">
+              <div className="relative w-16 h-16 mx-auto mb-4">
+                <div className="absolute inset-0 rounded-full border-4 border-[var(--accent-muted)]"></div>
+                <div className="absolute inset-0 rounded-full border-4 border-[var(--accent-purple)] border-t-transparent animate-spin"></div>
+              </div>
+              <h2 className="text-xl font-bold text-[var(--text-heading)] mb-2">
+                Analyzing Your Estate Plan...
+              </h2>
+              <p className="text-[var(--accent-purple)] font-medium">
+                {progressStep}
+              </p>
             </div>
-            <h2 className="text-2xl font-bold text-[var(--text-heading)] mb-3">
-              Analyzing Your Estate Plan...
-            </h2>
-            <p className="text-[var(--text-body)] max-w-lg mx-auto">
-              This may take a minute. We&apos;re reviewing your information and generating personalized recommendations.
+
+            {/* Progress Log - Terminal-like output */}
+            <div className="bg-gray-900 rounded-lg p-4 max-h-64 overflow-y-auto font-mono text-sm">
+              <div className="text-gray-400 mb-2">$ claude-code --analyze estate-plan</div>
+              {progressLog.map((log, idx) => (
+                <div key={idx} className="text-green-400 flex items-center gap-2">
+                  <span className="text-gray-500">[{String(idx + 1).padStart(2, "0")}]</span>
+                  <span>✓ {log}</span>
+                </div>
+              ))}
+              {progressStep && (
+                <div className="text-yellow-400 flex items-center gap-2 animate-pulse">
+                  <span className="text-gray-500">[{String(progressLog.length + 1).padStart(2, "0")}]</span>
+                  <span>▶ {progressStep}</span>
+                </div>
+              )}
+            </div>
+
+            <p className="text-center text-[var(--text-muted)] text-sm mt-4">
+              {analysisMode === "comprehensive"
+                ? "Setting up your analysis... You'll be redirected to preparation tasks shortly."
+                : "Quick analysis typically completes in 1-2 minutes."}
             </p>
+          </div>
+        )}
+
+        {/* Comprehensive Analysis Progress */}
+        {comprehensiveRunId && estatePlanId && (
+          <div className="mb-8">
+            <GapAnalysisProgress
+              estatePlanId={estatePlanId}
+              runId={comprehensiveRunId}
+              onComplete={() => {
+                setComprehensiveRunId(null);
+                setIsRunning(false);
+              }}
+            />
           </div>
         )}
 
@@ -436,7 +596,7 @@ export default function AnalysisPage() {
                 <h3 className="font-medium text-[var(--error)]">Analysis Failed</h3>
                 <p className="text-sm text-[var(--error)] mt-1">{error}</p>
                 <button
-                  onClick={handleRunAnalysis}
+                  onClick={() => handleRunAnalysis(analysisMode)}
                   className="mt-2 text-sm font-medium text-[var(--error)] hover:underline"
                 >
                   Try Again
@@ -464,13 +624,53 @@ export default function AnalysisPage() {
 
                 {/* Score Interpretation */}
                 {scoreInfo && (
-                  <div className="mb-8">
+                  <div className="mb-6">
                     <h2 className={`text-3xl font-bold ${scoreInfo.color} mb-2`}>
                       {scoreInfo.label}
                     </h2>
                     <p className="text-[var(--text-body)] max-w-md mx-auto">
                       {scoreInfo.description}
                     </p>
+                  </div>
+                )}
+
+                {/* Score Breakdown */}
+                {scoreBreakdown && scoreBreakdown.deductions && scoreBreakdown.deductions.length > 0 && (
+                  <div className="mb-8 max-w-lg mx-auto">
+                    <button
+                      onClick={() => {
+                        const el = document.getElementById("score-breakdown");
+                        el?.classList.toggle("hidden");
+                      }}
+                      className="text-sm text-[var(--accent-purple)] hover:underline flex items-center gap-1 mx-auto mb-3"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      Why this score?
+                    </button>
+                    <div id="score-breakdown" className="hidden bg-white/80 rounded-lg p-4 text-left border border-[var(--border)]">
+                      <p className="text-sm text-[var(--text-muted)] mb-3">
+                        Starting from 100 points, the following deductions were made:
+                      </p>
+                      <div className="space-y-2">
+                        {scoreBreakdown.deductions.map((d, idx) => (
+                          <div key={idx} className="flex justify-between items-center text-sm">
+                            <span className="text-[var(--text-body)]">{d.reason}</span>
+                            <span className="text-red-600 font-medium">-{d.points}</span>
+                          </div>
+                        ))}
+                        <div className="border-t border-[var(--border)] pt-2 mt-2 flex justify-between items-center font-medium">
+                          <span>Final Score</span>
+                          <span className={scoreInfo?.color || ""}>{scoreBreakdown.finalScore}</span>
+                        </div>
+                      </div>
+                      {scoreBreakdown.summary && (
+                        <p className="text-xs text-[var(--text-muted)] mt-3 italic">
+                          {scoreBreakdown.summary}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 )}
 
@@ -512,7 +712,7 @@ export default function AnalysisPage() {
                 <div className="mt-8 flex flex-wrap justify-center gap-4">
                   <Link
                     href={`/analysis/${estatePlanId}/visualization`}
-                    className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-all"
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-[#FF7759] hover:bg-[#E85A3C] text-white font-medium rounded-full shadow-md hover:shadow-lg transition-all"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
@@ -522,7 +722,7 @@ export default function AnalysisPage() {
                   </Link>
                   <Link
                     href={`/analysis/${estatePlanId}/reminders`}
-                    className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-all"
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-[#1D1D1B] hover:bg-[#2D2D2B] text-white font-medium rounded-full shadow-md hover:shadow-lg transition-all"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
@@ -537,16 +737,26 @@ export default function AnalysisPage() {
                 <span className="text-[var(--text-muted)]">
                   Analysis from {new Date(latestAnalysis.createdAt).toLocaleString()}
                 </span>
-                <button
-                  onClick={handleRunAnalysis}
-                  disabled={isRunning}
-                  className="text-[var(--accent-purple)] hover:opacity-80 font-medium inline-flex items-center gap-1"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                  </svg>
-                  Re-run Analysis
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => handleRunAnalysis("quick")}
+                    disabled={isRunning}
+                    className="text-[var(--accent-purple)] hover:opacity-80 font-medium inline-flex items-center gap-1 text-sm"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    Quick Re-run
+                  </button>
+                  <span className="text-gray-300">|</span>
+                  <button
+                    onClick={() => handleRunAnalysis("comprehensive")}
+                    disabled={isRunning}
+                    className="text-[var(--text-muted)] hover:text-[var(--accent-purple)] font-medium text-sm"
+                  >
+                    Comprehensive
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -683,7 +893,7 @@ export default function AnalysisPage() {
                             </p>
                             {doc.consequences && (
                               <p className="text-sm text-[var(--error)] mb-2">
-                                <strong>Without it:</strong> {doc.consequences}
+                                <strong>Without it:</strong> {Array.isArray(doc.consequences) ? doc.consequences.join(". ") : doc.consequences}
                               </p>
                             )}
                             {doc.estimatedCostToCreate && (
@@ -778,7 +988,12 @@ export default function AnalysisPage() {
                       {recommendations.map((rec, idx) => {
                         const title = rec.action || "Recommendation";
                         const priority = rec.priority || "medium";
-                        const description = rec.reason || rec.riskOfDelay || rec.estimatedBenefit || "";
+                        // Handle estimatedBenefit which might be an object {low, high}
+                        const benefitValue = rec.estimatedBenefit;
+                        const benefitText = typeof benefitValue === 'object' && benefitValue !== null && 'low' in benefitValue && 'high' in benefitValue
+                          ? `Estimated benefit: $${(benefitValue as {low: number; high: number}).low.toLocaleString()} - $${(benefitValue as {low: number; high: number}).high.toLocaleString()}`
+                          : benefitValue;
+                        const description = rec.reason || rec.riskOfDelay || benefitText || "";
                         return (
                           <div
                             key={idx}
@@ -961,7 +1176,7 @@ function PrintSection({ title, items, type }: PrintSectionProps) {
                 <>
                   <strong>{DOCUMENT_TYPE_NAMES[docName] || docName}</strong>
                   {" - "}
-                  {doc.reason || doc.consequences || "Recommended for your estate plan"}
+                  {doc.reason || (Array.isArray(doc.consequences) ? doc.consequences.join(". ") : doc.consequences) || "Recommended for your estate plan"}
                 </>
               );
             })()}
@@ -988,11 +1203,16 @@ function PrintSection({ title, items, type }: PrintSectionProps) {
             })()}
             {type === "recommendation" && (() => {
               const rec = item as Recommendation;
+              // Handle estimatedBenefit which might be an object {low, high} instead of string
+              const benefit = rec.estimatedBenefit;
+              const benefitText = typeof benefit === 'object' && benefit !== null && 'low' in benefit && 'high' in benefit
+                ? `$${(benefit as {low: number; high: number}).low.toLocaleString()} - $${(benefit as {low: number; high: number}).high.toLocaleString()}`
+                : benefit;
               return (
                 <>
                   <strong>{rec.action || "Recommendation"}</strong>
                   {" - "}
-                  {rec.reason || rec.riskOfDelay || rec.estimatedBenefit || ""}
+                  {rec.reason || rec.riskOfDelay || benefitText || ""}
                 </>
               );
             })()}

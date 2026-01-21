@@ -12,6 +12,23 @@ export async function GET(
     const latest = searchParams.get('latest') === 'true'
     const active = searchParams.get('active') === 'true'
     const history = searchParams.get('history') === 'true'
+    const runId = searchParams.get('runId')
+
+    // Get specific run by ID
+    if (runId) {
+      const run = await prisma.gapAnalysisRun.findFirst({
+        where: { id: runId, estatePlanId },
+        include: {
+          phases: {
+            include: {
+              runResults: true,
+            },
+            orderBy: { phaseNumber: 'asc' },
+          },
+        },
+      })
+      return NextResponse.json(run)
+    }
 
     if (latest) {
       const run = await prisma.gapAnalysisRun.findFirst({

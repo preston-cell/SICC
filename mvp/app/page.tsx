@@ -25,10 +25,27 @@ import {
   Menu,
   X,
 } from "lucide-react";
-import { Button, LinkButton } from "./components/ui";
-import Blob, { BlobContainer } from "./components/ui/Blob";
+import { Button } from "./components/ui";
 import Section, { SectionHeader } from "./components/ui/Section";
 import Footer from "./components/ui/Footer";
+import Navigation from "./components/ui/Navigation";
+import LogoMarquee from "./components/ui/LogoMarquee";
+import CapabilitiesSection from "./components/ui/CapabilitiesSection";
+import UseCasesSection from "./components/ui/UseCasesSection";
+import SecurityBentoGrid from "./components/ui/SecurityBentoGrid";
+import TestimonialSection from "./components/ui/TestimonialSection";
+
+// Colors - hardcoded for reliability
+const COLORS = {
+  coral: "#FF7759",
+  coralDark: "#E85A3C",
+  coralLight: "#FFB5A3",
+  volcanicBlack: "#1D1D1B",
+  mushroomGrey: "#6B6B5E",
+  cream: "#FAF9F7",
+  lavender: "#D4C8FF",
+  sage: "#A8C5B5",
+};
 
 // Animated counter
 function AnimatedCounter({ end, suffix = "" }: { end: number; suffix?: string }) {
@@ -52,7 +69,7 @@ function AnimatedCounter({ end, suffix = "" }: { end: number; suffix?: string })
   return <span ref={ref}>{count.toLocaleString()}{suffix}</span>;
 }
 
-// Feature card
+// Feature card - Cohere style
 function FeatureCard({
   icon: Icon,
   title,
@@ -72,19 +89,22 @@ function FeatureCard({
       ref={ref}
       initial={{ opacity: 0, y: 20 }}
       animate={isInView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.4, delay: index * 0.08 }}
-      className="group p-6 rounded-xl bg-white border border-[var(--border)] hover:border-[var(--border-strong)] hover:shadow-lg transition-all duration-200"
+      transition={{ duration: 0.4, delay: index * 0.08, ease: [0.16, 1, 0.3, 1] }}
+      className="group p-7 rounded-2xl bg-white border border-[rgba(29,29,27,0.08)] hover:border-[#FF7759] hover:shadow-xl transition-all duration-[400ms] ease-[cubic-bezier(0.16,1,0.3,1)]"
     >
-      <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-5 bg-[var(--accent-muted)]">
-        <Icon className="w-6 h-6 text-[var(--accent-purple)]" />
+      <div
+        className="w-12 h-12 rounded-xl flex items-center justify-center mb-5"
+        style={{ backgroundColor: "rgba(255, 119, 89, 0.1)" }}
+      >
+        <span style={{ color: COLORS.coral }}><Icon className="w-6 h-6" /></span>
       </div>
-      <h3 className="text-lg font-semibold text-[var(--foreground)] mb-2">{title}</h3>
-      <p className="text-[var(--foreground-muted)] leading-relaxed">{description}</p>
+      <h4 className="text-lg font-medium mb-2" style={{ color: COLORS.volcanicBlack }}>{title}</h4>
+      <p className="leading-relaxed" style={{ color: COLORS.mushroomGrey }}>{description}</p>
     </motion.div>
   );
 }
 
-// Step component
+// Step component - Cohere style
 function StepItem({
   number,
   title,
@@ -104,26 +124,29 @@ function StepItem({
       ref={ref}
       initial={{ opacity: 0, y: 12 }}
       animate={isInView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.4, delay: number * 0.1 }}
+      transition={{ duration: 0.4, delay: number * 0.1, ease: [0.16, 1, 0.3, 1] }}
       className="flex gap-5"
     >
       <div className="flex flex-col items-center">
-        <div className="w-10 h-10 rounded-full flex items-center justify-center font-semibold text-sm bg-black text-white">
+        <div
+          className="w-10 h-10 rounded-full flex items-center justify-center font-medium text-sm text-white"
+          style={{ backgroundColor: COLORS.volcanicBlack }}
+        >
           {number}
         </div>
         {!isLast && (
-          <div className="w-px flex-1 bg-[var(--border)] mt-3" />
+          <div className="w-px flex-1 mt-3" style={{ backgroundColor: "rgba(29,29,27,0.12)" }} />
         )}
       </div>
       <div className="flex-1 pb-8">
-        <h4 className="text-base font-semibold text-[var(--foreground)] mb-1.5">{title}</h4>
-        <p className="text-[var(--foreground-muted)]">{description}</p>
+        <h4 className="text-base font-medium mb-1.5" style={{ color: COLORS.volcanicBlack }}>{title}</h4>
+        <p style={{ color: COLORS.mushroomGrey }}>{description}</p>
       </div>
     </motion.div>
   );
 }
 
-// Document card
+// Document card - Cohere style
 function DocumentCard({
   icon: Icon,
   name,
@@ -143,14 +166,17 @@ function DocumentCard({
       ref={ref}
       initial={{ opacity: 0, y: 16 }}
       animate={isInView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.3, delay: index * 0.05 }}
-      className="group p-5 rounded-xl bg-white border border-[var(--border)] hover:border-[var(--accent-purple)] hover:shadow-md cursor-pointer transition-all duration-200"
+      transition={{ duration: 0.3, delay: index * 0.05, ease: [0.16, 1, 0.3, 1] }}
+      className="group p-5 rounded-xl bg-white border border-[rgba(29,29,27,0.08)] hover:border-[#FF7759] hover:shadow-lg cursor-pointer transition-all duration-[400ms] ease-[cubic-bezier(0.16,1,0.3,1)]"
     >
-      <div className="w-10 h-10 rounded-lg bg-[var(--off-white)] flex items-center justify-center mb-4 group-hover:bg-[var(--accent-muted)] transition-colors">
-        <Icon className="w-5 h-5 text-[var(--medium-gray)] group-hover:text-[var(--accent-purple)] transition-colors" />
+      <div
+        className="w-10 h-10 rounded-lg flex items-center justify-center mb-4 transition-colors duration-[250ms] group-hover:bg-[rgba(255,119,89,0.1)]"
+        style={{ backgroundColor: COLORS.cream }}
+      >
+        <Icon className="w-5 h-5 transition-colors duration-[250ms] text-[#6B6B5E] group-hover:text-[#FF7759]" />
       </div>
-      <h4 className="font-semibold text-[var(--foreground)] mb-1">{name}</h4>
-      <p className="text-sm text-[var(--foreground-muted)]">{description}</p>
+      <h4 className="font-medium mb-1" style={{ color: COLORS.volcanicBlack }}>{name}</h4>
+      <p className="text-sm" style={{ color: COLORS.mushroomGrey }}>{description}</p>
     </motion.div>
   );
 }
@@ -168,12 +194,12 @@ function EstatePlanCard({
   };
 }) {
   const statusConfig: Record<string, { color: string; bgColor: string; label: string }> = {
-    draft: { color: "var(--medium-gray)", bgColor: "var(--off-white)", label: "Draft" },
-    intake_in_progress: { color: "var(--info)", bgColor: "var(--info-muted)", label: "In Progress" },
-    intake_complete: { color: "var(--warning)", bgColor: "var(--warning-muted)", label: "Ready for Analysis" },
-    analysis_complete: { color: "var(--success)", bgColor: "var(--success-muted)", label: "Analyzed" },
-    documents_generated: { color: "var(--accent-purple)", bgColor: "var(--accent-muted)", label: "Documents Ready" },
-    complete: { color: "var(--success)", bgColor: "var(--success-muted)", label: "Complete" },
+    draft: { color: COLORS.mushroomGrey, bgColor: COLORS.cream, label: "Draft" },
+    intake_in_progress: { color: "#4A7DC9", bgColor: "rgba(74, 125, 201, 0.12)", label: "In Progress" },
+    intake_complete: { color: "#D4A04A", bgColor: "rgba(212, 160, 74, 0.12)", label: "Ready for Analysis" },
+    analysis_complete: { color: "#4A9D6B", bgColor: "rgba(74, 157, 107, 0.12)", label: "Analyzed" },
+    documents_generated: { color: COLORS.coral, bgColor: "rgba(255, 119, 89, 0.12)", label: "Documents Ready" },
+    complete: { color: "#4A9D6B", bgColor: "rgba(74, 157, 107, 0.12)", label: "Complete" },
   };
 
   const config = statusConfig[plan.status] || statusConfig.draft;
@@ -186,14 +212,14 @@ function EstatePlanCard({
           : `/analysis/${plan.id}`
       }
     >
-      <div className="group p-5 rounded-xl bg-white border border-[var(--border)] hover:border-[var(--accent-purple)] hover:shadow-md transition-all duration-200">
+      <div className="group p-5 rounded-xl bg-white border border-[rgba(29,29,27,0.08)] hover:border-[#FF7759] hover:shadow-lg transition-all duration-[400ms] ease-[cubic-bezier(0.16,1,0.3,1)]">
         <div className="flex items-start justify-between mb-3">
           <div>
-            <h4 className="font-semibold text-[var(--foreground)] group-hover:text-[var(--accent-purple)] transition-colors">
+            <h4 className="font-medium group-hover:text-[#FF7759] transition-colors" style={{ color: COLORS.volcanicBlack }}>
               {plan.name || "My Estate Plan"}
             </h4>
             {plan.stateOfResidence && (
-              <p className="text-sm text-[var(--foreground-muted)]">{plan.stateOfResidence}</p>
+              <p className="text-sm" style={{ color: COLORS.mushroomGrey }}>{plan.stateOfResidence}</p>
             )}
           </div>
           <span
@@ -207,10 +233,10 @@ function EstatePlanCard({
           </span>
         </div>
         <div className="flex items-center justify-between text-sm">
-          <span className="text-[var(--foreground-muted)]">
+          <span style={{ color: COLORS.mushroomGrey }}>
             Updated {new Date(plan.updatedAt).toLocaleDateString()}
           </span>
-          <span className="font-medium text-[var(--accent-purple)] flex items-center gap-1 group-hover:gap-2 transition-all">
+          <span className="font-medium flex items-center gap-1 group-hover:gap-2 transition-all duration-[250ms]" style={{ color: COLORS.coral }}>
             Continue
             <ChevronRight className="w-4 h-4" />
           </span>
@@ -235,31 +261,43 @@ export default function Home() {
   const { data: recentPlans } = useRecentEstatePlans(sessionId || undefined, 5);
 
   return (
-    <div className="min-h-screen bg-white text-[var(--foreground)] overflow-x-hidden">
-      {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 h-16 bg-white/95 backdrop-blur-md border-b border-[var(--border)]">
+    <div className="min-h-screen bg-white overflow-x-hidden" style={{ color: COLORS.volcanicBlack }}>
+      {/* Navigation - Cohere style */}
+      <nav className="fixed top-0 left-0 right-0 z-50 h-16 bg-white/95 backdrop-blur-md border-b border-[rgba(29,29,27,0.08)]">
         <div className="container h-full flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-lg flex items-center justify-center bg-black">
+            <div
+              className="w-9 h-9 rounded-full flex items-center justify-center"
+              style={{ backgroundColor: COLORS.volcanicBlack }}
+            >
               <Shield className="w-5 h-5 text-white" />
             </div>
-            <span className="text-lg font-semibold">EstatePlan</span>
+            <span className="text-lg font-medium" style={{ color: COLORS.volcanicBlack }}>EstatePlan</span>
           </Link>
 
           {/* Desktop Nav */}
-          <div className="hidden md:flex items-center gap-6">
+          <div className="hidden md:flex items-center gap-8">
             {recentPlans && recentPlans.length > 0 && (
               <button
                 onClick={() => setShowDashboard(!showDashboard)}
-                className="text-[#6B6B6B] hover:text-[#1A1A1A] font-medium transition-colors"
+                className="font-medium transition-colors duration-[150ms] hover:text-[#1D1D1B]"
+                style={{ color: COLORS.mushroomGrey }}
               >
                 My Plans
               </button>
             )}
-            <a href="#features" className="text-[#6B6B6B] hover:text-[#1A1A1A] font-medium transition-colors">
+            <a
+              href="#features"
+              className="font-medium transition-colors duration-[150ms] hover:text-[#1D1D1B]"
+              style={{ color: COLORS.mushroomGrey }}
+            >
               Features
             </a>
-            <a href="#how-it-works" className="text-[#6B6B6B] hover:text-[#1A1A1A] font-medium transition-colors">
+            <a
+              href="#how-it-works"
+              className="font-medium transition-colors duration-[150ms] hover:text-[#1D1D1B]"
+              style={{ color: COLORS.mushroomGrey }}
+            >
               How It Works
             </a>
           </div>
@@ -268,23 +306,36 @@ export default function Home() {
             {isLoaded && !isSignedIn && (
               <>
                 <SignInButton mode="modal">
-                  <button className="text-[#6B6B6B] hover:text-[#1A1A1A] font-medium transition-colors">
+                  <button
+                    className="font-medium transition-colors duration-[150ms] hover:text-[#1D1D1B]"
+                    style={{ color: COLORS.mushroomGrey }}
+                  >
                     Sign In
                   </button>
                 </SignInButton>
                 <SignUpButton mode="modal">
-                  <Button variant="primary" size="sm">
+                  <button
+                    className="px-5 py-2.5 text-sm font-medium rounded-full text-white transition-all duration-200 hover:shadow-md"
+                    style={{ backgroundColor: COLORS.coral }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = COLORS.coralDark}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = COLORS.coral}
+                  >
                     Get Started
-                  </Button>
+                  </button>
                 </SignUpButton>
               </>
             )}
             {isLoaded && isSignedIn && (
               <>
                 <Link href="/intake">
-                  <Button variant="primary" size="sm">
+                  <button
+                    className="px-5 py-2.5 text-sm font-medium rounded-full text-white transition-all duration-200 hover:shadow-md"
+                    style={{ backgroundColor: COLORS.coral }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = COLORS.coralDark}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = COLORS.coral}
+                  >
                     Get Started
-                  </Button>
+                  </button>
                 </Link>
                 <UserButton
                   afterSignOutUrl="/"
@@ -294,9 +345,12 @@ export default function Home() {
             )}
             {!isLoaded && (
               <Link href="/intake">
-                <Button variant="primary" size="sm">
+                <button
+                  className="px-5 py-2.5 text-sm font-medium rounded-full text-white transition-all duration-200 hover:shadow-md"
+                  style={{ backgroundColor: COLORS.coral }}
+                >
                   Get Started
-                </Button>
+                </button>
               </Link>
             )}
           </div>
@@ -321,11 +375,14 @@ export default function Home() {
             <a href="#how-it-works" className="block py-3 text-lg font-medium" onClick={() => setMobileMenuOpen(false)}>
               How It Works
             </a>
-            <div className="pt-4 border-t border-[var(--border)]">
+            <div className="pt-4 border-t border-[rgba(29,29,27,0.12)]">
               <Link href="/intake" onClick={() => setMobileMenuOpen(false)}>
-                <Button variant="primary" fullWidth>
+                <button
+                  className="w-full px-6 py-3.5 text-base font-medium rounded-full text-white"
+                  style={{ backgroundColor: COLORS.coral }}
+                >
                   Get Started
-                </Button>
+                </button>
               </Link>
             </div>
           </div>
@@ -338,14 +395,17 @@ export default function Home() {
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
-          transition={{ duration: 0.2 }}
-          className="fixed top-16 left-0 right-0 z-40 bg-white/98 backdrop-blur-md border-b border-[var(--border)] shadow-lg"
+          transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+          className="fixed top-16 left-0 right-0 z-40 bg-white/98 backdrop-blur-md border-b border-[rgba(29,29,27,0.12)] shadow-xl"
         >
           <div className="container py-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">Your Estate Plans</h3>
+              <h3 className="text-lg font-medium">Your Estate Plans</h3>
               <Link href="/intake">
-                <span className="font-medium text-[var(--accent-purple)] flex items-center gap-1.5 hover:gap-2 transition-all">
+                <span
+                  className="font-medium flex items-center gap-1.5 hover:gap-2 transition-all duration-[250ms]"
+                  style={{ color: COLORS.coral }}
+                >
                   <Plus className="w-4 h-4" />
                   New Plan
                 </span>
@@ -363,64 +423,144 @@ export default function Home() {
       {/* Spacer for fixed nav */}
       <div className="h-16" />
 
-      {/* Hero Section */}
-      <BlobContainer className="relative pt-16 pb-24 md:pt-24 md:pb-32">
-        {/* Background blobs */}
-        <Blob variant="purple" size={500} className="top-0 right-0 translate-x-1/3 -translate-y-1/4" delay={0} />
-        <Blob variant="blue" size={400} className="top-1/3 right-1/4" delay={2} />
-        <Blob variant="pink" size={350} className="bottom-0 right-0 translate-x-1/4 translate-y-1/4" delay={4} />
-        <Blob variant="pink" size={300} className="top-1/2 right-1/3" opacity={0.5} delay={1} />
+      {/* Hero Section - Cohere style with visible atmospheric gradient */}
+      <section className="relative min-h-[85vh] flex items-center overflow-hidden">
+        {/* Background gradients - VISIBLE */}
+        <div className="absolute inset-0 z-0">
+          {/* Coral gradient on right side */}
+          <div
+            className="absolute top-0 right-0 w-[70%] h-full"
+            style={{
+              background: 'radial-gradient(ellipse 80% 70% at 70% 30%, rgba(255, 119, 89, 0.18) 0%, rgba(255, 119, 89, 0.08) 40%, transparent 70%)',
+            }}
+          />
+          {/* Secondary lavender gradient */}
+          <div
+            className="absolute top-[20%] right-[15%] w-[50%] h-[70%]"
+            style={{
+              background: 'radial-gradient(ellipse at center, rgba(212, 200, 255, 0.25) 0%, transparent 60%)',
+            }}
+          />
+          {/* Sage accent */}
+          <div
+            className="absolute bottom-0 right-[5%] w-[40%] h-[50%]"
+            style={{
+              background: 'radial-gradient(ellipse at center, rgba(168, 197, 181, 0.2) 0%, transparent 60%)',
+            }}
+          />
+        </div>
 
-        <div className="container relative z-10">
+        {/* Animated blobs - increased opacity */}
+        <div className="absolute inset-0 z-0 overflow-hidden">
+          {/* Coral blob - top right */}
+          <div
+            className="absolute top-[-5%] right-[-5%] w-[450px] h-[450px] rounded-full animate-blob"
+            style={{
+              background: 'radial-gradient(circle, rgba(255, 119, 89, 0.35) 0%, rgba(255, 119, 89, 0.15) 50%, transparent 70%)',
+              filter: 'blur(40px)',
+            }}
+          />
+          {/* Lavender blob */}
+          <div
+            className="absolute top-[25%] right-[15%] w-[400px] h-[400px] rounded-full animate-blob"
+            style={{
+              background: 'radial-gradient(circle, rgba(212, 200, 255, 0.4) 0%, rgba(212, 200, 255, 0.15) 50%, transparent 70%)',
+              filter: 'blur(50px)',
+              animationDelay: '2s',
+            }}
+          />
+          {/* Sage green blob */}
+          <div
+            className="absolute bottom-[10%] right-[8%] w-[350px] h-[350px] rounded-full animate-blob"
+            style={{
+              background: 'radial-gradient(circle, rgba(168, 197, 181, 0.35) 0%, transparent 60%)',
+              filter: 'blur(40px)',
+              animationDelay: '4s',
+            }}
+          />
+          {/* Small coral accent blob */}
+          <div
+            className="absolute top-[50%] right-[30%] w-[200px] h-[200px] rounded-full animate-blob"
+            style={{
+              background: 'radial-gradient(circle, rgba(255, 119, 89, 0.25) 0%, transparent 60%)',
+              filter: 'blur(30px)',
+              animationDelay: '1s',
+            }}
+          />
+        </div>
+
+        <div className="container relative z-10 py-16 md:py-24">
           <div className="max-w-3xl">
-            {/* Label */}
+            {/* Label - Coral outline pill */}
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-6 text-sm font-medium border border-[var(--accent-purple)] text-[var(--accent-purple)]"
+              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-6 text-sm font-medium"
+              style={{
+                border: `1px solid ${COLORS.coral}`,
+                color: COLORS.coral,
+                backgroundColor: 'transparent',
+              }}
             >
               AI-Powered Estate Planning
             </motion.div>
 
-            {/* Headline */}
+            {/* Headline - Regular weight with CORAL accent */}
             <motion.h1
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              className="text-hero text-[#1D1D1F] mb-6"
+              transition={{ duration: 0.5, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+              className="text-[clamp(40px,5vw,64px)] font-normal leading-[1.1] tracking-[-0.025em] mb-6"
+              style={{ color: COLORS.volcanicBlack }}
             >
               Your estate plan,
               <br />
-              <span className="text-[var(--accent-purple)]">analyzed in minutes</span>
+              <span style={{ color: COLORS.coral }}>analyzed in minutes</span>
             </motion.h1>
 
             {/* Subheadline */}
             <motion.p
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              className="text-body-lg text-[#4A4A4A] mb-8 max-w-xl"
+              transition={{ duration: 0.5, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+              className="text-lg leading-relaxed mb-8 max-w-xl"
+              style={{ color: COLORS.mushroomGrey }}
             >
               Answer a few questions. Get a comprehensive gap analysis, see how your assets will be distributed, and generate draft documents tailored to your state.
             </motion.p>
 
-            {/* CTAs */}
+            {/* CTAs - CORAL primary button + outline secondary */}
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
+              transition={{ duration: 0.5, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
               className="flex flex-col sm:flex-row gap-4"
             >
+              {/* PRIMARY BUTTON - CORAL */}
               <Link href="/intake">
-                <Button variant="primary" size="lg" showArrow className="w-full sm:w-auto">
+                <button
+                  className="inline-flex items-center justify-center gap-2 px-8 py-4 text-base font-medium rounded-full text-white transition-all duration-200 shadow-sm hover:shadow-lg w-full sm:w-auto"
+                  style={{ backgroundColor: COLORS.coral }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = COLORS.coralDark}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = COLORS.coral}
+                >
                   Start Free Analysis
-                </Button>
+                  <ArrowRight className="w-5 h-5" />
+                </button>
               </Link>
+
+              {/* SECONDARY BUTTON - OUTLINE */}
               <a href="#how-it-works">
-                <Button variant="secondary" size="lg" className="w-full sm:w-auto">
+                <button
+                  className="inline-flex items-center justify-center px-8 py-4 text-base font-medium rounded-full bg-transparent transition-all duration-200 w-full sm:w-auto hover:bg-[#FAF9F7]"
+                  style={{
+                    color: COLORS.volcanicBlack,
+                    border: '1px solid rgba(29, 29, 27, 0.2)',
+                  }}
+                >
                   How It Works
-                </Button>
+                </button>
               </a>
             </motion.div>
           </div>
@@ -429,7 +569,7 @@ export default function Home() {
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.5 }}
+            transition={{ duration: 0.5, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
             className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-8"
           >
             {[
@@ -439,15 +579,21 @@ export default function Home() {
               { value: 15, suffix: " min", label: "Average time" },
             ].map((stat, index) => (
               <div key={index}>
-                <div className="text-3xl md:text-4xl font-semibold text-[#1D1D1F]">
+                <div className="text-3xl md:text-4xl font-normal" style={{ color: COLORS.volcanicBlack }}>
                   <AnimatedCounter end={stat.value} suffix={stat.suffix} />
                 </div>
-                <div className="text-[#6E6E73] text-sm mt-1">{stat.label}</div>
+                <div className="text-sm mt-1" style={{ color: COLORS.mushroomGrey }}>{stat.label}</div>
               </div>
             ))}
           </motion.div>
         </div>
-      </BlobContainer>
+      </section>
+
+      {/* Logo Marquee - Trust indicators */}
+      <LogoMarquee />
+
+      {/* Capabilities Section - How It Works (Analyze/Create/Protect) */}
+      <CapabilitiesSection />
 
       {/* Features Section */}
       <Section id="features" variant="cream" size="lg">
@@ -537,43 +683,59 @@ export default function Home() {
             initial={{ opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.4, delay: 0.2 }}
-            className="bg-white rounded-2xl border border-[var(--border)] p-8 shadow-lg"
+            transition={{ duration: 0.4, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            className="bg-white rounded-2xl border border-[rgba(29,29,27,0.08)] p-8 shadow-xl"
           >
             <div className="flex items-center gap-4 mb-6">
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-[var(--accent-muted)]">
-                <CheckCircle2 className="w-6 h-6 text-[var(--accent-purple)]" />
+              <div
+                className="w-12 h-12 rounded-xl flex items-center justify-center"
+                style={{ backgroundColor: "rgba(255, 119, 89, 0.1)" }}
+              >
+                <CheckCircle2 className="w-6 h-6" style={{ color: COLORS.coral }} />
               </div>
               <div>
-                <div className="text-xs text-[var(--foreground-muted)] uppercase tracking-wider font-medium">Analysis Complete</div>
-                <div className="text-xl font-semibold">Score: 72/100</div>
+                <div className="text-xs uppercase tracking-wider font-medium" style={{ color: COLORS.mushroomGrey }}>Analysis Complete</div>
+                <div className="text-xl font-normal" style={{ color: COLORS.volcanicBlack }}>Score: 72/100</div>
               </div>
             </div>
 
             <div className="space-y-3 mb-6">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-[var(--foreground-muted)]">Documents reviewed</span>
-                <span className="font-medium text-[var(--success)]">4 of 6</span>
+                <span style={{ color: COLORS.mushroomGrey }}>Documents reviewed</span>
+                <span className="font-medium" style={{ color: "#4A9D6B" }}>4 of 6</span>
               </div>
-              <div className="h-2 bg-[var(--off-white)] rounded-full overflow-hidden">
+              <div className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: COLORS.cream }}>
                 <motion.div
-                  className="h-full rounded-full bg-[var(--accent-purple)]"
+                  className="h-full rounded-full"
+                  style={{ backgroundColor: COLORS.coral }}
                   initial={{ width: 0 }}
                   whileInView={{ width: "66%" }}
                   viewport={{ once: true }}
-                  transition={{ duration: 0.8, delay: 0.3 }}
+                  transition={{ duration: 0.8, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
                 />
               </div>
             </div>
 
             <div className="space-y-3">
-              <div className="flex items-center gap-3 p-4 rounded-xl bg-[var(--warning-muted)] border border-[var(--warning)]/20">
-                <AlertTriangle className="w-5 h-5 text-[var(--warning)]" />
-                <span className="text-sm font-medium text-[var(--warning)]">Healthcare Directive missing</span>
+              <div
+                className="flex items-center gap-3 p-4 rounded-xl border"
+                style={{
+                  backgroundColor: "rgba(212, 160, 74, 0.12)",
+                  borderColor: "rgba(212, 160, 74, 0.2)"
+                }}
+              >
+                <AlertTriangle className="w-5 h-5" style={{ color: "#D4A04A" }} />
+                <span className="text-sm font-medium" style={{ color: "#D4A04A" }}>Healthcare Directive missing</span>
               </div>
-              <div className="flex items-center gap-3 p-4 rounded-xl bg-[var(--success-muted)] border border-[var(--success)]/20">
-                <Check className="w-5 h-5 text-[var(--success)]" />
-                <span className="text-sm font-medium text-[var(--success)]">Will is current and valid</span>
+              <div
+                className="flex items-center gap-3 p-4 rounded-xl border"
+                style={{
+                  backgroundColor: "rgba(74, 157, 107, 0.12)",
+                  borderColor: "rgba(74, 157, 107, 0.2)"
+                }}
+              >
+                <Check className="w-5 h-5" style={{ color: "#4A9D6B" }} />
+                <span className="text-sm font-medium" style={{ color: "#4A9D6B" }}>Will is current and valid</span>
               </div>
             </div>
           </motion.div>
@@ -598,6 +760,15 @@ export default function Home() {
         </div>
       </Section>
 
+      {/* Use Cases Section - Scroll-triggered animations */}
+      <UseCasesSection />
+
+      {/* Security Bento Grid */}
+      <SecurityBentoGrid />
+
+      {/* Testimonials */}
+      <TestimonialSection />
+
       {/* CTA Section */}
       <Section variant="dark" size="lg">
         <div className="text-center max-w-2xl mx-auto">
@@ -605,7 +776,9 @@ export default function Home() {
             initial={{ opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-section text-white mb-4"
+            transition={{ ease: [0.16, 1, 0.3, 1] }}
+            className="text-[clamp(32px,4vw,48px)] font-normal mb-4"
+            style={{ color: '#FFFFFF' }}
           >
             Get started for free
           </motion.h2>
@@ -613,8 +786,9 @@ export default function Home() {
             initial={{ opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ delay: 0.1 }}
-            className="text-white/70 text-lg mb-8"
+            transition={{ delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+            className="text-lg mb-8"
+            style={{ color: 'rgba(255,255,255,0.6)' }}
           >
             Complete your estate plan analysis in about 15 minutes. No credit card required.
           </motion.p>
@@ -622,11 +796,12 @@ export default function Home() {
             initial={{ opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ delay: 0.2 }}
+            transition={{ delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
           >
             <Link href="/intake">
               <button
-                className="inline-flex items-center justify-center gap-3 px-8 py-4 text-lg font-medium rounded-lg bg-white text-[#1D1D1F] hover:bg-white/90 transition-all duration-200"
+                className="inline-flex items-center justify-center gap-3 px-8 py-4 text-lg font-medium rounded-full bg-white transition-all duration-[250ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-white/90"
+                style={{ color: COLORS.volcanicBlack }}
               >
                 Start Analysis
                 <ArrowRight className="w-5 h-5" />
@@ -637,13 +812,19 @@ export default function Home() {
       </Section>
 
       {/* Disclaimer */}
-      <div className="py-6 border-b border-[var(--border)]">
+      <div className="py-6 border-b border-[rgba(29,29,27,0.12)]">
         <div className="container">
-          <div className="flex items-start gap-4 p-5 rounded-xl bg-[var(--off-white)] border border-[var(--border)]">
-            <AlertTriangle className="w-5 h-5 text-[var(--warning)] flex-shrink-0 mt-0.5" />
+          <div
+            className="flex items-start gap-4 p-5 rounded-xl border"
+            style={{
+              backgroundColor: COLORS.cream,
+              borderColor: "rgba(29,29,27,0.08)"
+            }}
+          >
+            <AlertTriangle className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: "#D4A04A" }} />
             <div>
-              <p className="text-sm text-[var(--foreground-muted)]">
-                <span className="text-[var(--warning)] font-semibold">Disclaimer:</span> This tool provides general information for educational purposes only. It does not constitute legal advice. Generated documents should be reviewed by a licensed attorney in your state.
+              <p className="text-sm" style={{ color: COLORS.mushroomGrey }}>
+                <span className="font-medium" style={{ color: "#D4A04A" }}>Disclaimer:</span> This tool provides general information for educational purposes only. It does not constitute legal advice. Generated documents should be reviewed by a licensed attorney in your state.
               </p>
             </div>
           </div>
@@ -654,10 +835,10 @@ export default function Home() {
       <Footer
         logo={
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-lg flex items-center justify-center bg-white">
-              <Shield className="w-5 h-5 text-[var(--dark-gray)]" />
+            <div className="w-9 h-9 rounded-full flex items-center justify-center bg-white">
+              <Shield className="w-5 h-5" style={{ color: COLORS.volcanicBlack }} />
             </div>
-            <span className="text-lg font-semibold text-white">EstatePlan</span>
+            <span className="text-lg font-medium text-white">EstatePlan</span>
           </div>
         }
         description="AI-powered estate planning to protect what matters most."
@@ -665,7 +846,7 @@ export default function Home() {
           twitter: "https://twitter.com",
           linkedin: "https://linkedin.com",
         }}
-        copyright={`© ${new Date().getFullYear()} EstatePlan. All rights reserved. This is not a law firm.`}
+        copyright={`${new Date().getFullYear()} EstatePlan. All rights reserved. This is not a law firm.`}
       />
     </div>
   );

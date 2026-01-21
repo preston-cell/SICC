@@ -31,6 +31,39 @@ type LifeEventType =
   | "health_change"
   | "other";
 
+type PriorityType = "urgent" | "high" | "medium" | "low";
+
+// Smart priority mapping for life events
+const LIFE_EVENT_PRIORITIES: Record<LifeEventType, PriorityType> = {
+  marriage: "high",
+  divorce: "high",
+  birth: "urgent",
+  death: "urgent",
+  major_asset_change: "medium",
+  relocation: "medium",
+  retirement: "medium",
+  business_change: "medium",
+  health_change: "high",
+  other: "medium",
+};
+
+// Priority to days mapping
+const PRIORITY_TO_DAYS: Record<PriorityType, number> = {
+  urgent: 7,
+  high: 14,
+  medium: 30,
+  low: 90,
+};
+
+// Format relative date for display
+const formatSmartDueDate = (eventType: LifeEventType): { priority: PriorityType; days: number; dateStr: string } => {
+  const priority = LIFE_EVENT_PRIORITIES[eventType];
+  const days = PRIORITY_TO_DAYS[priority];
+  const date = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
+  const dateStr = date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  return { priority, days, dateStr };
+};
+
 interface LifeEventOption {
   type: LifeEventType;
   title: string;
@@ -327,16 +360,49 @@ export function LifeEventsChecklist({ estatePlanId }: LifeEventsChecklistProps) 
           </div>
 
           {selectedEvent.documentsAffected.length > 0 && (
-            <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-              <p className="text-sm text-blue-700 dark:text-blue-300">
-                <strong>Documents to review:</strong>{" "}
-                {selectedEvent.documentsAffected
-                  .map((d) =>
-                    d.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())
-                  )
-                  .join(", ")}
-              </p>
-            </div>
+            <>
+              <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                <p className="text-sm text-blue-700 dark:text-blue-300">
+                  <strong>Documents to review:</strong>{" "}
+                  {selectedEvent.documentsAffected
+                    .map((d) =>
+                      d.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())
+                    )
+                    .join(", ")}
+                </p>
+              </div>
+
+              {/* Smart Due Date Preview */}
+              {(() => {
+                const smartDate = formatSmartDueDate(selectedEvent.type);
+                const priorityColors: Record<PriorityType, string> = {
+                  urgent: "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-700 dark:text-red-300",
+                  high: "bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800 text-orange-700 dark:text-orange-300",
+                  medium: "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300",
+                  low: "bg-gray-50 dark:bg-gray-900/50 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300",
+                };
+                return (
+                  <div className={`p-3 rounded-lg border ${priorityColors[smartDate.priority]}`}>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium">
+                          Reminder will be created
+                        </p>
+                        <p className="text-xs opacity-80">
+                          Due: {smartDate.dateStr} ({smartDate.days} days) • {smartDate.priority.charAt(0).toUpperCase() + smartDate.priority.slice(1)} priority
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                        <span className="text-xs font-medium">Auto</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+            </>
           )}
 
           <div className="space-y-3">

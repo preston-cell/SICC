@@ -211,6 +211,7 @@ export async function saveGapAnalysis(
   estatePlanId: string,
   data: {
     score?: number
+    scoreBreakdown?: string
     estateComplexity?: string
     estimatedEstateTax?: string
     missingDocuments: string
@@ -416,6 +417,29 @@ export async function createDefaultReminders(estatePlanId: string) {
 
   if (!res.ok) {
     const error = await res.json().catch(() => ({ error: 'Failed to create default reminders' }))
+    throw new Error(error.error)
+  }
+
+  const result = await res.json()
+
+  // Invalidate cache
+  mutate(`/api/estate-plans/${estatePlanId}/reminders`)
+
+  return result
+}
+
+/**
+ * Generate action items from gap analysis recommendations as reminders
+ */
+export async function generateActionItems({ estatePlanId }: { estatePlanId: string }) {
+  const res = await fetch(`/api/estate-plans/${estatePlanId}/reminders`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ generateFromAnalysis: true }),
+  })
+
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({ error: 'Failed to generate action items' }))
     throw new Error(error.error)
   }
 
@@ -903,6 +927,18 @@ export function useLatestGapAnalysisRun(estatePlanId: string | null) {
     estatePlanId ? `/api/estate-plans/${estatePlanId}/gap-analysis-runs?latest=true` : null,
     fetcher,
     { refreshInterval: 2000 }
+  )
+}
+
+/**
+ * Get gap analysis run progress by runId
+ * Returns run data with phases for tracking progress
+ */
+export function useGapAnalysisRunProgress(estatePlanId: string | null, runId: string | null) {
+  return useSWR(
+    estatePlanId && runId ? `/api/estate-plans/${estatePlanId}/gap-analysis-runs?runId=${runId}` : null,
+    fetcher,
+    { refreshInterval: 1000 }
   )
 }
 

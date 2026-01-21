@@ -7,10 +7,12 @@ import {
   useReminderStats,
   createReminder,
   createDefaultReminders,
+  generateActionItems,
 } from "../../../hooks/usePrismaQueries";
 import Link from "next/link";
 import { ReminderCard } from "../../../components/ReminderCard";
 import { LifeEventsChecklist } from "../../../components/LifeEventsChecklist";
+import Badge from "../../../components/ui/Badge";
 
 interface PageProps {
   params: Promise<{ estatePlanId: string }>;
@@ -34,12 +36,27 @@ interface Reminder {
   completedAt?: string;
 }
 
+interface Recommendation {
+  rank?: number;
+  action?: string;
+  category?: string;
+  priority?: "critical" | "high" | "medium" | "low";
+  timeline?: string;
+  estimatedCost?: { low: number; high: number };
+  estimatedBenefit?: string;
+  detailedSteps?: string[];
+  professionalNeeded?: string;
+  riskOfDelay?: string;
+  reason?: string;
+}
+
 export default function RemindersPage({ params }: PageProps) {
   const { estatePlanId } = use(params);
   const estatePlanIdTyped = estatePlanId as string;
 
   const [activeTab, setActiveTab] = useState<"reminders" | "life-events" | "settings">("reminders");
   const [showAddForm, setShowAddForm] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
   const [newReminder, setNewReminder] = useState({
     type: "custom" as ReminderType,
     title: "",
@@ -53,6 +70,10 @@ export default function RemindersPage({ params }: PageProps) {
   const { data: estatePlan, isLoading: estatePlanLoading } = useEstatePlan(estatePlanIdTyped);
   const { data: reminders, isLoading: remindersLoading } = useReminders(estatePlanIdTyped);
   const { data: stats } = useReminderStats(estatePlanIdTyped);
+
+  // Parse recommendations from gap analysis (for future use when gap analysis API is integrated)
+  const recommendations: Recommendation[] = [];
+  const hasImportedRecommendations = reminders?.some((r: { sourceType?: string }) => r.sourceType === "gap_analysis") ?? false;
 
   const pendingReminders = reminders?.filter((r: { status: string; dueDate: number }) => r.status === "pending") || [];
   const overdueReminders = reminders?.filter((r: { status: string; dueDate: number }) => r.status === "pending" && new Date(r.dueDate) < new Date()) || [];
@@ -221,6 +242,98 @@ export default function RemindersPage({ params }: PageProps) {
         {/* Reminders Tab */}
         {activeTab === "reminders" && (
           <div className="space-y-6">
+            {/* Recommended Actions from Gap Analysis */}
+            {recommendations.length > 0 && (
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-[var(--text-heading)] flex items-center gap-2">
+                    <svg className="w-5 h-5 text-[var(--accent-purple)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                    </svg>
+                    Recommended Actions ({recommendations.length})
+                  </h3>
+                  {!hasImportedRecommendations && (
+                    <button
+                      onClick={async () => {
+                        setIsImporting(true);
+                        try {
+                          await generateActionItems({ estatePlanId: estatePlanIdTyped });
+                        } finally {
+                          setIsImporting(false);
+                        }
+                      }}
+                      disabled={isImporting}
+                      className="inline-flex items-center gap-2 px-3 py-1.5 text-sm bg-[var(--accent-muted)] text-[var(--accent-purple)] font-medium rounded-lg hover:bg-[var(--accent-purple)] hover:text-white transition-all disabled:opacity-50"
+                    >
+                      {isImporting ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                          Importing...
+                        </>
+                      ) : (
+                        <>
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                          </svg>
+                          Add to Reminders
+                        </>
+                      )}
+                    </button>
+                  )}
+                </div>
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {recommendations.map((rec, idx) => {
+                    const priority = rec.priority || "medium";
+                    const priorityColors = {
+                      critical: "border-red-500 bg-red-50",
+                      high: "border-red-400 bg-red-50",
+                      medium: "border-yellow-400 bg-yellow-50",
+                      low: "border-green-400 bg-green-50",
+                    };
+                    return (
+                      <div
+                        key={idx}
+                        className={`rounded-xl border-l-4 p-4 bg-white shadow-sm ${priorityColors[priority]}`}
+                      >
+                        <div className="flex items-start justify-between mb-2">
+                          <h4 className="font-medium text-[var(--text-heading)] text-sm">
+                            {rec.action || "Recommendation"}
+                          </h4>
+                          <Badge
+                            variant={priority === "critical" || priority === "high" ? "error" : priority === "medium" ? "warning" : "success"}
+                            size="sm"
+                          >
+                            {priority}
+                          </Badge>
+                        </div>
+                        {rec.reason && (
+                          <p className="text-xs text-[var(--text-muted)] mb-2 line-clamp-2">{rec.reason}</p>
+                        )}
+                        {rec.timeline && (
+                          <p className="text-xs text-[var(--text-body)]">
+                            <span className="font-medium">Timeline:</span> {rec.timeline}
+                          </p>
+                        )}
+                        {rec.estimatedCost && (
+                          <p className="text-xs text-[var(--text-muted)] mt-1">
+                            Est. cost: ${rec.estimatedCost.low?.toLocaleString()} - ${rec.estimatedCost.high?.toLocaleString()}
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+                {hasImportedRecommendations && (
+                  <p className="text-xs text-[var(--text-muted)] mt-2 flex items-center gap-1">
+                    <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    These recommendations have been added to your reminders below
+                  </p>
+                )}
+              </div>
+            )}
+
             {/* Overdue section */}
             {overdueReminders.length > 0 && (
               <div>
