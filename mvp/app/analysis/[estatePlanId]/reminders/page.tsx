@@ -23,8 +23,7 @@ type PriorityType = "low" | "medium" | "high" | "urgent";
 type RecurrencePattern = "monthly" | "quarterly" | "annually" | "biannually";
 
 interface Reminder {
-  id?: string;
-  _id?: string;
+  id: string;
   type: "annual_review" | "life_event" | "document_update" | "beneficiary_review" | "custom";
   title: string;
   description?: string;
@@ -345,7 +344,7 @@ export default function RemindersPage({ params }: PageProps) {
                 </h3>
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                   {overdueReminders.map((reminder: Reminder) => (
-                    <ReminderCard key={reminder.id || reminder._id} reminder={reminder} estatePlanId={estatePlanIdTyped} />
+                    <ReminderCard key={reminder.id} reminder={reminder} estatePlanId={estatePlanIdTyped} />
                   ))}
                 </div>
               </div>
@@ -362,7 +361,7 @@ export default function RemindersPage({ params }: PageProps) {
                     .filter(r => new Date(r.dueDate) >= new Date())
                     .sort((a: Reminder, b: Reminder) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
                     .map((reminder) => (
-                      <ReminderCard key={reminder.id || reminder._id} reminder={reminder} estatePlanId={estatePlanIdTyped} />
+                      <ReminderCard key={reminder.id} reminder={reminder} estatePlanId={estatePlanIdTyped} />
                     ))}
                 </div>
               </div>
@@ -408,7 +407,7 @@ export default function RemindersPage({ params }: PageProps) {
                 <div className="space-y-2">
                   {completedReminders.slice(0, 5).map((reminder: Reminder) => (
                     <div
-                      key={reminder.id || reminder._id}
+                      key={reminder.id}
                       className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg"
                     >
                       <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">

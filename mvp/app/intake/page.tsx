@@ -79,13 +79,13 @@ function IntakeLandingContent() {
     setIsCreating(true);
     try {
       const sessionId = `session_${Date.now()}_${Math.random().toString(36).substring(7)}`;
-      const newPlanId = await createEstatePlan({
+      const newPlan = await createEstatePlan({
         sessionId,
         name: "My Estate Plan",
       });
       localStorage.setItem("estatePlanSessionId", sessionId);
-      localStorage.setItem("estatePlanId", newPlanId);
-      router.push(`/intake/guided?planId=${newPlanId}`);
+      localStorage.setItem("estatePlanId", newPlan.id);
+      router.push(`/intake/guided?planId=${newPlan.id}`);
     } catch (error) {
       console.error("Failed to create estate plan:", error);
       setIsCreating(false);

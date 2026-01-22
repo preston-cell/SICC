@@ -268,7 +268,7 @@ export function LifeEventsChecklist({ estatePlanId }: LifeEventsChecklistProps) 
           <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">
             Recent Events
           </h4>
-          {lifeEvents.slice(0, 5).map((event: { eventType: string; id?: string; _id?: string; createdAt: Date; isAddressed: boolean; planUpdated?: boolean; title?: string; eventDate: string; requiresDocumentUpdate?: boolean }) => {
+          {lifeEvents.slice(0, 5).map((event: { eventType: string; id: string; createdAt: Date; isAddressed: boolean; planUpdated?: boolean; title?: string; eventDate: string; requiresDocumentUpdate?: boolean }) => {
             const eventOption = LIFE_EVENT_OPTIONS.find(e => e.type === event.eventType);
             return (
               <div

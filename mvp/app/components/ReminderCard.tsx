@@ -8,8 +8,7 @@ import {
 } from "../hooks/usePrismaQueries";
 
 interface Reminder {
-  id?: string;
-  _id?: string; // Keep for backward compatibility
+  id: string;
   type: "annual_review" | "life_event" | "document_update" | "beneficiary_review" | "custom" | "preparation_task";
   title: string;
   description?: string;
@@ -84,8 +83,7 @@ export function ReminderCard({ reminder, estatePlanId, onComplete }: ReminderCar
   const [showSnoozeMenu, setShowSnoozeMenu] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
 
-  // Get reminder ID (support both new id and legacy _id)
-  const reminderId = reminder.id || reminder._id;
+  const reminderId = reminder.id;
 
   // Normalize dueDate to timestamp (handle both number and ISO string)
   const dueDateTimestamp = typeof reminder.dueDate === 'string'
