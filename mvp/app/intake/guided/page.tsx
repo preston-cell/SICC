@@ -48,7 +48,16 @@ function GuidedIntakeContent() {
 
   const handleContinue = () => {
     if (existingProgress && planId) {
-      const currentStep = GUIDED_STEPS.find((s) => s.id === existingProgress.currentStep);
+      const stepNumber = existingProgress.currentStep || 1;
+
+      // All steps completed - go to completion
+      if (stepNumber > GUIDED_STEPS.length) {
+        router.push(`/intake?planId=${planId}&complete=true`);
+        return;
+      }
+
+      // Normal flow - go to current step
+      const currentStep = GUIDED_STEPS.find((s) => s.id === stepNumber);
       if (currentStep) {
         router.push(`/intake/guided/${currentStep.slug}?planId=${planId}`);
       }

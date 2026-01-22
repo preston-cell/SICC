@@ -986,6 +986,27 @@ export async function updateGapAnalysisRun(
   return result
 }
 
+/**
+ * Cancel a running gap analysis
+ */
+export async function cancelGapAnalysisRun(estatePlanId: string, runId: string) {
+  const res = await fetch(`/api/estate-plans/${estatePlanId}/gap-analysis-runs`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      runId,
+      status: 'failed',
+      error: 'Cancelled by user'
+    }),
+  })
+  if (!res.ok) throw new Error('Failed to cancel analysis')
+  const result = await res.json()
+  mutate(`/api/estate-plans/${estatePlanId}/gap-analysis-runs?latest=true`)
+  mutate(`/api/estate-plans/${estatePlanId}/gap-analysis-runs?active=true`)
+  mutate(`/api/estate-plans/${estatePlanId}/gap-analysis-runs?runId=${runId}`)
+  return result
+}
+
 // ============================================
 // PREPARATION PROGRESS (AGGREGATE)
 // ============================================

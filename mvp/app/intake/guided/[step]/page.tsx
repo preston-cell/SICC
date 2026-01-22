@@ -222,8 +222,21 @@ function GuidedStepContent() {
     );
   }
 
-  // Get visible questions based on current form data
-  const visibleQuestions = getVisibleQuestions(step, formData);
+  // Combine all step data for cross-step conditionals
+  const allStepData: Record<string, unknown> = {};
+  if (guidedProgress?.stepData) {
+    Object.values(guidedProgress.stepData).forEach((stepData) => {
+      if (stepData && typeof stepData === 'object') {
+        Object.assign(allStepData, stepData);
+      }
+    });
+  }
+
+  // Merge with current form data (current step takes precedence)
+  const mergedData = { ...allStepData, ...formData };
+
+  // Get visible questions based on merged data (includes cross-step conditionals)
+  const visibleQuestions = getVisibleQuestions(step, mergedData);
   const completedSteps = guidedProgress?.completedSteps || [];
 
   return (
@@ -488,6 +501,7 @@ function QuestionRenderer({
 
 // Child list field component
 interface Child {
+  id?: string;
   name: string;
   dateOfBirth?: string;
   relationship?: string;
@@ -501,7 +515,12 @@ interface ChildListFieldProps {
 
 function ChildListField({ label, value, onChange }: ChildListFieldProps) {
   const addChild = () => {
-    onChange([...value, { name: "", dateOfBirth: "", relationship: "child" }]);
+    onChange([...value, {
+      id: `child-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      name: "",
+      dateOfBirth: "",
+      relationship: "child"
+    }]);
   };
 
   const updateChild = (index: number, field: keyof Child, fieldValue: string) => {
@@ -537,7 +556,7 @@ function ChildListField({ label, value, onChange }: ChildListFieldProps) {
 
       {value.map((child, index) => (
         <div
-          key={index}
+          key={child.id || `child-fallback-${index}`}
           className="bg-[var(--off-white)] rounded-xl p-4 space-y-3"
         >
           <div className="flex items-center justify-between">

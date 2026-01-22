@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useGapAnalysisRunProgress } from "@/app/hooks/usePrismaQueries";
+import { useGapAnalysisRunProgress, cancelGapAnalysisRun } from "@/app/hooks/usePrismaQueries";
 import Link from "next/link";
 
 interface Phase {
@@ -26,8 +26,22 @@ export function AnalysisFloatingWidget({
 }: AnalysisFloatingWidgetProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [hasNotified, setHasNotified] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
 
-  const { data: run } = useGapAnalysisRunProgress(estatePlanId, runId);
+  const { data: run, mutate } = useGapAnalysisRunProgress(estatePlanId, runId);
+
+  const handleCancel = async () => {
+    if (isCancelling) return;
+    setIsCancelling(true);
+    try {
+      await cancelGapAnalysisRun(estatePlanId, runId);
+      mutate();
+    } catch (error) {
+      console.error("Failed to cancel analysis:", error);
+    } finally {
+      setIsCancelling(false);
+    }
+  };
 
   // Transform run data to match expected format
   const runProgress = run ? {
@@ -238,12 +252,21 @@ export function AnalysisFloatingWidget({
                 Analysis failed. Please try again.
               </div>
             ) : (
-              <Link
-                href={`/analysis/${estatePlanId}`}
-                className="block text-center text-sm text-[var(--accent-purple)] hover:underline"
-              >
-                View Full Progress
-              </Link>
+              <div className="space-y-2">
+                <Link
+                  href={`/analysis/${estatePlanId}`}
+                  className="block text-center text-sm text-[var(--accent-purple)] hover:underline"
+                >
+                  View Full Progress
+                </Link>
+                <button
+                  onClick={handleCancel}
+                  disabled={isCancelling}
+                  className="block w-full text-center text-sm text-red-500 hover:text-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isCancelling ? "Cancelling..." : "Cancel Analysis"}
+                </button>
+              </div>
             )}
           </div>
         )}
