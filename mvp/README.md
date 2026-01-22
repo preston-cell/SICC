@@ -4,9 +4,11 @@ An AI-powered estate planning platform that helps users create legally-compliant
 
 ## Features
 
-- **Guided Intake Wizard** - Step-by-step questionnaire covering personal info, family, assets, existing documents, and goals
-- **AI Gap Analysis** - Identifies missing documents, inconsistencies, and provides state-specific recommendations
+- **Guided Intake Wizard** - Conversational step-by-step questionnaire covering personal info, family, assets, existing documents, and goals
+- **Comprehensive Form** - Traditional form-based intake for detailed input
+- **AI Gap Analysis** - Multi-phase analysis identifying missing documents, inconsistencies, and state-specific recommendations
 - **Document Generation** - Creates 7 types of legal documents (wills, trusts, POAs, healthcare directives)
+- **Document Upload & Analysis** - Upload existing documents for AI extraction and cross-referencing
 - **Beneficiary Tracking** - Tracks retirement accounts, life insurance, and TOD/POD designations
 - **Estate Visualization** - Visual family tree and asset distribution charts
 - **Reminder System** - Automated notifications for document reviews and life events
@@ -16,97 +18,181 @@ An AI-powered estate planning platform that helps users create legally-compliant
 
 | Layer | Technology |
 |-------|------------|
-| Frontend | Next.js 16, React 18, TypeScript |
-| Styling | Tailwind CSS |
-| Database | Convex (real-time) |
+| Frontend | Next.js 16, React 19, TypeScript |
+| Styling | Tailwind CSS 4 |
+| Database | PostgreSQL (AWS RDS) via Prisma ORM |
+| Data Fetching | SWR (React hooks) |
+| Auth | Clerk (optional, supports anonymous sessions) |
 | AI | Claude API (Anthropic) |
 | Sandbox | E2B for secure code execution |
-| Hosting | Vercel + Convex Cloud |
+| Hosting | Vercel |
 
 ## Getting Started
 
 ### Prerequisites
 
 - Node.js 20+
-- npm or yarn
-- Convex account
+- npm
+- PostgreSQL database (local or AWS RDS)
 - Anthropic API key
+- E2B API key (for AI document generation)
 
 ### Installation
 
 ```bash
 # Clone the repository
 git clone <repo-url>
-cd agent-mvp
+cd mvp
 
 # Install dependencies
 npm install
 
 # Set up environment variables
-cp .env.example .env.local
-# Add your ANTHROPIC_API_KEY to .env.local
+cp .env.example .env
+# Edit .env with your credentials (see Environment Variables below)
 
-# Start Convex local backend
-npx convex dev
+# Run database migrations
+npx prisma migrate deploy
 
-# In another terminal, start the dev server
+# Start the dev server
 npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) to view the app.
 
+### Environment Variables
+
+Create a `.env` file with the following variables:
+
+```bash
+# Database (required)
+DATABASE_URL="postgresql://user:password@localhost:5432/estate_planning"
+
+# AI Services (required)
+ANTHROPIC_API_KEY="sk-ant-..."
+E2B_API_KEY="e2b_..."
+
+# Authentication (optional - app works without for anonymous users)
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="pk_..."
+CLERK_SECRET_KEY="sk_..."
+```
+
+**For AWS RDS:**
+```bash
+DATABASE_URL="postgresql://user:password@your-instance.region.rds.amazonaws.com:5432/estate_planning?sslmode=require"
+```
+
 ## Deployment
 
-### Deploy to Production
+### Deploy to Vercel
+
+1. Push your code to GitHub
+2. Import the repository in Vercel
+3. Add environment variables in Vercel dashboard
+4. Deploy
 
 ```bash
-# Deploy Convex backend
-npx convex deploy --yes
-
-# Deploy to Vercel
-npx vercel --prod --yes
+# Or deploy via CLI
+npx vercel --prod
 ```
 
-### Take Site Offline
+### Database Setup (AWS RDS)
 
-```bash
-npx vercel rm agent-mvp --yes
-```
+1. Create a PostgreSQL RDS instance
+2. Configure security groups to allow Vercel IP ranges
+3. Run migrations: `npx prisma migrate deploy`
 
-### Redeploy
+### Production Checklist
 
-```bash
-npx convex deploy --yes && npx vercel --prod --yes
-```
+- [ ] Set `DATABASE_URL` with SSL enabled
+- [ ] Configure `ANTHROPIC_API_KEY` and `E2B_API_KEY`
+- [ ] (Optional) Configure Clerk for authentication
+- [ ] Verify database migrations are applied
 
 ## Project Structure
 
 ```
-├── app/                    # Next.js app router pages
-│   ├── analysis/          # Gap analysis & results
-│   ├── documents/         # Document generation
-│   ├── intake/            # Intake wizard steps
-│   └── api/               # API routes
-├── convex/                # Convex backend
-│   ├── schema.ts          # Database schema
-│   ├── queries.ts         # Read operations
-│   ├── mutations.ts       # Write operations
-│   ├── gapAnalysis.ts     # AI analysis action
-│   └── documentGeneration.ts  # Document generation
-├── lib/
-│   └── documentTemplates/ # Legal document templates
-└── components/            # Shared React components
+mvp/
+├── app/                    # Next.js app router
+│   ├── api/               # REST API routes (27 endpoints)
+│   │   ├── estate-plans/  # Estate plan CRUD + nested resources
+│   │   ├── gap-analysis/  # AI analysis orchestration
+│   │   ├── upload/        # File upload handling
+│   │   └── users/         # User management
+│   ├── analysis/          # Gap analysis UI
+│   ├── documents/         # Document upload & generation
+│   ├── intake/            # Intake wizard (guided + comprehensive)
+│   ├── hooks/             # SWR data fetching hooks
+│   └── components/        # Page-specific components
+├── components/            # Shared React components
+├── lib/                   # Utilities
+│   ├── auth-helper.ts     # Authentication & ownership verification
+│   ├── db.ts              # Prisma client configuration
+│   ├── gap-analysis/      # AI analysis orchestrator
+│   └── intake/            # Guided intake flow configuration
+├── prisma/
+│   ├── schema.prisma      # Database schema (16 models)
+│   └── migrations/        # Database migrations
+└── middleware.ts          # Security headers, rate limiting
 ```
 
-## Roadmap
+## API Routes
 
-See [ROADMAP.md](./ROADMAP.md) for completed features and upcoming development phases.
+All API routes include authentication (Clerk or session-based) and ownership verification.
 
-**Next Up:** Phase 9 - Document Upload & AI Analysis
-- Upload existing legal documents (PDFs)
-- AI-powered document analysis
-- Cross-reference with intake data
-- Hypothetical scenario exploration
+| Route | Methods | Description |
+|-------|---------|-------------|
+| `/api/estate-plans` | GET, POST | List & create estate plans |
+| `/api/estate-plans/[id]` | GET, PATCH | Get & update estate plan |
+| `/api/estate-plans/[id]/intake` | GET | Get all intake data |
+| `/api/estate-plans/[id]/intake/[section]` | GET, PUT | Section-specific intake |
+| `/api/estate-plans/[id]/guided-intake` | GET, POST, PUT | Guided flow progress |
+| `/api/estate-plans/[id]/gap-analysis` | GET, POST | Gap analysis results |
+| `/api/estate-plans/[id]/documents` | GET, POST | Generated documents |
+| `/api/estate-plans/[id]/uploaded-documents` | GET, POST, DELETE | Uploaded documents |
+| `/api/estate-plans/[id]/reminders` | GET, POST | Reminder management |
+| `/api/gap-analysis/orchestrate` | POST | Multi-phase AI analysis |
+
+## Security Features
+
+- **Authentication**: Clerk integration with anonymous session fallback
+- **Ownership Verification**: All resources verified against user/session
+- **Rate Limiting**: 100 requests/minute per IP
+- **Security Headers**: CSP, HSTS, X-Frame-Options, etc.
+- **SSL/TLS**: Required for database connections
+- **Input Validation**: Zod schema validation on all endpoints
+- **File Validation**: Magic bytes check for uploads
+
+## Database Schema
+
+16 Prisma models covering:
+- Users & authentication
+- Estate plans & intake data
+- Document storage & generation
+- Gap analysis runs & results
+- Reminders & life events
+- Family contacts & attorney questions
+
+Run `npx prisma studio` to explore the database visually.
+
+## Development
+
+```bash
+# Run development server
+npm run dev
+
+# Run Prisma Studio (database GUI)
+npx prisma studio
+
+# Generate Prisma client after schema changes
+npx prisma generate
+
+# Create a new migration
+npx prisma migrate dev --name description
+
+# Format code
+npm run lint
+```
 
 ## License
 

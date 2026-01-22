@@ -8,5 +8,13 @@
 .env.production
 .env*.local
 
+# dependencies
+node_modules/
+
+# build output
 .vercel
 .next
+
+# misc
+.DS_Store
+*.log

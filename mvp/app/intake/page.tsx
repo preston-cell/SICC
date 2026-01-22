@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEstatePlan, useIntakeProgress, createEstatePlan, useUploadedDocuments, useExtractedData } from "../hooks/usePrismaQueries";
+import { useEstatePlan, useIntakeProgress, createEstatePlan, useUploadedDocuments, useExtractedData, useGuidedIntakeProgress } from "../hooks/usePrismaQueries";
 import Link from "next/link";
 import SaveProgressPrompt from "../components/SaveProgressPrompt";
 import {
@@ -37,6 +37,7 @@ function IntakeLandingContent() {
   const { data: intakeProgress } = useIntakeProgress(planId);
   const { data: extractedData } = useExtractedData(planId);
   const { data: uploadedDocs } = useUploadedDocuments(planId);
+  const { data: guidedProgress } = useGuidedIntakeProgress(planId);
 
   const hasExtractedData = extractedData && extractedData.length > 0;
   const hasUploadedDocs = uploadedDocs && uploadedDocs.length > 0;
@@ -133,7 +134,91 @@ function IntakeLandingContent() {
     );
   }
 
-  // Existing plan progress
+  // Guided flow in progress - show continuation option
+  if (existingPlan && guidedProgress && guidedProgress.completedSteps && guidedProgress.completedSteps.length > 0) {
+    const completedStepIds = guidedProgress.completedSteps;
+    const isAllGuidedStepsComplete = completedStepIds.length >= 8;
+
+    return (
+      <div className="max-w-xl mx-auto space-y-6">
+        <div>
+          <h1 className="text-section text-[var(--text-heading)]">
+            {existingPlan.name || "Your Estate Plan"}
+          </h1>
+          <p className="text-[var(--text-muted)] mt-1">
+            {isAllGuidedStepsComplete ? "Your intake is complete!" : "Continue where you left off"}
+          </p>
+        </div>
+
+        {/* Guided Flow Progress */}
+        <div className="bg-white border border-[var(--border)] rounded-xl p-5">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-sm font-medium text-[var(--text-heading)]">
+              Guided Intake Progress
+            </h2>
+            <span className="text-xl font-semibold text-[var(--accent-purple)]">
+              {Math.round((completedStepIds.length / 8) * 100)}%
+            </span>
+          </div>
+
+          <div className="w-full bg-[var(--off-white)] rounded-full h-2 mb-5">
+            <div
+              className="h-2 rounded-full bg-[var(--accent-purple)] transition-all duration-300"
+              style={{ width: `${Math.min((completedStepIds.length / 8) * 100, 100)}%` }}
+            />
+          </div>
+
+          <div className="flex items-center gap-3 text-sm text-[var(--text-muted)]">
+            <CheckCircle2 className="w-4 h-4 text-[var(--success)]" />
+            <span>{Math.min(completedStepIds.length, 8)} of 8 steps completed</span>
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className="flex flex-col sm:flex-row gap-3">
+          {isAllGuidedStepsComplete ? (
+            <Link href={`/analysis/${planId}`} className="flex-1">
+              <Button variant="primary" fullWidth>
+                Run Gap Analysis
+              </Button>
+            </Link>
+          ) : (
+            <Link href={`/intake/guided?planId=${planId}`} className="flex-1">
+              <Button variant="primary" fullWidth>
+                <MessageCircle className="w-4 h-4 mr-2" />
+                Continue Guided Intake
+              </Button>
+            </Link>
+          )}
+          <button
+            onClick={() => {
+              localStorage.removeItem("estatePlanId");
+              localStorage.removeItem("estatePlanSessionId");
+              router.push("/intake");
+            }}
+            className="px-5 py-2.5 border border-[var(--border)] text-[var(--text-heading)] rounded-lg font-medium text-sm hover:bg-[var(--off-white)] transition-colors"
+          >
+            Start New Plan
+          </button>
+        </div>
+
+        {/* Option to switch to comprehensive form or review answers */}
+        <div className="text-center">
+          <p className="text-sm text-[var(--text-muted)] mb-2">
+            {isAllGuidedStepsComplete ? "Want to make changes?" : "Or switch to the detailed form view"}
+          </p>
+          <Link
+            href={isAllGuidedStepsComplete ? `/intake/guided/review?planId=${planId}` : `/intake/personal?planId=${planId}`}
+            className="text-sm text-[var(--accent-purple)] hover:underline"
+          >
+            {isAllGuidedStepsComplete ? "Review Answers" : "Open Comprehensive Form"}
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // Existing plan progress (comprehensive form)
   if (existingPlan && intakeProgress) {
     const completedSections = (Object.values(intakeProgress.sections) as Array<{ isComplete: boolean }>).filter((s: { isComplete: boolean }) => s.isComplete).length;
 
