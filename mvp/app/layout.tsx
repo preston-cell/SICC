@@ -1,7 +1,7 @@
 import "./globals.css";
 import { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
-import ConvexClientProvider from "./ConvexClientProvider";
+import AuthSyncProvider from "./AuthSyncProvider";
 import { DM_Sans, JetBrains_Mono } from "next/font/google";
 
 // Primary font - DM Sans (Cohere-style)
@@ -36,9 +36,9 @@ export default function RootLayout({
   const content = (
     <html lang="en" className={`${dmSans.variable} ${jetbrainsMono.variable}`}>
       <body className={dmSans.className}>
-        <ConvexClientProvider>
+        <AuthSyncProvider>
           {children}
-        </ConvexClientProvider>
+        </AuthSyncProvider>
       </body>
     </html>
   );

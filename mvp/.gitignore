@@ -2,6 +2,11 @@
 # clerk configuration (can include secrets)
 /.clerk/
 
+# environment files with secrets
+.env
 .env.local
+.env.production
+.env*.local
+
 .vercel
 .next

@@ -14,7 +14,7 @@ function AuthSyncWrapper({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-export default function ConvexClientProvider({
+export default function AuthSyncProvider({
   children,
 }: {
   children: React.ReactNode;
