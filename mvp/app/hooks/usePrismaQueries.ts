@@ -737,7 +737,7 @@ export function useExtractedDataBySection(
 ) {
   return useSWR(
     estatePlanId && section
-      ? `/api/estate-plans/${estatePlanId}/extracted-data/${section}`
+      ? `/api/estate-plans/${estatePlanId}/extracted-data?section=${section}`
       : null,
     fetcher
   )
