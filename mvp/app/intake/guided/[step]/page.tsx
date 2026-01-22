@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useCallback, useEffect, useState, useRef } from "react";
+import { Suspense, useCallback, useEffect, useState, useRef, useMemo } from "react";
 import { useRouter, useSearchParams, useParams } from "next/navigation";
 import {
   useGuidedIntakeProgress,
@@ -69,10 +69,13 @@ function GuidedStepContent() {
 
   const { data: guidedProgress, isLoading: isLoadingProgress } = useGuidedIntakeProgress(estatePlanId);
 
-  // Extract existing step data from the progress object
-  const existingData = step && guidedProgress?.stepData
-    ? { data: guidedProgress.stepData[step.id] ? JSON.stringify(guidedProgress.stepData[step.id]) : null }
-    : undefined;
+  // Extract existing step data from the progress object (memoized to prevent infinite loops)
+  const existingDataString = useMemo(() => {
+    if (step && guidedProgress?.stepData && guidedProgress.stepData[step.id]) {
+      return JSON.stringify(guidedProgress.stepData[step.id]);
+    }
+    return null;
+  }, [step, guidedProgress?.stepData]);
 
   // Keep ref in sync
   useEffect(() => {
@@ -81,16 +84,16 @@ function GuidedStepContent() {
 
   // Initialize form data from existing data
   useEffect(() => {
-    if (existingData?.data) {
+    if (existingDataString) {
       try {
-        const parsed = JSON.parse(existingData.data);
+        const parsed = JSON.parse(existingDataString);
         setFormData(parsed);
         formDataRef.current = parsed;
       } catch (e) {
         console.error("Failed to parse existing data:", e);
       }
     }
-  }, [existingData]);
+  }, [existingDataString]);
 
   // Auto-save logic
   const doSave = useCallback(
