@@ -182,11 +182,7 @@ export default function AnalysisPage() {
       // Build intake data object for the API
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const rawIntakeData = intakeData as any;
-      console.log("Raw intakeData from Prisma:", rawIntakeData);
-
       const intakeArray = rawIntakeData?.intakeData || rawIntakeData?.intake || [];
-      console.log("Intake array:", intakeArray);
-      console.log("Available sections:", intakeArray.map?.((i: { section: string }) => i.section) || "none");
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const beneficiaries = rawIntakeData?.beneficiaryDesignations || [];
@@ -200,8 +196,6 @@ export default function AnalysisPage() {
         goals: intakeArray?.find((i: { section: string }) => i.section === "goals"),
         beneficiaryDesignations: beneficiaries,
       };
-
-      console.log("Built apiIntakeData:", JSON.stringify(apiIntakeData, null, 2));
 
       // Call different endpoints based on mode
       // Comprehensive mode calls orchestrate directly to avoid nested fetch timeout
@@ -221,7 +215,6 @@ export default function AnalysisPage() {
       if (mode === "comprehensive") {
         if (result.runId) {
           // Orchestration started - redirect to preparation tasks page
-          console.log("Comprehensive analysis started, runId:", result.runId);
           setComprehensiveRunId(result.runId as string);
           clearInterval(progressInterval);
           // Redirect to preparation tasks page where user can work while analysis runs
@@ -241,17 +234,6 @@ export default function AnalysisPage() {
         return;
       }
 
-      // Debug: Log what we received from the API
-      console.log("Gap analysis API response:", {
-        success: result.success,
-        hasAnalysisResult: !!result.analysisResult,
-        score: result.analysisResult?.score,
-        overallScore: result.analysisResult?.overallScore,
-        missingDocsCount: result.analysisResult?.missingDocuments?.length || 0,
-        recommendationsCount: (result.analysisResult?.recommendations || result.analysisResult?.prioritizedRecommendations)?.length || 0,
-        stateNotesCount: (result.analysisResult?.stateSpecificNotes || result.analysisResult?.stateSpecificConsiderations)?.length || 0,
-      });
-
       // Clear progress interval
       clearInterval(progressInterval);
       setProgressStep("Analysis complete!");
@@ -260,19 +242,6 @@ export default function AnalysisPage() {
       const missingDocs = result.analysisResult?.missingDocuments || [];
       const recommendations = result.analysisResult?.recommendations || result.analysisResult?.prioritizedRecommendations || [];
       const stateNotes = result.analysisResult?.stateSpecificNotes || result.analysisResult?.stateSpecificConsiderations || [];
-
-      if (missingDocs.length === 0 && recommendations.length === 0) {
-        console.warn("WARNING: API returned empty analysis data - possible parsing issue");
-        console.warn("Full result structure:", JSON.stringify(result.analysisResult, null, 2).slice(0, 1000));
-      }
-
-      // Log what we're about to save
-      console.log("Saving to Prisma:", {
-        score: result.analysisResult?.score || 50,
-        missingDocsCount: missingDocs.length,
-        recommendationsCount: recommendations.length,
-        stateNotesCount: stateNotes.length,
-      });
 
       // Save results to Prisma via API
       await saveGapAnalysis(estatePlanId, {

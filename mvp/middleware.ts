@@ -21,19 +21,100 @@ const isPublicRoute = createRouteMatcher([
   "/api/(.*)",
 ]);
 
-// Middleware that skips Clerk if not configured
-function simpleMiddleware(req: NextRequest) {
-  return NextResponse.next();
+// Simple in-memory rate limiter for API routes
+// In production, use Redis or a dedicated rate limiting service
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute
+const MAX_REQUESTS_PER_WINDOW = 100; // 100 requests per minute
+
+function checkRateLimit(ip: string): { allowed: boolean; remaining: number } {
+  const now = Date.now();
+  const key = ip;
+  const entry = rateLimitMap.get(key);
+
+  if (!entry || now > entry.resetTime) {
+    rateLimitMap.set(key, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
+    return { allowed: true, remaining: MAX_REQUESTS_PER_WINDOW - 1 };
+  }
+
+  if (entry.count >= MAX_REQUESTS_PER_WINDOW) {
+    return { allowed: false, remaining: 0 };
+  }
+
+  entry.count++;
+  return { allowed: true, remaining: MAX_REQUESTS_PER_WINDOW - entry.count };
+}
+
+// Clean up old entries periodically
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, entry] of rateLimitMap.entries()) {
+    if (now > entry.resetTime) {
+      rateLimitMap.delete(key);
+    }
+  }
+}, RATE_LIMIT_WINDOW_MS);
+
+// Add security headers to response
+function addSecurityHeaders(response: NextResponse): NextResponse {
+  // Prevent XSS attacks
+  response.headers.set('X-Content-Type-Options', 'nosniff');
+  // Prevent clickjacking
+  response.headers.set('X-Frame-Options', 'DENY');
+  // Enable strict transport security
+  response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  // Referrer policy
+  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+  // Permissions policy
+  response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+
+  return response;
+}
+
+// Middleware that adds security headers and rate limiting
+function securityMiddleware(req: NextRequest): NextResponse {
+  // Apply rate limiting to API routes
+  if (req.nextUrl.pathname.startsWith('/api/')) {
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
+      || req.headers.get('x-real-ip')
+      || 'unknown';
+
+    const { allowed, remaining } = checkRateLimit(ip);
+
+    if (!allowed) {
+      const response = NextResponse.json(
+        { error: 'Too many requests. Please try again later.' },
+        { status: 429 }
+      );
+      response.headers.set('Retry-After', '60');
+      response.headers.set('X-RateLimit-Remaining', '0');
+      return addSecurityHeaders(response);
+    }
+
+    const response = NextResponse.next();
+    response.headers.set('X-RateLimit-Remaining', remaining.toString());
+    return addSecurityHeaders(response);
+  }
+
+  return addSecurityHeaders(NextResponse.next());
 }
 
 // Export the appropriate middleware
 export default isClerkConfigured
   ? clerkMiddleware(async (auth, req) => {
+      // Apply security headers and rate limiting first
+      const securityResponse = securityMiddleware(req);
+      if (securityResponse.status === 429) {
+        return securityResponse;
+      }
+
       if (isProtectedRoute(req)) {
         await auth.protect();
       }
+
+      return securityResponse;
     })
-  : simpleMiddleware;
+  : securityMiddleware;
 
 export const config = {
   matcher: [

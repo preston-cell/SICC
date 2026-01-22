@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { z } from 'zod'
 import { BeneficiaryAssetType } from '@prisma/client'
+import { requireAuthOrSessionAndOwnership } from '@/lib/auth-helper'
 
 // Schema for creating/updating beneficiary designations
 const BeneficiarySchema = z.object({
@@ -37,6 +38,11 @@ export async function GET(
 ) {
   try {
     const { id: estatePlanId } = await params
+
+    // Verify ownership
+    const { error } = await requireAuthOrSessionAndOwnership(estatePlanId, request)
+    if (error) return error
+
     const assetType = request.nextUrl.searchParams.get('assetType')
 
     const where: { estatePlanId: string; assetType?: BeneficiaryAssetType } = { estatePlanId }
@@ -66,6 +72,11 @@ export async function POST(
 ) {
   try {
     const { id: estatePlanId } = await params
+
+    // Verify ownership
+    const { error } = await requireAuthOrSessionAndOwnership(estatePlanId, request)
+    if (error) return error
+
     const body = await request.json()
     const data = BeneficiarySchema.parse(body)
 
@@ -100,6 +111,11 @@ export async function PUT(
 ) {
   try {
     const { id: estatePlanId } = await params
+
+    // Verify ownership
+    const { error } = await requireAuthOrSessionAndOwnership(estatePlanId, request)
+    if (error) return error
+
     const body = await request.json()
     const { designations } = BulkSaveSchema.parse(body)
 

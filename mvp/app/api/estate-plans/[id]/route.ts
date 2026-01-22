@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { z } from 'zod'
+import { requireAuthOrSessionAndOwnership } from '@/lib/auth-helper'
 
 // Schema for updating an estate plan
 const UpdateEstatePlanSchema = z.object({
@@ -23,6 +24,11 @@ export async function GET(
 ) {
   try {
     const { id } = await params
+
+    // Verify ownership
+    const { error } = await requireAuthOrSessionAndOwnership(id, request)
+    if (error) return error
+
     const includeFull = request.nextUrl.searchParams.get('full') === 'true'
 
     if (includeFull) {
@@ -83,6 +89,11 @@ export async function PATCH(
 ) {
   try {
     const { id } = await params
+
+    // Verify ownership
+    const { error } = await requireAuthOrSessionAndOwnership(id, request)
+    if (error) return error
+
     const body = await request.json()
     const updates = UpdateEstatePlanSchema.parse(body)
 
@@ -114,6 +125,10 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params
+
+    // Verify ownership
+    const { error } = await requireAuthOrSessionAndOwnership(id, request)
+    if (error) return error
 
     // Prisma will cascade delete related records due to onDelete: Cascade
     await prisma.estatePlan.delete({

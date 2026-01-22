@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { z } from 'zod'
 import { ReminderType, ReminderStatus, Priority, RecurrencePattern, LifeEventType } from '@prisma/client'
+import { requireAuthOrSessionAndOwnership } from '@/lib/auth-helper'
 
 // Priority to days mapping for smart due dates
 const PRIORITY_TO_DAYS = {
@@ -76,6 +77,11 @@ export async function GET(
 ) {
   try {
     const { id: estatePlanId } = await params
+
+    // Verify ownership
+    const { error } = await requireAuthOrSessionAndOwnership(estatePlanId, request)
+    if (error) return error
+
     const status = request.nextUrl.searchParams.get('status')
 
     const where: { estatePlanId: string; status?: ReminderStatus } = { estatePlanId }
@@ -105,6 +111,11 @@ export async function POST(
 ) {
   try {
     const { id: estatePlanId } = await params
+
+    // Verify ownership
+    const { error } = await requireAuthOrSessionAndOwnership(estatePlanId, request)
+    if (error) return error
+
     const body = await request.json()
 
     // Check if this is a request to create default reminders

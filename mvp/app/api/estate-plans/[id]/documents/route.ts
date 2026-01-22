@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { z } from 'zod'
 import { DocumentType, DocumentFormat } from '@prisma/client'
+import { requireAuthOrSessionAndOwnership } from '@/lib/auth-helper'
 
 // Schema for creating a document
 const CreateDocumentSchema = z.object({
@@ -18,6 +19,11 @@ export async function GET(
 ) {
   try {
     const { id: estatePlanId } = await params
+
+    // Verify ownership
+    const { error } = await requireAuthOrSessionAndOwnership(estatePlanId, request)
+    if (error) return error
+
     const type = request.nextUrl.searchParams.get('type')
 
     const where: { estatePlanId: string; type?: DocumentType } = { estatePlanId }
@@ -47,6 +53,11 @@ export async function POST(
 ) {
   try {
     const { id: estatePlanId } = await params
+
+    // Verify ownership
+    const { error } = await requireAuthOrSessionAndOwnership(estatePlanId, request)
+    if (error) return error
+
     const body = await request.json()
     const { type, title, content, format } = CreateDocumentSchema.parse(body)
 

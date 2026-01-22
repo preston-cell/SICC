@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { z } from 'zod'
+import { requireAuthOrSessionAndOwnership } from '@/lib/auth-helper'
 
 // Schema for updating reminder status
 const UpdateReminderSchema = z.object({
@@ -15,6 +16,21 @@ export async function PATCH(
 ) {
   try {
     const { id } = await params
+
+    // Get the reminder to verify ownership through the estate plan
+    const existingReminder = await prisma.reminder.findUnique({
+      where: { id },
+      select: { estatePlanId: true }
+    })
+
+    if (!existingReminder) {
+      return NextResponse.json({ error: 'Reminder not found' }, { status: 404 })
+    }
+
+    // Verify ownership of the estate plan
+    const { error } = await requireAuthOrSessionAndOwnership(existingReminder.estatePlanId, request)
+    if (error) return error
+
     const body = await request.json()
     const { action, snoozeDays } = UpdateReminderSchema.parse(body)
 
@@ -50,12 +66,12 @@ export async function PATCH(
         break
     }
 
-    const reminder = await prisma.reminder.update({
+    const updatedReminder = await prisma.reminder.update({
       where: { id },
       data: updateData,
     })
 
-    return NextResponse.json(reminder)
+    return NextResponse.json(updatedReminder)
   } catch (error) {
     console.error('Failed to update reminder:', error)
     if (error instanceof z.ZodError) {
@@ -78,6 +94,20 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params
+
+    // Get the reminder to verify ownership through the estate plan
+    const existingReminder = await prisma.reminder.findUnique({
+      where: { id },
+      select: { estatePlanId: true }
+    })
+
+    if (!existingReminder) {
+      return NextResponse.json({ error: 'Reminder not found' }, { status: 404 })
+    }
+
+    // Verify ownership of the estate plan
+    const { error } = await requireAuthOrSessionAndOwnership(existingReminder.estatePlanId, request)
+    if (error) return error
 
     await prisma.reminder.delete({
       where: { id },

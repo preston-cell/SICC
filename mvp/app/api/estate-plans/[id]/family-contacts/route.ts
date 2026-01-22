@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
+import { requireAuthOrSessionAndOwnership } from '@/lib/auth-helper'
 
 // GET /api/estate-plans/[id]/family-contacts - List all contacts
 export async function GET(
@@ -8,6 +9,11 @@ export async function GET(
 ) {
   try {
     const { id: estatePlanId } = await params
+
+    // Verify ownership
+    const { error } = await requireAuthOrSessionAndOwnership(estatePlanId, request)
+    if (error) return error
+
     const { searchParams } = new URL(request.url)
     const role = searchParams.get('role')
 
@@ -38,6 +44,11 @@ export async function POST(
 ) {
   try {
     const { id: estatePlanId } = await params
+
+    // Verify ownership
+    const { error } = await requireAuthOrSessionAndOwnership(estatePlanId, request)
+    if (error) return error
+
     const body = await request.json()
     const { name, relationship, role, phone, email, address, notes } = body
 
@@ -77,6 +88,12 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id: estatePlanId } = await params
+
+    // Verify ownership
+    const { error } = await requireAuthOrSessionAndOwnership(estatePlanId, request)
+    if (error) return error
+
     const body = await request.json()
     const { id, name, relationship, role, phone, email, address, notes } = body
 
@@ -116,6 +133,12 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id: estatePlanId } = await params
+
+    // Verify ownership
+    const { error } = await requireAuthOrSessionAndOwnership(estatePlanId, request)
+    if (error) return error
+
     const { searchParams } = new URL(request.url)
     const contactId = searchParams.get('contactId')
 

@@ -1,10 +1,11 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { requireAuthOrSessionAndOwnership } from "@/lib/auth-helper";
 
 // Extend Vercel function timeout
 export const maxDuration = 600;
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const { estatePlanId, intakeData } = body;
@@ -15,6 +16,10 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
+
+    // Verify ownership
+    const { error } = await requireAuthOrSessionAndOwnership(estatePlanId, req);
+    if (error) return error;
 
     // Check for existing active run
     const existingRun = await prisma.gapAnalysisRun.findFirst({

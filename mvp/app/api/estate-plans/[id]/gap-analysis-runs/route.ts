@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
+import { requireAuthOrSessionAndOwnership } from '@/lib/auth-helper'
 
 // GET /api/estate-plans/[id]/gap-analysis-runs - Get runs
 export async function GET(
@@ -8,6 +9,11 @@ export async function GET(
 ) {
   try {
     const { id: estatePlanId } = await params
+
+    // Verify ownership
+    const { error } = await requireAuthOrSessionAndOwnership(estatePlanId, request)
+    if (error) return error
+
     const { searchParams } = new URL(request.url)
     const latest = searchParams.get('latest') === 'true'
     const active = searchParams.get('active') === 'true'
@@ -110,6 +116,11 @@ export async function POST(
 ) {
   try {
     const { id: estatePlanId } = await params
+
+    // Verify ownership
+    const { error } = await requireAuthOrSessionAndOwnership(estatePlanId, request)
+    if (error) return error
+
     const body = await request.json()
     const { analysisType = 'comprehensive' } = body
 
@@ -166,6 +177,12 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id: estatePlanId } = await params
+
+    // Verify ownership
+    const { error } = await requireAuthOrSessionAndOwnership(estatePlanId, request)
+    if (error) return error
+
     const body = await request.json()
     const { runId, status, currentPhase, progressPercent, error: errorMsg } = body
 

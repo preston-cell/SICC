@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
+import { requireAuthOrSessionAndOwnership } from '@/lib/auth-helper'
 
 // GET /api/estate-plans/[id]/intake - Get all intake data for an estate plan
 export async function GET(
@@ -8,6 +9,10 @@ export async function GET(
 ) {
   try {
     const { id: estatePlanId } = await params
+
+    // Verify ownership
+    const { error } = await requireAuthOrSessionAndOwnership(estatePlanId, request)
+    if (error) return error
 
     const intakeData = await prisma.intakeData.findMany({
       where: { estatePlanId },

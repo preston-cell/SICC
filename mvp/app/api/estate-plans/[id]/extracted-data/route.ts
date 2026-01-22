@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { IntakeSection } from '@prisma/client'
+import { requireAuthOrSessionAndOwnership } from '@/lib/auth-helper'
 
 // GET /api/estate-plans/[id]/extracted-data - Get all extracted data
 // GET /api/estate-plans/[id]/extracted-data?section=personal - Get extracted data for a section
@@ -10,6 +11,11 @@ export async function GET(
 ) {
   try {
     const { id: estatePlanId } = await params
+
+    // Verify ownership
+    const { error } = await requireAuthOrSessionAndOwnership(estatePlanId, request)
+    if (error) return error
+
     const { searchParams } = new URL(request.url)
     const section = searchParams.get('section') as IntakeSection | null
 

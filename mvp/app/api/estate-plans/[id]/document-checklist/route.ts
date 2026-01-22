@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
+import { requireAuthOrSessionAndOwnership } from '@/lib/auth-helper'
 
 // Standard checklist items by category
 const CHECKLIST_TEMPLATES: Record<string, Array<{ title: string; description: string }>> = {
@@ -54,6 +55,11 @@ export async function GET(
 ) {
   try {
     const { id: estatePlanId } = await params
+
+    // Verify ownership
+    const { error } = await requireAuthOrSessionAndOwnership(estatePlanId, request)
+    if (error) return error
+
     const { searchParams } = new URL(request.url)
     const category = searchParams.get('category')
     const progressOnly = searchParams.get('progress') === 'true'
@@ -99,6 +105,10 @@ export async function POST(
 ) {
   try {
     const { id: estatePlanId } = await params
+
+    // Verify ownership
+    const { error } = await requireAuthOrSessionAndOwnership(estatePlanId, request)
+    if (error) return error
 
     // Check if checklist already exists
     const existing = await prisma.documentChecklistItem.count({
@@ -198,6 +208,12 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id: estatePlanId } = await params
+
+    // Verify ownership
+    const { error } = await requireAuthOrSessionAndOwnership(estatePlanId, request)
+    if (error) return error
+
     const body = await request.json()
     const { id, status } = body
 
@@ -230,6 +246,10 @@ export async function DELETE(
 ) {
   try {
     const { id: estatePlanId } = await params
+
+    // Verify ownership
+    const { error } = await requireAuthOrSessionAndOwnership(estatePlanId, request)
+    if (error) return error
 
     await prisma.documentChecklistItem.deleteMany({
       where: { estatePlanId },

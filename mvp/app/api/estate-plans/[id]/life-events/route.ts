@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { z } from 'zod'
 import { LifeEventType } from '@prisma/client'
+import { requireAuthOrSessionAndOwnership } from '@/lib/auth-helper'
 
 // Schema for logging a life event
 const LogLifeEventSchema = z.object({
@@ -23,6 +24,10 @@ export async function GET(
 ) {
   try {
     const { id: estatePlanId } = await params
+
+    // Verify ownership
+    const { error } = await requireAuthOrSessionAndOwnership(estatePlanId, request)
+    if (error) return error
 
     const lifeEvents = await prisma.lifeEvent.findMany({
       where: { estatePlanId },
@@ -46,6 +51,11 @@ export async function POST(
 ) {
   try {
     const { id: estatePlanId } = await params
+
+    // Verify ownership
+    const { error } = await requireAuthOrSessionAndOwnership(estatePlanId, request)
+    if (error) return error
+
     const body = await request.json()
     const data = LogLifeEventSchema.parse(body)
 
@@ -90,6 +100,11 @@ export async function PATCH(
 ) {
   try {
     const { id: estatePlanId } = await params
+
+    // Verify ownership
+    const { error } = await requireAuthOrSessionAndOwnership(estatePlanId, request)
+    if (error) return error
+
     const body = await request.json()
     const data = MarkAddressedSchema.parse(body)
 

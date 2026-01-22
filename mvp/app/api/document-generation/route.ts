@@ -1,4 +1,5 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { getAuthContext } from "@/lib/auth-helper";
 
 // Extend Vercel function timeout
 export const maxDuration = 300;
@@ -285,8 +286,17 @@ Date: ________________________________________
 Generate the document now and save it using the Write tool.`;
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
+    // Require auth or session for document generation
+    const authContext = await getAuthContext(req);
+    if (!authContext.userId && !authContext.sessionId) {
+      return NextResponse.json(
+        { error: "Authentication or session required" },
+        { status: 401 }
+      );
+    }
+
     const { documentType, intakeData } = await req.json();
 
     if (!documentType) {

@@ -739,54 +739,30 @@ function repairJSON(json: string): string {
 }
 
 function extractJSON(result: { stdout?: string; fileContent?: string }): Record<string, unknown> | null {
-  console.log("extractJSON called, fileContent length:", result.fileContent?.length || 0, "stdout length:", result.stdout?.length || 0);
-
   // Try file content first (most reliable)
   if (result.fileContent && result.fileContent.trim()) {
     try {
-      const parsed = JSON.parse(result.fileContent);
-      console.log("Successfully parsed fileContent, keys:", Object.keys(parsed));
-      return parsed;
-    } catch (e) {
-      console.error("Failed to parse fileContent:", e);
-      console.error("fileContent preview:", result.fileContent.substring(0, 500));
-
+      return JSON.parse(result.fileContent);
+    } catch {
       // Try to repair truncated JSON
       try {
-        console.log("Attempting to repair JSON, original length:", result.fileContent.length);
         const repaired = repairJSON(result.fileContent);
-        console.log("Repaired JSON length:", repaired.length);
-        const parsed = JSON.parse(repaired);
-        console.log("Successfully parsed REPAIRED fileContent, keys:", Object.keys(parsed));
-        return parsed;
-      } catch (repairError) {
-        console.error("Failed to repair JSON:", repairError);
-        // Log the area around the error
-        const errorMsg = (repairError as Error).message;
-        const posMatch = errorMsg.match(/position (\d+)/);
-        if (posMatch) {
-          const pos = parseInt(posMatch[1], 10);
-          console.error("Error context around position", pos, ":", result.fileContent.substring(Math.max(0, pos - 100), pos + 100));
-        }
+        return JSON.parse(repaired);
+      } catch {
+        // Fall through to try stdout
       }
     }
   }
 
   // Try to extract from stdout
   if (result.stdout) {
-    console.log("Attempting to extract JSON from stdout, length:", result.stdout.length);
-    console.log("stdout preview (first 500 chars):", result.stdout.substring(0, 500));
-    console.log("stdout preview (last 500 chars):", result.stdout.slice(-500));
-
     // Try code block first
     const codeBlockMatch = result.stdout.match(/```(?:json)?\s*\n([\s\S]*?)\n```/);
     if (codeBlockMatch) {
       try {
-        const parsed = JSON.parse(codeBlockMatch[1]);
-        console.log("Successfully parsed code block JSON, keys:", Object.keys(parsed));
-        return parsed;
-      } catch (e) {
-        console.error("Failed to parse code block JSON:", e);
+        return JSON.parse(codeBlockMatch[1]);
+      } catch {
+        // Continue to other methods
       }
     }
 
@@ -794,11 +770,9 @@ function extractJSON(result: { stdout?: string; fileContent?: string }): Record<
     const analysisMatch = result.stdout.match(/\{"score"[\s\S]*\}(?=\s*$|\s*\n\s*===)/);
     if (analysisMatch) {
       try {
-        const parsed = JSON.parse(analysisMatch[0]);
-        console.log("Successfully parsed analysis JSON from stdout, keys:", Object.keys(parsed));
-        return parsed;
-      } catch (e) {
-        console.error("Failed to parse analysis JSON:", e);
+        return JSON.parse(analysisMatch[0]);
+      } catch {
+        // Continue to other methods
       }
     }
 
@@ -819,19 +793,14 @@ function extractJSON(result: { stdout?: string; fileContent?: string }): Record<
       }
       if (jsonEnd !== -1) {
         try {
-          const parsed = JSON.parse(result.stdout.substring(jsonStart, jsonEnd + 1));
-          console.log("Successfully parsed JSON with brace matching, keys:", Object.keys(parsed));
-          return parsed;
-        } catch (e) {
-          console.error("Failed to parse JSON with brace matching:", e);
+          return JSON.parse(result.stdout.substring(jsonStart, jsonEnd + 1));
+        } catch {
           // Try to repair truncated JSON
           try {
             const repaired = repairJSON(result.stdout.substring(jsonStart, jsonEnd + 1));
-            const parsed = JSON.parse(repaired);
-            console.log("Successfully parsed REPAIRED stdout JSON, keys:", Object.keys(parsed));
-            return parsed;
-          } catch (repairError) {
-            console.error("Failed to repair stdout JSON:", repairError);
+            return JSON.parse(repaired);
+          } catch {
+            // Continue to other methods
           }
         }
       }
@@ -841,10 +810,8 @@ function extractJSON(result: { stdout?: string; fileContent?: string }): Record<
     const anyJsonMatch = result.stdout.match(/\{[^{}]*"missingDocuments"[^{}]*[\s\S]*\}/);
     if (anyJsonMatch) {
       try {
-        const parsed = JSON.parse(anyJsonMatch[0]);
-        console.log("Successfully parsed JSON with missingDocuments key, keys:", Object.keys(parsed));
-        return parsed;
-      } catch (e) {
+        return JSON.parse(anyJsonMatch[0]);
+      } catch {
         // Try brace matching
         const start = result.stdout.indexOf(anyJsonMatch[0]);
         let braceCount = 0;
@@ -862,19 +829,16 @@ function extractJSON(result: { stdout?: string; fileContent?: string }): Record<
         if (end !== -1) {
           try {
             const repaired = repairJSON(result.stdout.substring(start, end + 1));
-            const parsed = JSON.parse(repaired);
-            console.log("Successfully parsed repaired analysis JSON, keys:", Object.keys(parsed));
-            return parsed;
+            return JSON.parse(repaired);
           } catch {
-            console.error("Failed to repair analysis JSON");
+            // All methods failed
           }
         }
       }
     }
   }
 
-  console.error("extractJSON: No valid JSON found");
-  console.error("Full stdout for debugging:", result.stdout?.slice(0, 2000));
+  console.error("extractJSON: No valid JSON found in response");
   return null;
 }
 
@@ -967,9 +931,6 @@ export async function POST(req: Request) {
     const parsed = parseIntakeData(intakeData);
     const ctx = getClientContext(parsed);
 
-    console.log("Starting QUICK gap analysis...");
-    console.log("Client context:", JSON.stringify(ctx));
-
     // Build simplified quick analysis prompt (faster, essential findings only)
     const prompt = buildQuickAnalysisPrompt(parsed);
     const result = await executeInE2B({
@@ -978,13 +939,6 @@ export async function POST(req: Request) {
       timeoutMs: 300000, // 5 minute timeout for quick analysis
       maxTurns: 5,
       runType: "quick_analysis",
-    });
-
-    console.log("E2B result:", {
-      success: result.success,
-      hasFileContent: !!result.fileContent,
-      fileContentLength: result.fileContent?.length,
-      error: result.error,
     });
 
     if (!result.success) {
@@ -1044,16 +998,6 @@ export async function POST(req: Request) {
     analysisResult.stateSpecificNotes = analysisResult.stateSpecificNotes || analysisResult.stateSpecificConsiderations || [];
     analysisResult.recommendations = analysisResult.recommendations || analysisResult.prioritizedRecommendations || [];
     analysisResult.scenarioAnalysis = analysisResult.scenarioAnalysis || [];
-
-    console.log("Final deep analysis:", {
-      score: analysisResult.score,
-      missingDocsCount: (analysisResult.missingDocuments as unknown[]).length,
-      recommendationsCount: (analysisResult.recommendations as unknown[]).length,
-      stateNotesCount: (analysisResult.stateSpecificNotes as unknown[]).length,
-      hasPreAnalysisInsights: !!analysisResult.preAnalysisInsights,
-      hasScenarioAnalysis: (analysisResult.scenarioAnalysis as unknown[]).length > 0,
-      hasUncertaintyLog: !!analysisResult.uncertaintyLog,
-    });
 
     return NextResponse.json({
       success: true,

@@ -2,10 +2,20 @@ import { NextRequest, NextResponse } from 'next/server'
 import { writeFile, mkdir } from 'fs/promises'
 import { join } from 'path'
 import { randomUUID } from 'crypto'
+import { getAuthContext } from '@/lib/auth-helper'
 
 // POST /api/upload - Upload a file and return storage ID
 export async function POST(request: NextRequest) {
   try {
+    // Require auth or session for uploads
+    const authContext = await getAuthContext(request)
+    if (!authContext.userId && !authContext.sessionId) {
+      return NextResponse.json(
+        { error: 'Authentication or session required' },
+        { status: 401 }
+      )
+    }
+
     const formData = await request.formData()
     const file = formData.get('file') as File | null
 

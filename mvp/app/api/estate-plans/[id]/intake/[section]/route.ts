@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { z } from 'zod'
 import { IntakeSection } from '@prisma/client'
+import { requireAuthOrSessionAndOwnership } from '@/lib/auth-helper'
 
 const VALID_SECTIONS: IntakeSection[] = ['personal', 'family', 'assets', 'existing_documents', 'goals']
 
@@ -18,6 +19,10 @@ export async function GET(
 ) {
   try {
     const { id: estatePlanId, section } = await params
+
+    // Verify ownership
+    const { error } = await requireAuthOrSessionAndOwnership(estatePlanId, request)
+    if (error) return error
 
     if (!VALID_SECTIONS.includes(section as IntakeSection)) {
       return NextResponse.json(
@@ -52,6 +57,11 @@ export async function PUT(
 ) {
   try {
     const { id: estatePlanId, section } = await params
+
+    // Verify ownership
+    const { error } = await requireAuthOrSessionAndOwnership(estatePlanId, request)
+    if (error) return error
+
     const body = await request.json()
     const { data, isComplete } = UpdateIntakeSchema.parse(body)
 

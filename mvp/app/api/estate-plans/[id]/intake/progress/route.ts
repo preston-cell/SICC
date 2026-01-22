@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
+import { requireAuthOrSessionAndOwnership } from '@/lib/auth-helper'
 
 const ALL_SECTIONS = ['personal', 'family', 'assets', 'existing_documents', 'goals'] as const
 
@@ -10,6 +11,10 @@ export async function GET(
 ) {
   try {
     const { id: estatePlanId } = await params
+
+    // Verify ownership
+    const { error } = await requireAuthOrSessionAndOwnership(estatePlanId, request)
+    if (error) return error
 
     const intakeRecords = await prisma.intakeData.findMany({
       where: { estatePlanId },
