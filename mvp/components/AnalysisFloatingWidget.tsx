@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useQuery } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "../convex/_generated/api";
 import { Id } from "../convex/_generated/dataModel";
 import Link from "next/link";
@@ -19,12 +19,27 @@ export function AnalysisFloatingWidget({
 }: AnalysisFloatingWidgetProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [hasNotified, setHasNotified] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
 
   const runProgress = useQuery(api.gapAnalysisProgress.getRunProgress, { runId });
   const phases = useQuery(api.gapAnalysisProgress.getPhaseProgress, { runId });
+  const cancelRun = useMutation(api.gapAnalysisOrchestration.cancelRun);
 
   const isComplete = runProgress?.status === "completed" || runProgress?.status === "partial";
   const isFailed = runProgress?.status === "failed";
+  const isCancelled = isFailed && runProgress?.error === "Cancelled by user";
+
+  const handleCancel = async () => {
+    if (isCancelling) return;
+    setIsCancelling(true);
+    try {
+      await cancelRun({ runId });
+    } catch (error) {
+      console.error("Failed to cancel analysis:", error);
+    } finally {
+      setIsCancelling(false);
+    }
+  };
 
   // Notify when complete
   useEffect(() => {
@@ -206,15 +221,32 @@ export function AnalysisFloatingWidget({
               </Link>
             ) : isFailed ? (
               <div className="text-sm text-red-600 bg-red-50 rounded-lg p-3">
-                Analysis failed. Please try again.
+                {isCancelled ? "Analysis cancelled." : "Analysis failed. Please try again."}
               </div>
             ) : (
-              <Link
-                href={`/analysis/${estatePlanId}`}
-                className="block text-center text-sm text-[var(--accent-purple)] hover:underline"
-              >
-                View Full Progress
-              </Link>
+              <div className="space-y-2">
+                <Link
+                  href={`/analysis/${estatePlanId}/prepare?runId=${runId}`}
+                  className="block w-full py-2 px-4 bg-[var(--accent-purple)] text-white text-center font-medium rounded-lg hover:bg-[var(--accent-hover)] transition-all text-sm"
+                >
+                  Preparation Tasks
+                </Link>
+                <div className="flex items-center justify-between">
+                  <Link
+                    href={`/analysis/${estatePlanId}`}
+                    className="text-sm text-[var(--accent-purple)] hover:underline"
+                  >
+                    View Progress
+                  </Link>
+                  <button
+                    onClick={handleCancel}
+                    disabled={isCancelling}
+                    className="text-sm text-red-500 hover:text-red-600 hover:underline disabled:opacity-50"
+                  >
+                    {isCancelling ? "Cancelling..." : "Cancel"}
+                  </button>
+                </div>
+              </div>
             )}
           </div>
         )}

@@ -11,6 +11,7 @@ import Badge from "../../components/ui/Badge";
 import Button from "../../components/ui/Button";
 import GapAnalysisCard, { ScoreRing, DOCUMENT_TYPE_NAMES } from "../../components/GapAnalysisCard";
 import { GapAnalysisProgress } from "@/components/GapAnalysisProgress";
+import { AnalysisFloatingWidget } from "@/components/AnalysisFloatingWidget";
 
 interface MissingDocument {
   // New API fields
@@ -137,6 +138,9 @@ export default function AnalysisPage() {
   const latestAnalysis = useQuery(api.queries.getLatestGapAnalysis, { estatePlanId });
   const intakeProgress = useQuery(api.queries.getIntakeProgress, { estatePlanId });
 
+  // Check for active comprehensive analysis run
+  const activeRun = useQuery(api.gapAnalysisProgress.getActiveRun, { estatePlanId });
+
   // Get full intake data for analysis
   const intakeData = useQuery(api.queries.getEstatePlanFull, { estatePlanId });
 
@@ -189,9 +193,21 @@ export default function AnalysisPage() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const beneficiaries = rawIntakeData?.beneficiaryDesignations || [];
 
+      // Get state from estate plan or from personal data (guided flow stores it there)
+      const personalSection = intakeArray?.find((i: { section: string }) => i.section === "personal");
+      let stateOfResidence = estatePlan?.stateOfResidence;
+      if (!stateOfResidence && personalSection?.data) {
+        try {
+          const personalData = JSON.parse(personalSection.data);
+          stateOfResidence = personalData.stateOfResidence;
+        } catch {
+          // Ignore parse errors
+        }
+      }
+
       const apiIntakeData = {
-        estatePlan: { stateOfResidence: estatePlan?.stateOfResidence },
-        personal: intakeArray?.find((i: { section: string }) => i.section === "personal"),
+        estatePlan: { stateOfResidence },
+        personal: personalSection,
         family: intakeArray?.find((i: { section: string }) => i.section === "family"),
         assets: intakeArray?.find((i: { section: string }) => i.section === "assets"),
         existingDocuments: intakeArray?.find((i: { section: string }) => i.section === "existing_documents"),
@@ -418,8 +434,23 @@ export default function AnalysisPage() {
     );
   }
 
+  // Determine if we should show the floating widget (active run or local comprehensiveRunId)
+  const showFloatingWidget = activeRun?.runId || comprehensiveRunId;
+  const floatingWidgetRunId = activeRun?.runId || comprehensiveRunId;
+
   return (
     <div className="min-h-screen bg-white print:bg-white">
+      {/* Floating widget for active comprehensive analysis */}
+      {showFloatingWidget && (
+        <AnalysisFloatingWidget
+          runId={floatingWidgetRunId!}
+          estatePlanId={estatePlanId}
+          onComplete={() => {
+            setComprehensiveRunId(null);
+          }}
+        />
+      )}
+
       {/* Header */}
       <header className="bg-white shadow-sm print:hidden">
         <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
@@ -479,8 +510,41 @@ export default function AnalysisPage() {
           </div>
         )}
 
+        {/* Active Analysis Running Banner */}
+        {activeRun && !isRunning && (
+          <div className="mb-6 bg-[var(--accent-muted)] border border-[var(--accent-purple)]/30 rounded-xl p-5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-full bg-[var(--accent-purple)]/10 flex items-center justify-center">
+                  <div className="w-5 h-5 border-2 border-[var(--accent-purple)] border-t-transparent rounded-full animate-spin" />
+                </div>
+                <div>
+                  <h3 className="font-medium text-[var(--text-heading)]">Comprehensive Analysis Running</h3>
+                  <p className="text-sm text-[var(--text-muted)]">
+                    {activeRun.overallProgress}% complete • Phase {activeRun.currentPhase || 1} of 3
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <Link
+                  href={`/analysis/${estatePlanId}/prepare?runId=${activeRun.runId}`}
+                  className="px-4 py-2 bg-[var(--accent-purple)] text-white text-sm font-medium rounded-lg hover:bg-[var(--accent-hover)] transition-colors"
+                >
+                  View Preparation Tasks
+                </Link>
+              </div>
+            </div>
+            <div className="mt-4 h-2 bg-[var(--border)] rounded-full overflow-hidden">
+              <div
+                className="h-full bg-[var(--accent-purple)] transition-all duration-500"
+                style={{ width: `${activeRun.overallProgress}%` }}
+              />
+            </div>
+          </div>
+        )}
+
         {/* Run Analysis State */}
-        {!latestAnalysis && !isRunning && (
+        {!latestAnalysis && !isRunning && !activeRun && (
           <div className="mb-8 bg-white rounded-xl shadow-lg p-8 text-center">
             <div className="w-20 h-20 bg-gradient-to-br from-[var(--accent-muted)] to-[var(--accent-purple)]/20 rounded-full flex items-center justify-center mx-auto mb-6">
               <svg className="w-10 h-10 text-[var(--accent-purple)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -727,6 +791,40 @@ export default function AnalysisPage() {
                     </svg>
                     Reminders & Life Events
                   </Link>
+                </div>
+
+                {/* Preparation Tasks Links */}
+                <div className="mt-6 pt-6 border-t border-[var(--border)]">
+                  <p className="text-sm text-[var(--text-muted)] text-center mb-3">Prepare for Your Attorney Consultation</p>
+                  <div className="flex flex-wrap justify-center gap-3">
+                    <Link
+                      href={`/analysis/${estatePlanId}/prepare/documents`}
+                      className="inline-flex items-center gap-1.5 px-4 py-2 text-sm text-[var(--text-body)] hover:text-[var(--accent-purple)] border border-[var(--border)] rounded-lg hover:border-[var(--accent-purple)] transition-colors"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      Gather Documents
+                    </Link>
+                    <Link
+                      href={`/analysis/${estatePlanId}/prepare/contacts`}
+                      className="inline-flex items-center gap-1.5 px-4 py-2 text-sm text-[var(--text-body)] hover:text-[var(--accent-purple)] border border-[var(--border)] rounded-lg hover:border-[var(--accent-purple)] transition-colors"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      Add Contacts
+                    </Link>
+                    <Link
+                      href={`/analysis/${estatePlanId}/prepare/questions`}
+                      className="inline-flex items-center gap-1.5 px-4 py-2 text-sm text-[var(--text-body)] hover:text-[var(--accent-purple)] border border-[var(--border)] rounded-lg hover:border-[var(--accent-purple)] transition-colors"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      Attorney Questions
+                    </Link>
+                  </div>
                 </div>
               </div>
 

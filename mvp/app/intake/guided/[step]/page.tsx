@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useCallback, useEffect, useState, useRef } from "react";
+import { Suspense, useCallback, useEffect, useState, useRef, useMemo } from "react";
 import { useRouter, useSearchParams, useParams } from "next/navigation";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -11,6 +11,7 @@ import {
   ArrowLeft,
   ChevronRight,
   Check,
+  RotateCcw,
 } from "lucide-react";
 import { Button } from "@/app/components/ui";
 import {
@@ -41,7 +42,7 @@ import {
   PRIORITY_OPTIONS,
 } from "@/lib/intake/guided-flow-config";
 import { US_STATES } from "@/app/intake/useIntakeForm";
-import { getWhyThisMatters } from "@/lib/intake/question-helpers";
+import { getWhyThisMatters, estimateEstateValue } from "@/lib/intake/question-helpers";
 
 type SaveStatus = "idle" | "saving" | "saved" | "error";
 
@@ -51,11 +52,13 @@ function GuidedStepContent() {
   const searchParams = useSearchParams();
   const stepSlug = params.step as string;
   const planId = searchParams.get("planId");
+  const fromReview = searchParams.get("fromReview") === "true";
 
   const [formData, setFormData] = useState<Record<string, unknown>>({});
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [isNavigating, setIsNavigating] = useState(false);
+  const [allStepsData, setAllStepsData] = useState<Record<string, unknown>>({});
 
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const formDataRef = useRef<Record<string, unknown>>(formData);
@@ -71,33 +74,57 @@ function GuidedStepContent() {
     estatePlanId ? { estatePlanId } : "skip"
   );
 
-  const existingData = useQuery(
-    api.guidedIntake.getStepData,
-    estatePlanId && step
-      ? { estatePlanId, stepId: step.id }
-      : "skip"
+  // Load ALL step data to support cross-step conditionals
+  const allStepDataQuery = useQuery(
+    api.guidedIntake.getAllStepData,
+    estatePlanId ? { estatePlanId } : "skip"
   );
 
   const saveStepData = useMutation(api.guidedIntake.saveStepData);
   const completeStep = useMutation(api.guidedIntake.completeStep);
+
+  // Parse all step data into a single object for conditionals
+  useEffect(() => {
+    if (allStepDataQuery) {
+      const combined: Record<string, unknown> = {};
+      allStepDataQuery.forEach((stepData) => {
+        try {
+          const parsed = JSON.parse(stepData.data);
+          Object.assign(combined, parsed);
+        } catch (e) {
+          console.error("Failed to parse step data:", e);
+        }
+      });
+      setAllStepsData(combined);
+    }
+  }, [allStepDataQuery]);
 
   // Keep ref in sync
   useEffect(() => {
     formDataRef.current = formData;
   }, [formData]);
 
-  // Initialize form data from existing data
+  // Initialize form data from all steps data (for current step's fields)
   useEffect(() => {
-    if (existingData?.data) {
-      try {
-        const parsed = JSON.parse(existingData.data);
-        setFormData(parsed);
-        formDataRef.current = parsed;
-      } catch (e) {
-        console.error("Failed to parse existing data:", e);
+    if (allStepDataQuery && step) {
+      // Find current step's data
+      const currentStepData = allStepDataQuery.find(d => d.stepId === step.id);
+      if (currentStepData?.data) {
+        try {
+          const parsed = JSON.parse(currentStepData.data);
+          setFormData(parsed);
+          formDataRef.current = parsed;
+        } catch (e) {
+          console.error("Failed to parse existing data:", e);
+        }
       }
     }
-  }, [existingData]);
+  }, [allStepDataQuery, step]);
+
+  // Merged data for conditionals: all previous steps + current form data
+  const mergedDataForConditionals = useMemo(() => {
+    return { ...allStepsData, ...formData };
+  }, [allStepsData, formData]);
 
   // Auto-save logic
   const doSave = useCallback(
@@ -214,6 +241,19 @@ function GuidedStepContent() {
     }
   };
 
+  // Handler to go back to review
+  const handleBackToReview = async () => {
+    if (!estatePlanId || !step) return;
+
+    // Save current progress before going back
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+    await doSave(formData);
+
+    router.push(`/intake/guided/review?planId=${planId}`);
+  };
+
   // Render loading state
   if (!step) {
     return (
@@ -226,7 +266,7 @@ function GuidedStepContent() {
     );
   }
 
-  if (existingData === undefined) {
+  if (allStepDataQuery === undefined) {
     return (
       <div className="flex items-center justify-center py-12">
         <Loader2 className="w-6 h-6 animate-spin text-[var(--accent-purple)]" />
@@ -234,8 +274,8 @@ function GuidedStepContent() {
     );
   }
 
-  // Get visible questions based on current form data
-  const visibleQuestions = getVisibleQuestions(step, formData);
+  // Get visible questions based on merged data (current step + all previous steps)
+  const visibleQuestions = getVisibleQuestions(step, mergedDataForConditionals);
   const completedSteps = guidedProgress?.completedSteps || [];
 
   return (
@@ -263,7 +303,7 @@ function GuidedStepContent() {
         <div className="space-y-6">
           {step.id === 8 ? (
             // Review step - show summary
-            <ReviewSummary planId={planId} />
+            <ReviewSummary planId={planId} allStepsData={allStepsData} />
           ) : (
             // Regular questions
             visibleQuestions.map((question) => (
@@ -272,7 +312,8 @@ function GuidedStepContent() {
                 question={question}
                 value={formData[question.id]}
                 onChange={(value) => updateField(question.id, value)}
-                formData={formData}
+                formData={mergedDataForConditionals}
+                allStepsData={allStepsData}
               />
             ))
           )}
@@ -294,6 +335,17 @@ function GuidedStepContent() {
             >
               Skip for now
             </button>
+          )}
+
+          {/* Back to Review button when editing from review page */}
+          {fromReview && step.id !== 8 && (
+            <Button
+              variant="secondary"
+              onClick={handleBackToReview}
+            >
+              <RotateCcw className="w-4 h-4 mr-2" />
+              Back to Review
+            </Button>
           )}
 
           <Button
@@ -330,6 +382,7 @@ interface QuestionRendererProps {
   value: unknown;
   onChange: (value: unknown) => void;
   formData: Record<string, unknown>;
+  allStepsData: Record<string, unknown>;
 }
 
 function QuestionRenderer({
@@ -337,8 +390,19 @@ function QuestionRenderer({
   value,
   onChange,
   formData,
+  allStepsData,
 }: QuestionRendererProps) {
   const whyMatters = getWhyThisMatters(question.id);
+
+  // Auto-calculate total estate estimate if this is that field
+  const displayValue = question.id === "totalEstateEstimate" && !value
+    ? undefined // Let user select, but show estimate as help
+    : value;
+
+  // Show calculated estimate as help text for total estate
+  const helpText = question.id === "totalEstateEstimate"
+    ? `${question.help || ""} Based on your selections: ${estimateEstateValue(allStepsData)}`
+    : question.help;
 
   switch (question.type) {
     case "text":
@@ -413,11 +477,11 @@ function QuestionRenderer({
       return (
         <FormField
           label={question.label || ""}
-          help={question.help}
+          help={helpText}
           required={question.required}
         >
           <RadioGroup
-            value={(value as string) || ""}
+            value={(displayValue as string) || ""}
             onChange={(v) => onChange(v)}
             options={question.options || []}
             columns={question.options && question.options.length > 4 ? 2 : 1}
@@ -500,6 +564,7 @@ function QuestionRenderer({
 
 // Child list field component
 interface Child {
+  id?: string;
   name: string;
   dateOfBirth?: string;
   relationship?: string;
@@ -513,7 +578,12 @@ interface ChildListFieldProps {
 
 function ChildListField({ label, value, onChange }: ChildListFieldProps) {
   const addChild = () => {
-    onChange([...value, { name: "", dateOfBirth: "", relationship: "child" }]);
+    onChange([...value, {
+      id: `child-${Date.now()}`,
+      name: "",
+      dateOfBirth: "",
+      relationship: "child"
+    }]);
   };
 
   const updateChild = (index: number, field: keyof Child, fieldValue: string) => {
@@ -549,7 +619,7 @@ function ChildListField({ label, value, onChange }: ChildListFieldProps) {
 
       {value.map((child, index) => (
         <div
-          key={index}
+          key={child.id || `child-${index}`}
           className="bg-[var(--off-white)] rounded-xl p-4 space-y-3"
         >
           <div className="flex items-center justify-between">
@@ -593,33 +663,11 @@ function ChildListField({ label, value, onChange }: ChildListFieldProps) {
 }
 
 // Review summary component
-function ReviewSummary({ planId }: { planId: string | null }) {
+function ReviewSummary({ planId, allStepsData }: { planId: string | null; allStepsData: Record<string, unknown> }) {
   const router = useRouter();
-  const estatePlanId = planId as Id<"estatePlans"> | null;
 
-  const allData = useQuery(
-    api.guidedIntake.getAllStepData,
-    estatePlanId ? { estatePlanId } : "skip"
-  );
-
-  if (allData === undefined) {
-    return (
-      <div className="flex items-center justify-center py-8">
-        <Loader2 className="w-6 h-6 animate-spin text-[var(--accent-purple)]" />
-      </div>
-    );
-  }
-
-  // Parse and combine all step data
-  const combinedData: Record<string, unknown> = {};
-  allData?.forEach((stepData) => {
-    try {
-      const parsed = JSON.parse(stepData.data);
-      Object.assign(combinedData, parsed);
-    } catch (e) {
-      console.error("Failed to parse step data:", e);
-    }
-  });
+  // Use passed allStepsData instead of querying again
+  const combinedData = allStepsData;
 
   const sections = [
     {
@@ -691,7 +739,7 @@ function ReviewSummary({ planId }: { planId: string | null }) {
               {section.title}
             </h3>
             <button
-              onClick={() => router.push(`/intake/guided/${section.stepSlug}?planId=${planId}`)}
+              onClick={() => router.push(`/intake/guided/${section.stepSlug}?planId=${planId}&fromReview=true`)}
               className="text-sm text-[var(--accent-purple)] hover:underline flex items-center gap-1"
             >
               Edit

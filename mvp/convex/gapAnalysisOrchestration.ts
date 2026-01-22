@@ -330,3 +330,45 @@ export const getLatestRun = query({
     return runs[0] || null;
   },
 });
+
+// Cancel a running analysis
+export const cancelRun = mutation({
+  args: {
+    runId: v.id("gapAnalysisRuns"),
+  },
+  handler: async (ctx, { runId }) => {
+    const run = await ctx.db.get(runId);
+    if (!run) {
+      throw new Error("Run not found");
+    }
+
+    // Only allow cancelling runs that are not already completed/failed
+    if (run.status === "completed" || run.status === "failed" || run.status === "partial") {
+      return { success: false, message: "Run already finished" };
+    }
+
+    // Mark run as cancelled (using 'failed' status with error message)
+    await ctx.db.patch(runId, {
+      status: "failed",
+      lastError: "Cancelled by user",
+      completedAt: Date.now(),
+    });
+
+    // Mark all pending/running phases as failed
+    const phases = await ctx.db
+      .query("gapAnalysisPhases")
+      .withIndex("by_run", (q) => q.eq("runId", runId))
+      .collect();
+
+    for (const phase of phases) {
+      if (phase.status === "pending" || phase.status === "running") {
+        await ctx.db.patch(phase._id, {
+          status: "failed",
+          completedAt: Date.now(),
+        });
+      }
+    }
+
+    return { success: true, message: "Analysis cancelled" };
+  },
+});

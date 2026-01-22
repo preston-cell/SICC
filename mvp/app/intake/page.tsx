@@ -19,12 +19,15 @@ import {
   MessageCircle,
   ListChecks,
   Heart,
+  Lock,
+  LogIn,
 } from "lucide-react";
 import { Button } from "../components/ui";
+import { useUser, SignInButton, SignUpButton } from "../components/ClerkComponents";
+import { useAuthSync } from "../hooks/useAuthSync";
 
-// Design system colors
-const ACCENT = "var(--accent-purple)";
-const SUCCESS = "var(--success)";
+// Check if Clerk authentication is configured
+const isAuthEnabled = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
 function IntakeLandingContent() {
   const router = useRouter();
@@ -34,7 +37,16 @@ function IntakeLandingContent() {
 
   const [isCreating, setIsCreating] = useState(false);
 
+  // Auth state (only relevant when Clerk is configured)
+  const { user, isSignedIn, isLoaded } = useUser();
+  useAuthSync(); // Sync user to Convex when signed in
+
   const createEstatePlan = useMutation(api.estatePlanning.createEstatePlan);
+
+  // Get user ID from Convex (stored after auth sync) - only used when auth is enabled
+  const storedUserId = typeof window !== "undefined" ? localStorage.getItem("estatePlanUserId") : null;
+  // Validate that storedUserId looks like a valid users table ID (not from another table)
+  const userId = isAuthEnabled && isSignedIn && storedUserId ? storedUserId : null;
 
   const existingPlan = useQuery(
     api.queries.getEstatePlan,
@@ -56,61 +68,51 @@ function IntakeLandingContent() {
     planId ? { estatePlanId: planId as Id<"estatePlans"> } : "skip"
   );
 
+  // Check for guided intake progress
+  const guidedProgress = useQuery(
+    api.guidedIntake.getGuidedProgress,
+    planId ? { estatePlanId: planId as Id<"estatePlans"> } : "skip"
+  );
+
   const hasExtractedData = extractedData && extractedData.length > 0;
   const hasUploadedDocs = uploadedDocs && uploadedDocs.length > 0;
 
-  const handleStartWithDocuments = async () => {
+  // Helper to create estate plan with either userId (auth) or sessionId (anonymous)
+  const createPlanAndNavigate = async (destination: string) => {
     setIsCreating(true);
     try {
-      const sessionId = `session_${Date.now()}_${Math.random().toString(36).substring(7)}`;
-      const newPlanId = await createEstatePlan({
-        sessionId,
-        name: "My Estate Plan",
-      });
-      localStorage.setItem("estatePlanSessionId", sessionId);
+      let newPlanId: string;
+
+      if (isAuthEnabled && userId) {
+        // Authenticated flow - associate with user
+        newPlanId = await createEstatePlan({
+          userId: userId as Id<"users">,
+          name: "My Estate Plan",
+        });
+      } else {
+        // Anonymous flow - use session ID (can be linked to user later)
+        const sessionId = `session_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+        newPlanId = await createEstatePlan({
+          sessionId,
+          name: "My Estate Plan",
+        });
+        localStorage.setItem("estatePlanSessionId", sessionId);
+      }
+
       localStorage.setItem("estatePlanId", newPlanId);
-      router.push(`/intake/upload?planId=${newPlanId}`);
+      router.push(`${destination}?planId=${newPlanId}`);
     } catch (error) {
       console.error("Failed to create estate plan:", error);
       setIsCreating(false);
     }
   };
 
-  const handleStartNew = async () => {
-    setIsCreating(true);
-    try {
-      const sessionId = `session_${Date.now()}_${Math.random().toString(36).substring(7)}`;
-      const newPlanId = await createEstatePlan({
-        sessionId,
-        name: "My Estate Plan",
-      });
-      localStorage.setItem("estatePlanSessionId", sessionId);
-      localStorage.setItem("estatePlanId", newPlanId);
-      router.push(`/intake/personal?planId=${newPlanId}`);
-    } catch (error) {
-      console.error("Failed to create estate plan:", error);
-      setIsCreating(false);
-    }
-  };
-
-  const handleStartGuided = async () => {
-    setIsCreating(true);
-    try {
-      const sessionId = `session_${Date.now()}_${Math.random().toString(36).substring(7)}`;
-      const newPlanId = await createEstatePlan({
-        sessionId,
-        name: "My Estate Plan",
-      });
-      localStorage.setItem("estatePlanSessionId", sessionId);
-      localStorage.setItem("estatePlanId", newPlanId);
-      router.push(`/intake/guided?planId=${newPlanId}`);
-    } catch (error) {
-      console.error("Failed to create estate plan:", error);
-      setIsCreating(false);
-    }
-  };
+  const handleStartWithDocuments = () => createPlanAndNavigate("/intake/upload");
+  const handleStartNew = () => createPlanAndNavigate("/intake/personal");
+  const handleStartGuided = () => createPlanAndNavigate("/intake/guided");
 
   useEffect(() => {
+    // Auto-redirect to saved plan
     if (!planId) {
       const savedPlanId = localStorage.getItem("estatePlanId");
       if (savedPlanId) {
@@ -151,7 +153,91 @@ function IntakeLandingContent() {
     );
   }
 
-  // Existing plan progress
+  // Guided flow in progress - show continuation option
+  if (existingPlan && guidedProgress && guidedProgress.completedSteps.length > 0) {
+    const completedStepIds = guidedProgress.completedSteps;
+    const isAllGuidedStepsComplete = completedStepIds.length >= 8;
+
+    return (
+      <div className="max-w-xl mx-auto space-y-6">
+        <div>
+          <h1 className="text-section text-[var(--text-heading)]">
+            {existingPlan.name || "Your Estate Plan"}
+          </h1>
+          <p className="text-[var(--text-muted)] mt-1">
+            {isAllGuidedStepsComplete ? "Your intake is complete!" : "Continue where you left off"}
+          </p>
+        </div>
+
+        {/* Guided Flow Progress */}
+        <div className="bg-white border border-[var(--border)] rounded-xl p-5">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-sm font-medium text-[var(--text-heading)]">
+              Guided Intake Progress
+            </h2>
+            <span className="text-xl font-semibold text-[var(--accent-purple)]">
+              {Math.round((completedStepIds.length / 8) * 100)}%
+            </span>
+          </div>
+
+          <div className="w-full bg-[var(--off-white)] rounded-full h-2 mb-5">
+            <div
+              className="h-2 rounded-full bg-[var(--accent-purple)] transition-all duration-300"
+              style={{ width: `${Math.min((completedStepIds.length / 8) * 100, 100)}%` }}
+            />
+          </div>
+
+          <div className="flex items-center gap-3 text-sm text-[var(--text-muted)]">
+            <CheckCircle2 className="w-4 h-4 text-[var(--success)]" />
+            <span>{Math.min(completedStepIds.length, 8)} of 8 steps completed</span>
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className="flex flex-col sm:flex-row gap-3">
+          {isAllGuidedStepsComplete ? (
+            <Link href={`/analysis/${planId}`} className="flex-1">
+              <Button variant="primary" fullWidth>
+                Run Gap Analysis
+              </Button>
+            </Link>
+          ) : (
+            <Link href={`/intake/guided?planId=${planId}`} className="flex-1">
+              <Button variant="primary" fullWidth>
+                <MessageCircle className="w-4 h-4 mr-2" />
+                Continue Guided Intake
+              </Button>
+            </Link>
+          )}
+          <button
+            onClick={() => {
+              localStorage.removeItem("estatePlanId");
+              localStorage.removeItem("estatePlanSessionId");
+              router.push("/intake");
+            }}
+            className="px-5 py-2.5 border border-[var(--border)] text-[var(--text-heading)] rounded-lg font-medium text-sm hover:bg-[var(--off-white)] transition-colors"
+          >
+            Start New Plan
+          </button>
+        </div>
+
+        {/* Option to switch to comprehensive form or review answers */}
+        <div className="text-center">
+          <p className="text-sm text-[var(--text-muted)] mb-2">
+            {isAllGuidedStepsComplete ? "Want to make changes?" : "Or switch to the detailed form view"}
+          </p>
+          <Link
+            href={isAllGuidedStepsComplete ? `/intake/guided/review?planId=${planId}` : `/intake/personal?planId=${planId}`}
+            className="text-sm text-[var(--accent-purple)] hover:underline"
+          >
+            {isAllGuidedStepsComplete ? "Review Answers" : "Open Comprehensive Form"}
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // Existing plan progress (comprehensive form)
   if (existingPlan && intakeProgress) {
     const completedSections = Object.values(intakeProgress.sections).filter(s => s.isComplete).length;
 
@@ -331,7 +417,102 @@ function IntakeLandingContent() {
     );
   }
 
-  // New user - mode selector
+  // Loading state while checking auth (only when auth is enabled)
+  if (isAuthEnabled && !isLoaded) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-6 h-6 animate-spin text-[var(--accent-purple)]" />
+      </div>
+    );
+  }
+
+  // Not signed in AND auth is required - show auth prompt
+  if (isAuthEnabled && !isSignedIn) {
+    return (
+      <div className="max-w-xl mx-auto space-y-8">
+        {/* Hero Section */}
+        <div className="text-center space-y-3">
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-xl mb-2 bg-[var(--accent-muted)]">
+            <FileText className="w-7 h-7 text-[var(--accent-purple)]" />
+          </div>
+          <h1 className="text-section text-[var(--text-heading)]">
+            Create Your Estate Plan
+          </h1>
+          <p className="text-[var(--text-muted)] max-w-md mx-auto">
+            Sign in to securely save your information and access it from any device.
+          </p>
+        </div>
+
+        {/* Auth Card */}
+        <div className="bg-white border border-[var(--border)] rounded-xl p-6 space-y-6">
+          <div className="flex items-center gap-3 p-4 bg-[var(--accent-muted)] rounded-lg">
+            <Lock className="w-5 h-5 text-[var(--accent-purple)]" />
+            <div className="text-sm">
+              <p className="font-medium text-[var(--text-heading)]">Your data is protected</p>
+              <p className="text-[var(--text-muted)]">Account required to save your estate plan</p>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <SignInButton mode="modal">
+              <Button variant="primary" fullWidth>
+                <LogIn className="w-4 h-4 mr-2" />
+                Sign In
+              </Button>
+            </SignInButton>
+
+            <SignUpButton mode="modal">
+              <Button variant="secondary" fullWidth>
+                Create Account
+              </Button>
+            </SignUpButton>
+          </div>
+
+          <p className="text-xs text-[var(--text-caption)] text-center">
+            Your information is encrypted and never shared without your permission.
+          </p>
+        </div>
+
+        {/* Info Section */}
+        <div className="bg-[var(--off-white)] border border-[var(--border)] rounded-xl p-5 space-y-4">
+          <h2 className="text-sm font-medium text-[var(--text-heading)]">
+            What happens next?
+          </h2>
+          <div className="space-y-3 text-sm">
+            <div className="flex items-start gap-3">
+              <div className="w-6 h-6 rounded-full bg-[var(--accent-muted)] text-[var(--accent-purple)] flex items-center justify-center text-xs font-medium flex-shrink-0">
+                1
+              </div>
+              <div>
+                <p className="font-medium text-[var(--text-heading)]">Create your account</p>
+                <p className="text-[var(--text-muted)]">Secure login to protect your information</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="w-6 h-6 rounded-full bg-[var(--accent-muted)] text-[var(--accent-purple)] flex items-center justify-center text-xs font-medium flex-shrink-0">
+                2
+              </div>
+              <div>
+                <p className="font-medium text-[var(--text-heading)]">Answer a few questions</p>
+                <p className="text-[var(--text-muted)]">About you, your family, and what you own</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="w-6 h-6 rounded-full bg-[var(--accent-muted)] text-[var(--accent-purple)] flex items-center justify-center text-xs font-medium flex-shrink-0">
+                3
+              </div>
+              <div>
+                <p className="font-medium text-[var(--text-heading)]">Get a personalized analysis</p>
+                <p className="text-[var(--text-muted)]">AI reviews your situation and identifies gaps</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Mode selector - shown when: auth disabled OR user is signed in
   return (
     <div className="max-w-xl mx-auto space-y-8">
       {/* Emotional Banner */}
