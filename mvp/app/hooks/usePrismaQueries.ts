@@ -1,8 +1,7 @@
 /**
  * SWR hooks for Prisma/PostgreSQL queries
  *
- * These hooks replace Convex queries with API routes + SWR.
- * Import from this file instead of using Convex hooks during migration.
+ * These hooks provide data fetching and mutations via API routes + SWR.
  */
 
 import useSWR, { mutate } from 'swr'

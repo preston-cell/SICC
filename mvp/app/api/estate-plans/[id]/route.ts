@@ -47,7 +47,7 @@ export async function GET(
         )
       }
 
-      // Format to match Convex response structure
+      // Include latest gap analysis in response
       return NextResponse.json({
         ...plan,
         latestGapAnalysis: plan.gapAnalyses[0] || null,
