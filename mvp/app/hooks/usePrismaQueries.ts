@@ -6,14 +6,42 @@
 
 import useSWR, { mutate } from 'swr'
 
-// Standard fetcher for GET requests
+/**
+ * Get sessionId from localStorage (client-side only)
+ */
+function getSessionId(): string | null {
+  if (typeof window === 'undefined') return null
+  return localStorage.getItem('estatePlanSessionId')
+}
+
+/**
+ * Append sessionId to URL for anonymous user authentication
+ */
+function appendSessionId(url: string): string {
+  const sessionId = getSessionId()
+  if (!sessionId) return url
+
+  const separator = url.includes('?') ? '&' : '?'
+  return `${url}${separator}sessionId=${sessionId}`
+}
+
+// Standard fetcher for GET requests - auto-includes sessionId for auth
 const fetcher = async (url: string) => {
-  const res = await fetch(url)
+  const urlWithSession = appendSessionId(url)
+  const res = await fetch(urlWithSession)
   if (!res.ok) {
     const error = await res.json().catch(() => ({ error: 'Request failed' }))
     throw new Error(error.error || 'Request failed')
   }
   return res.json()
+}
+
+/**
+ * Authenticated fetch helper - includes sessionId for all requests
+ */
+async function authFetch(url: string, options: RequestInit = {}): Promise<Response> {
+  const urlWithSession = appendSessionId(url)
+  return fetch(urlWithSession, options)
 }
 
 // ============================================
@@ -91,7 +119,7 @@ export async function updateEstatePlan(
     status?: string
   }
 ) {
-  const res = await fetch(`/api/estate-plans/${estatePlanId}`, {
+  const res = await authFetch(`/api/estate-plans/${estatePlanId}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
@@ -158,7 +186,7 @@ export async function updateIntakeData(
   section: string,
   data: { data: string; isComplete: boolean }
 ) {
-  const res = await fetch(`/api/estate-plans/${estatePlanId}/intake/${section}`, {
+  const res = await authFetch(`/api/estate-plans/${estatePlanId}/intake/${section}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
@@ -223,7 +251,7 @@ export async function saveGapAnalysis(
     rawAnalysis?: string
   }
 ) {
-  const res = await fetch(`/api/estate-plans/${estatePlanId}/gap-analysis`, {
+  const res = await authFetch(`/api/estate-plans/${estatePlanId}/gap-analysis`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
@@ -272,7 +300,7 @@ export async function createDocument(
     format?: string
   }
 ) {
-  const res = await fetch(`/api/estate-plans/${estatePlanId}/documents`, {
+  const res = await authFetch(`/api/estate-plans/${estatePlanId}/documents`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
@@ -318,7 +346,7 @@ export async function saveBeneficiaryDesignations(
     [key: string]: unknown
   }>
 ) {
-  const res = await fetch(`/api/estate-plans/${estatePlanId}/beneficiaries`, {
+  const res = await authFetch(`/api/estate-plans/${estatePlanId}/beneficiaries`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ designations }),
@@ -385,7 +413,7 @@ export async function createReminder(
     recurrencePattern?: string
   }
 ) {
-  const res = await fetch(`/api/estate-plans/${estatePlanId}/reminders`, {
+  const res = await authFetch(`/api/estate-plans/${estatePlanId}/reminders`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
@@ -408,7 +436,7 @@ export async function createReminder(
  * Create default reminders for an estate plan
  */
 export async function createDefaultReminders(estatePlanId: string) {
-  const res = await fetch(`/api/estate-plans/${estatePlanId}/reminders`, {
+  const res = await authFetch(`/api/estate-plans/${estatePlanId}/reminders`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ createDefaults: true }),
@@ -431,7 +459,7 @@ export async function createDefaultReminders(estatePlanId: string) {
  * Generate action items from gap analysis recommendations as reminders
  */
 export async function generateActionItems({ estatePlanId }: { estatePlanId: string }) {
-  const res = await fetch(`/api/estate-plans/${estatePlanId}/reminders`, {
+  const res = await authFetch(`/api/estate-plans/${estatePlanId}/reminders`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ generateFromAnalysis: true }),
@@ -454,7 +482,7 @@ export async function generateActionItems({ estatePlanId }: { estatePlanId: stri
  * Complete a reminder
  */
 export async function completeReminder(reminderId: string, estatePlanId: string) {
-  const res = await fetch(`/api/reminders/${reminderId}`, {
+  const res = await authFetch(`/api/reminders/${reminderId}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ action: 'complete' }),
@@ -479,7 +507,7 @@ export async function snoozeReminder(
   estatePlanId: string,
   snoozeDays: number
 ) {
-  const res = await fetch(`/api/reminders/${reminderId}`, {
+  const res = await authFetch(`/api/reminders/${reminderId}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ action: 'snooze', snoozeDays }),
@@ -500,7 +528,7 @@ export async function snoozeReminder(
  * Dismiss a reminder
  */
 export async function dismissReminder(reminderId: string, estatePlanId: string) {
-  const res = await fetch(`/api/reminders/${reminderId}`, {
+  const res = await authFetch(`/api/reminders/${reminderId}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ action: 'dismiss' }),
@@ -555,7 +583,7 @@ export async function logLifeEvent(
     ? JSON.stringify(data.documentsAffected)
     : undefined
 
-  const res = await fetch(`/api/estate-plans/${estatePlanId}/life-events`, {
+  const res = await authFetch(`/api/estate-plans/${estatePlanId}/life-events`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -585,7 +613,7 @@ export async function markLifeEventAddressed(
   estatePlanId: string,
   eventId: string
 ) {
-  const res = await fetch(`/api/estate-plans/${estatePlanId}/life-events`, {
+  const res = await authFetch(`/api/estate-plans/${estatePlanId}/life-events`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ eventId }),
@@ -727,7 +755,7 @@ export function useGuidedIntakeProgress(estatePlanId: string | null) {
 }
 
 export async function initializeGuidedIntake(estatePlanId: string) {
-  const res = await fetch(`/api/estate-plans/${estatePlanId}/guided-intake`, {
+  const res = await authFetch(`/api/estate-plans/${estatePlanId}/guided-intake`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
   })
@@ -743,7 +771,7 @@ export async function saveGuidedStepData(
   data: Record<string, unknown>,
   complete = false
 ) {
-  const res = await fetch(`/api/estate-plans/${estatePlanId}/guided-intake`, {
+  const res = await authFetch(`/api/estate-plans/${estatePlanId}/guided-intake`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ step, data, complete }),
@@ -776,7 +804,7 @@ export async function createFamilyContact(
   estatePlanId: string,
   data: { name: string; role: string; relationship?: string; phone?: string; email?: string; address?: string; notes?: string }
 ) {
-  const res = await fetch(`/api/estate-plans/${estatePlanId}/family-contacts`, {
+  const res = await authFetch(`/api/estate-plans/${estatePlanId}/family-contacts`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
@@ -792,7 +820,7 @@ export async function updateFamilyContact(
   contactId: string,
   data: { name?: string; role?: string; relationship?: string; phone?: string; email?: string; address?: string; notes?: string }
 ) {
-  const res = await fetch(`/api/estate-plans/${estatePlanId}/family-contacts`, {
+  const res = await authFetch(`/api/estate-plans/${estatePlanId}/family-contacts`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ id: contactId, ...data }),
@@ -804,7 +832,7 @@ export async function updateFamilyContact(
 }
 
 export async function deleteFamilyContact(estatePlanId: string, contactId: string) {
-  const res = await fetch(`/api/estate-plans/${estatePlanId}/family-contacts?contactId=${contactId}`, { method: 'DELETE' })
+  const res = await authFetch(`/api/estate-plans/${estatePlanId}/family-contacts?contactId=${contactId}`, { method: 'DELETE' })
   if (!res.ok) throw new Error('Failed to delete contact')
   mutate(`/api/estate-plans/${estatePlanId}/family-contacts`)
   return res.json()
@@ -831,7 +859,7 @@ export function useAttorneyQuestionCount(estatePlanId: string | null) {
 }
 
 export async function createAttorneyQuestion(estatePlanId: string, data: { question: string; category: string }) {
-  const res = await fetch(`/api/estate-plans/${estatePlanId}/attorney-questions`, {
+  const res = await authFetch(`/api/estate-plans/${estatePlanId}/attorney-questions`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
@@ -848,7 +876,7 @@ export async function updateAttorneyQuestion(
   questionId: string,
   data: { question?: string; category?: string; isAnswered?: boolean; answer?: string }
 ) {
-  const res = await fetch(`/api/estate-plans/${estatePlanId}/attorney-questions`, {
+  const res = await authFetch(`/api/estate-plans/${estatePlanId}/attorney-questions`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ id: questionId, ...data }),
@@ -861,7 +889,7 @@ export async function updateAttorneyQuestion(
 }
 
 export async function deleteAttorneyQuestion(estatePlanId: string, questionId: string) {
-  const res = await fetch(`/api/estate-plans/${estatePlanId}/attorney-questions?questionId=${questionId}`, { method: 'DELETE' })
+  const res = await authFetch(`/api/estate-plans/${estatePlanId}/attorney-questions?questionId=${questionId}`, { method: 'DELETE' })
   if (!res.ok) throw new Error('Failed to delete question')
   mutate(`/api/estate-plans/${estatePlanId}/attorney-questions`)
   mutate(`/api/estate-plans/${estatePlanId}/attorney-questions?count=true`)
@@ -889,7 +917,7 @@ export function useChecklistProgress(estatePlanId: string | null) {
 }
 
 export async function generateDocumentChecklist(estatePlanId: string) {
-  const res = await fetch(`/api/estate-plans/${estatePlanId}/document-checklist`, {
+  const res = await authFetch(`/api/estate-plans/${estatePlanId}/document-checklist`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
   })
@@ -905,7 +933,7 @@ export async function updateChecklistItemStatus(
   itemId: string,
   status: 'not_gathered' | 'in_progress' | 'gathered'
 ) {
-  const res = await fetch(`/api/estate-plans/${estatePlanId}/document-checklist`, {
+  const res = await authFetch(`/api/estate-plans/${estatePlanId}/document-checklist`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ id: itemId, status }),
@@ -957,7 +985,7 @@ export function useGapAnalysisRunHistory(estatePlanId: string | null) {
 }
 
 export async function createGapAnalysisRun(estatePlanId: string, analysisType: 'quick' | 'comprehensive' = 'comprehensive') {
-  const res = await fetch(`/api/estate-plans/${estatePlanId}/gap-analysis-runs`, {
+  const res = await authFetch(`/api/estate-plans/${estatePlanId}/gap-analysis-runs`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ analysisType }),
@@ -974,7 +1002,7 @@ export async function updateGapAnalysisRun(
   runId: string,
   data: { status?: string; currentPhase?: number; progressPercent?: number; error?: string }
 ) {
-  const res = await fetch(`/api/estate-plans/${estatePlanId}/gap-analysis-runs`, {
+  const res = await authFetch(`/api/estate-plans/${estatePlanId}/gap-analysis-runs`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ runId, ...data }),
@@ -990,7 +1018,7 @@ export async function updateGapAnalysisRun(
  * Cancel a running gap analysis
  */
 export async function cancelGapAnalysisRun(estatePlanId: string, runId: string) {
-  const res = await fetch(`/api/estate-plans/${estatePlanId}/gap-analysis-runs`, {
+  const res = await authFetch(`/api/estate-plans/${estatePlanId}/gap-analysis-runs`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
