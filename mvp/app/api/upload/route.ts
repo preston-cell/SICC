@@ -4,6 +4,19 @@ import { join } from 'path'
 import { randomUUID } from 'crypto'
 import { getAuthContext } from '@/lib/auth-helper'
 
+// PDF magic bytes: %PDF (hex: 25 50 44 46)
+const PDF_MAGIC_BYTES = [0x25, 0x50, 0x44, 0x46]
+
+function isPdfByMagicBytes(buffer: Buffer): boolean {
+  if (buffer.length < 4) return false
+  return (
+    buffer[0] === PDF_MAGIC_BYTES[0] &&
+    buffer[1] === PDF_MAGIC_BYTES[1] &&
+    buffer[2] === PDF_MAGIC_BYTES[2] &&
+    buffer[3] === PDF_MAGIC_BYTES[3]
+  )
+}
+
 // POST /api/upload - Upload a file and return storage ID
 export async function POST(request: NextRequest) {
   try {
@@ -48,9 +61,19 @@ export async function POST(request: NextRequest) {
     const uploadsDir = join(process.cwd(), 'uploads')
     await mkdir(uploadsDir, { recursive: true })
 
-    // Write the file
+    // Read file content
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
+
+    // Validate magic bytes (actual file content, not just extension/MIME type)
+    if (!isPdfByMagicBytes(buffer)) {
+      return NextResponse.json(
+        { error: 'Invalid file: must be a valid PDF document' },
+        { status: 400 }
+      )
+    }
+
+    // Write the file
     const filePath = join(uploadsDir, fileName)
     await writeFile(filePath, buffer)
 

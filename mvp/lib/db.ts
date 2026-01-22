@@ -20,7 +20,10 @@ function createPrismaClient() {
 
   const pool = new Pool({
     connectionString: databaseUrl,
-    ssl: isRds ? { rejectUnauthorized: false } : undefined
+    // AWS RDS certificates are signed by Amazon's CA which is in Node.js trust store
+    // If connection fails, download AWS RDS CA bundle from:
+    // https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.SSL.html
+    ssl: isRds ? { rejectUnauthorized: true } : undefined
   })
 
   const adapter = new PrismaPg(pool)

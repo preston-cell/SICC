@@ -67,6 +67,21 @@ function addSecurityHeaders(response: NextResponse): NextResponse {
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
   // Permissions policy
   response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  // Content Security Policy
+  // Note: 'unsafe-inline' and 'unsafe-eval' needed for Next.js and Clerk
+  const csp = [
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.clerk.accounts.dev https://clerk.* https://challenges.cloudflare.com",
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: https: blob:",
+    "font-src 'self' data:",
+    "connect-src 'self' https: wss:",
+    "frame-src 'self' https://*.clerk.accounts.dev https://clerk.* https://challenges.cloudflare.com",
+    "form-action 'self'",
+    "base-uri 'self'",
+    "object-src 'none'",
+  ].join('; ');
+  response.headers.set('Content-Security-Policy', csp);
 
   return response;
 }
