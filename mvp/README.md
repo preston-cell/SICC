@@ -122,7 +122,7 @@ mvp/
 │   ├── analysis/          # Gap analysis UI
 │   ├── documents/         # Document upload & generation
 │   ├── intake/            # Intake wizard (guided + comprehensive)
-│   ├── hooks/             # SWR data fetching hooks
+│   ├── hooks/             # SWR data fetching hooks (usePrismaQueries.ts)
 │   └── components/        # Page-specific components
 ├── components/            # Shared React components
 ├── lib/                   # Utilities
@@ -131,7 +131,7 @@ mvp/
 │   ├── gap-analysis/      # AI analysis orchestrator
 │   └── intake/            # Guided intake flow configuration
 ├── prisma/
-│   ├── schema.prisma      # Database schema (16 models)
+│   ├── schema.prisma      # Database schema (19 models)
 │   └── migrations/        # Database migrations
 └── middleware.ts          # Security headers, rate limiting
 ```
@@ -165,7 +165,7 @@ All API routes include authentication (Clerk or session-based) and ownership ver
 
 ## Database Schema
 
-16 Prisma models covering:
+19 Prisma models covering:
 - Users & authentication
 - Estate plans & intake data
 - Document storage & generation
@@ -192,6 +192,42 @@ npx prisma migrate dev --name description
 
 # Format code
 npm run lint
+```
+
+## Troubleshooting
+
+### Common Issues
+
+**Port 3000 already in use:**
+```bash
+# Find and kill zombie Node processes (Windows)
+tasklist | findstr node
+taskkill /F /PID <pid>
+
+# Or kill all Node processes
+taskkill /F /IM node.exe
+```
+
+**401 Unauthorized errors:**
+- The app uses sessionId for anonymous authentication
+- SessionId is stored in localStorage as `estatePlanSessionId`
+- All API calls automatically include sessionId via the `authFetch` helper
+
+**Blank screen on intake pages:**
+- Check browser console (F12) for JavaScript errors
+- Verify API endpoints return 200 (not 404)
+- Clear `.next` folder and restart: `rm -rf .next && npm run dev`
+
+**Database connection errors:**
+- Verify `DATABASE_URL` in `.env` file
+- For AWS RDS, ensure `?sslmode=require` is appended
+- Check security group allows your IP
+
+**Build errors (EPERM on Windows):**
+```bash
+# Clear build cache
+rm -rf .next
+npm run build
 ```
 
 ## License
