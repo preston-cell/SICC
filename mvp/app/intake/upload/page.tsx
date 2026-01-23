@@ -48,9 +48,23 @@ interface ExtractedDataItem {
   status: string;
 }
 
-// Fetcher for SWR
+// Helper to get sessionId from localStorage
+function getSessionId(): string | null {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem("estatePlanSessionId");
+}
+
+// Helper to append sessionId to URL
+function appendSessionId(url: string): string {
+  const sessionId = getSessionId();
+  if (!sessionId) return url;
+  const separator = url.includes("?") ? "&" : "?";
+  return `${url}${separator}sessionId=${sessionId}`;
+}
+
+// Fetcher for SWR - includes sessionId for auth
 const fetcher = async (url: string) => {
-  const res = await fetch(url);
+  const res = await fetch(appendSessionId(url));
   if (!res.ok) {
     const error = await res.json().catch(() => ({ error: "Request failed" }));
     throw new Error(error.error || "Request failed");
@@ -69,7 +83,7 @@ async function uploadDocument(
   formData.append("file", file);
   formData.append("documentType", documentType);
 
-  const res = await fetch(`/api/estate-plans/${estatePlanId}/uploaded-documents`, {
+  const res = await fetch(appendSessionId(`/api/estate-plans/${estatePlanId}/uploaded-documents`), {
     method: "POST",
     body: formData,
   });
@@ -91,7 +105,7 @@ async function deleteUploadedDocument(
   estatePlanId: string,
   documentId: string
 ): Promise<void> {
-  const res = await fetch(`/api/estate-plans/${estatePlanId}/uploaded-documents/${documentId}`, {
+  const res = await fetch(appendSessionId(`/api/estate-plans/${estatePlanId}/uploaded-documents/${documentId}`), {
     method: "DELETE",
   });
 
@@ -107,7 +121,7 @@ async function deleteUploadedDocument(
 async function extractIntakeData(
   estatePlanId: string
 ): Promise<{ success: boolean; error?: string }> {
-  const res = await fetch(`/api/estate-plans/${estatePlanId}/extract-intake`, {
+  const res = await fetch(appendSessionId(`/api/estate-plans/${estatePlanId}/extract-intake`), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
   });

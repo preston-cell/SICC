@@ -6,6 +6,20 @@ import Link from "next/link";
 import { useState, useCallback, useRef } from "react";
 import ReactMarkdown from "react-markdown";
 
+// Helper to get sessionId from localStorage
+function getSessionId(): string | null {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem("estatePlanSessionId");
+}
+
+// Helper to append sessionId to URL for auth
+function appendSessionId(url: string): string {
+  const sessionId = getSessionId();
+  if (!sessionId) return url;
+  const separator = url.includes("?") ? "&" : "?";
+  return `${url}${separator}sessionId=${sessionId}`;
+}
+
 type DocumentType =
   | "will"
   | "trust"
@@ -148,7 +162,7 @@ export default function DocumentUploadPage() {
         setUploadState((prev) => ({ ...prev, progress: 50 }));
 
         // Save document metadata via API
-        const saveResult = await fetch(`/api/estate-plans/${estatePlanId}/uploaded-documents`, {
+        const saveResult = await fetch(appendSessionId(`/api/estate-plans/${estatePlanId}/uploaded-documents`), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -170,7 +184,7 @@ export default function DocumentUploadPage() {
         setUploadState((prev) => ({ ...prev, progress: 75 }));
 
         // Start analysis via API (fire and forget)
-        fetch(`/api/estate-plans/${estatePlanId}/uploaded-documents/analyze`, {
+        fetch(appendSessionId(`/api/estate-plans/${estatePlanId}/uploaded-documents/analyze`), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ documentId: savedDoc.id }),
@@ -230,7 +244,7 @@ export default function DocumentUploadPage() {
       if (confirm("Are you sure you want to delete this document?")) {
         try {
           const result = await fetch(
-            `/api/estate-plans/${estatePlanId}/uploaded-documents?documentId=${docId}`,
+            appendSessionId(`/api/estate-plans/${estatePlanId}/uploaded-documents?documentId=${docId}`),
             { method: "DELETE" }
           );
           if (!result.ok) {
@@ -252,7 +266,7 @@ export default function DocumentUploadPage() {
   const handleReanalyze = useCallback(
     async (docId: string) => {
       try {
-        await fetch(`/api/estate-plans/${estatePlanId}/uploaded-documents/analyze`, {
+        await fetch(appendSessionId(`/api/estate-plans/${estatePlanId}/uploaded-documents/analyze`), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ documentId: docId }),
