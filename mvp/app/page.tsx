@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useQuery } from "convex/react";
 import { api } from "../convex/_generated/api";
 import { SignInButton, SignUpButton, UserButton, useUser } from "./components/ClerkComponents";
-import { motion, useInView } from "framer-motion";
+import { motion, useInView, useScroll, useTransform, useMotionValue, useSpring } from "framer-motion";
 import {
   Shield,
   FileText,
@@ -30,7 +30,7 @@ import { Button } from "./components/ui";
 import Section, { SectionHeader } from "./components/ui/Section";
 import Footer from "./components/ui/Footer";
 import Navigation from "./components/ui/Navigation";
-import LogoMarquee from "./components/ui/LogoMarquee";
+import TrustIndicators from "./components/ui/TrustIndicators";
 import CapabilitiesSection from "./components/ui/CapabilitiesSection";
 import UseCasesSection from "./components/ui/UseCasesSection";
 import SecurityBentoGrid from "./components/ui/SecurityBentoGrid";
@@ -47,6 +47,138 @@ const COLORS = {
   lavender: "#D4C8FF",
   sage: "#A8C5B5",
 };
+
+// Superpower easing
+const SUPERPOWER_EASE = [0.5, 0, 0.35, 1] as const;
+
+// Scroll Progress Indicator
+function ScrollProgress() {
+  const { scrollYProgress } = useScroll();
+  const scaleX = useSpring(scrollYProgress, {
+    stiffness: 100,
+    damping: 30,
+    restDelta: 0.001
+  });
+
+  return (
+    <motion.div
+      className="fixed top-0 left-0 right-0 h-1 bg-[#FF7759] origin-left z-[100]"
+      style={{ scaleX }}
+    />
+  );
+}
+
+// 3D Card Tilt Effect
+function TiltCard({ children, className }: { children: React.ReactNode; className?: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+
+  const rotateX = useTransform(y, [-0.5, 0.5], [7, -7]);
+  const rotateY = useTransform(x, [-0.5, 0.5], [-7, 7]);
+
+  const handleMouse = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!ref.current) return;
+    const rect = ref.current.getBoundingClientRect();
+    x.set((e.clientX - rect.left) / rect.width - 0.5);
+    y.set((e.clientY - rect.top) / rect.height - 0.5);
+  };
+
+  const handleMouseLeave = () => {
+    x.set(0);
+    y.set(0);
+  };
+
+  return (
+    <motion.div
+      ref={ref}
+      onMouseMove={handleMouse}
+      onMouseLeave={handleMouseLeave}
+      style={{
+        rotateX,
+        rotateY,
+        transformStyle: "preserve-3d",
+        transformPerspective: 1000,
+      }}
+      transition={{ type: "spring", stiffness: 400, damping: 30 }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+// Magnetic Button Effect
+function MagneticButton({
+  children,
+  className,
+  style,
+}: {
+  children: React.ReactNode;
+  className?: string;
+  style?: React.CSSProperties;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+
+  const springConfig = { stiffness: 150, damping: 15 };
+  const xSpring = useSpring(x, springConfig);
+  const ySpring = useSpring(y, springConfig);
+
+  const handleMouse = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!ref.current) return;
+    const rect = ref.current.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    x.set((e.clientX - centerX) * 0.2);
+    y.set((e.clientY - centerY) * 0.2);
+  };
+
+  const handleMouseLeave = () => {
+    x.set(0);
+    y.set(0);
+  };
+
+  return (
+    <motion.div
+      ref={ref}
+      onMouseMove={handleMouse}
+      onMouseLeave={handleMouseLeave}
+      style={{ x: xSpring, y: ySpring, ...style }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+// Section Fade Transitions
+function FadeSection({
+  children,
+  className,
+  id,
+}: {
+  children: React.ReactNode;
+  className?: string;
+  id?: string;
+}) {
+  const ref = useRef<HTMLElement>(null);
+  const isInView = useInView(ref, { margin: "-20% 0px -20% 0px" });
+
+  return (
+    <motion.section
+      ref={ref}
+      id={id}
+      initial={{ opacity: 0.3 }}
+      animate={{ opacity: isInView ? 1 : 0.3 }}
+      transition={{ duration: 0.6, ease: SUPERPOWER_EASE }}
+      className={className}
+    >
+      {children}
+    </motion.section>
+  );
+}
 
 // Animated counter
 function AnimatedCounter({ end, suffix = "" }: { end: number; suffix?: string }) {
@@ -70,7 +202,7 @@ function AnimatedCounter({ end, suffix = "" }: { end: number; suffix?: string })
   return <span ref={ref}>{count.toLocaleString()}{suffix}</span>;
 }
 
-// Feature card - Cohere style
+// Feature card - Cohere style with 3D tilt
 function FeatureCard({
   icon: Icon,
   title,
@@ -90,17 +222,22 @@ function FeatureCard({
       ref={ref}
       initial={{ opacity: 0, y: 20 }}
       animate={isInView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.4, delay: index * 0.08, ease: [0.16, 1, 0.3, 1] }}
-      className="group p-7 rounded-2xl bg-white border border-[rgba(29,29,27,0.08)] hover:border-[#FF7759] hover:shadow-xl transition-all duration-[400ms] ease-[cubic-bezier(0.16,1,0.3,1)]"
+      transition={{ duration: 0.4, delay: index * 0.08, ease: SUPERPOWER_EASE }}
     >
-      <div
-        className="w-12 h-12 rounded-xl flex items-center justify-center mb-5"
-        style={{ backgroundColor: "rgba(255, 119, 89, 0.1)" }}
-      >
-        <span style={{ color: COLORS.coral }}><Icon className="w-6 h-6" /></span>
-      </div>
-      <h4 className="text-lg font-medium mb-2" style={{ color: COLORS.volcanicBlack }}>{title}</h4>
-      <p className="leading-relaxed" style={{ color: COLORS.mushroomGrey }}>{description}</p>
+      <TiltCard className="h-full">
+        <div className="card-item group p-7 rounded-2xl bg-white border border-[rgba(29,29,27,0.08)] hover:border-[#FF7759] hover:shadow-xl h-full">
+          <motion.div
+            className="w-12 h-12 rounded-xl flex items-center justify-center mb-5"
+            style={{ backgroundColor: "rgba(255, 119, 89, 0.1)" }}
+            whileHover={{ scale: 1.1, rotate: 5 }}
+            transition={{ duration: 0.3 }}
+          >
+            <span style={{ color: COLORS.coral }}><Icon className="w-6 h-6" /></span>
+          </motion.div>
+          <h4 className="text-lg font-medium mb-2" style={{ color: COLORS.volcanicBlack }}>{title}</h4>
+          <p className="leading-relaxed" style={{ color: COLORS.mushroomGrey }}>{description}</p>
+        </div>
+      </TiltCard>
     </motion.div>
   );
 }
@@ -167,8 +304,9 @@ function DocumentCard({
       ref={ref}
       initial={{ opacity: 0, y: 16 }}
       animate={isInView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.3, delay: index * 0.05, ease: [0.16, 1, 0.3, 1] }}
-      className="group p-5 rounded-xl bg-white border border-[rgba(29,29,27,0.08)] hover:border-[#FF7759] hover:shadow-lg cursor-pointer transition-all duration-[400ms] ease-[cubic-bezier(0.16,1,0.3,1)]"
+      transition={{ duration: 0.3, delay: index * 0.05, ease: [0.5, 0, 0.35, 1] }}
+      whileHover={{ y: -4, scale: 1.02 }}
+      className="card-item group p-5 rounded-xl bg-white border border-[rgba(29,29,27,0.08)] hover:border-[#FF7759] hover:shadow-lg cursor-pointer"
     >
       <div
         className="w-10 h-10 rounded-lg flex items-center justify-center mb-4 transition-colors duration-[250ms] group-hover:bg-[rgba(255,119,89,0.1)]"
@@ -251,11 +389,26 @@ export default function Home() {
   const [showDashboard, setShowDashboard] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const { isSignedIn, isLoaded, user } = useUser();
+
+  // Parallax values for hero blobs
+  const { scrollY } = useScroll();
+  const y1 = useTransform(scrollY, [0, 500], [0, -100]); // Slow
+  const y2 = useTransform(scrollY, [0, 500], [0, -150]); // Medium
+  const y3 = useTransform(scrollY, [0, 500], [0, -50]);  // Fast
+  const y4 = useTransform(scrollY, [0, 500], [0, -80]);  // Medium-slow
 
   useEffect(() => {
     const storedSessionId = localStorage.getItem("estatePlanSessionId");
     if (storedSessionId) setSessionId(storedSessionId);
+  }, []);
+
+  // Scroll handler for sticky navigation shrink
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 50);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   const convexUser = useQuery(
@@ -276,8 +429,17 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-white overflow-x-hidden" style={{ color: COLORS.volcanicBlack }}>
-      {/* Navigation - Cohere style */}
-      <nav className="fixed top-0 left-0 right-0 z-50 h-16 bg-white/95 backdrop-blur-md border-b border-[rgba(29,29,27,0.08)]">
+      {/* Scroll Progress Indicator */}
+      <ScrollProgress />
+
+      {/* Navigation - Cohere style with shrink effect */}
+      <nav
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b ${
+          scrolled
+            ? 'h-14 bg-white/95 shadow-sm border-[rgba(29,29,27,0.12)]'
+            : 'h-16 bg-white/80 border-[rgba(29,29,27,0.08)]'
+        } backdrop-blur-md`}
+      >
         <div className="container h-full flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5">
             <div
@@ -439,8 +601,8 @@ export default function Home() {
 
       {/* Hero Section - Cohere style with visible atmospheric gradient */}
       <section className="relative min-h-[85vh] flex items-center overflow-hidden">
-        {/* Background gradients - VISIBLE */}
-        <div className="absolute inset-0 z-0">
+        {/* Background gradients - VISIBLE with animated flow */}
+        <div className="absolute inset-0 z-0 animate-gradient-flow" style={{ background: 'linear-gradient(-45deg, rgba(255, 119, 89, 0.05), rgba(212, 200, 255, 0.08), rgba(168, 197, 181, 0.06), rgba(255, 119, 89, 0.05))', backgroundSize: '400% 400%' }}>
           {/* Coral gradient on right side */}
           <div
             className="absolute top-0 right-0 w-[70%] h-full"
@@ -464,38 +626,42 @@ export default function Home() {
           />
         </div>
 
-        {/* Animated blobs - increased opacity */}
+        {/* Animated blobs with parallax - increased opacity */}
         <div className="absolute inset-0 z-0 overflow-hidden">
-          {/* Coral blob - top right */}
-          <div
+          {/* Coral blob - top right - slowest parallax */}
+          <motion.div
             className="absolute top-[-5%] right-[-5%] w-[450px] h-[450px] rounded-full animate-blob"
             style={{
+              y: y1,
               background: 'radial-gradient(circle, rgba(255, 119, 89, 0.35) 0%, rgba(255, 119, 89, 0.15) 50%, transparent 70%)',
               filter: 'blur(40px)',
             }}
           />
-          {/* Lavender blob */}
-          <div
+          {/* Lavender blob - medium parallax */}
+          <motion.div
             className="absolute top-[25%] right-[15%] w-[400px] h-[400px] rounded-full animate-blob"
             style={{
+              y: y2,
               background: 'radial-gradient(circle, rgba(212, 200, 255, 0.4) 0%, rgba(212, 200, 255, 0.15) 50%, transparent 70%)',
               filter: 'blur(50px)',
               animationDelay: '2s',
             }}
           />
-          {/* Sage green blob */}
-          <div
+          {/* Sage green blob - fast parallax */}
+          <motion.div
             className="absolute bottom-[10%] right-[8%] w-[350px] h-[350px] rounded-full animate-blob"
             style={{
+              y: y3,
               background: 'radial-gradient(circle, rgba(168, 197, 181, 0.35) 0%, transparent 60%)',
               filter: 'blur(40px)',
               animationDelay: '4s',
             }}
           />
-          {/* Small coral accent blob */}
-          <div
+          {/* Small coral accent blob - medium-slow parallax */}
+          <motion.div
             className="absolute top-[50%] right-[30%] w-[200px] h-[200px] rounded-full animate-blob"
             style={{
+              y: y4,
               background: 'radial-gradient(circle, rgba(255, 119, 89, 0.25) 0%, transparent 60%)',
               filter: 'blur(30px)',
               animationDelay: '1s',
@@ -517,23 +683,45 @@ export default function Home() {
                 backgroundColor: 'transparent',
               }}
             >
-              AI-Powered Estate Planning
+              Simple. Private. AI-Assisted.
             </motion.div>
 
-            {/* Headline - Regular weight with CORAL accent */}
-            <motion.h1
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+            {/* Headline - Family-focused with CORAL accent - Word-by-word reveal */}
+            <h1
               className="text-[clamp(40px,5vw,64px)] font-normal leading-[1.1] tracking-[-0.025em] mb-6"
               style={{ color: COLORS.volcanicBlack }}
             >
-              Your estate plan,
-              <br />
-              <span style={{ color: COLORS.coral }}>analyzed in minutes</span>
-            </motion.h1>
+              {/* First line - word by word animation */}
+              <span className="block">
+                {"Protect what matters most,".split(" ").map((word, i) => (
+                  <motion.span
+                    key={i}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.1 + i * 0.1, ease: SUPERPOWER_EASE }}
+                    className="inline-block mr-[0.25em]"
+                  >
+                    {word}
+                  </motion.span>
+                ))}
+              </span>
+              {/* Second line - coral accent with staggered delay */}
+              <span className="block" style={{ color: COLORS.coral }}>
+                {"with clarity and confidence".split(" ").map((word, i) => (
+                  <motion.span
+                    key={i}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.5 + i * 0.1, ease: SUPERPOWER_EASE }}
+                    className="inline-block mr-[0.25em]"
+                  >
+                    {word}
+                  </motion.span>
+                ))}
+              </span>
+            </h1>
 
-            {/* Subheadline */}
+            {/* Subheadline - Approachable messaging */}
             <motion.p
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
@@ -541,45 +729,48 @@ export default function Home() {
               className="text-lg leading-relaxed mb-8 max-w-xl"
               style={{ color: COLORS.mushroomGrey }}
             >
-              Answer a few questions. Get a comprehensive gap analysis, see how your assets will be distributed, and generate draft documents tailored to your state.
+              Estate planning doesn&apos;t have to be overwhelming. Answer a few simple questions, see exactly what you need, and take control of your family&apos;s future.
             </motion.p>
 
-            {/* CTAs - CORAL primary button + outline secondary */}
+            {/* CTAs - Single focused primary CTA + soft link */}
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
-              className="flex flex-col sm:flex-row gap-4"
+              transition={{ duration: 0.5, delay: 0.9, ease: SUPERPOWER_EASE }}
+              className="flex flex-col sm:flex-row items-start gap-4"
             >
-              {/* PRIMARY BUTTON - CORAL */}
-              <Link href="/intake">
-                <button
-                  className="inline-flex items-center justify-center gap-2 px-8 py-4 text-base font-medium rounded-full text-white transition-all duration-200 shadow-sm hover:shadow-lg w-full sm:w-auto"
-                  style={{ backgroundColor: COLORS.coral }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = COLORS.coralDark}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = COLORS.coral}
-                >
-                  Start Free Analysis
-                  <ArrowRight className="w-5 h-5" />
-                </button>
-              </Link>
+              {/* PRIMARY BUTTON - CORAL with pulse animation + magnetic effect */}
+              <MagneticButton>
+                <Link href="/intake">
+                  <motion.button
+                    className="group relative inline-flex items-center justify-center gap-2 px-8 py-4 text-base font-medium rounded-full text-white overflow-hidden w-full sm:w-auto animate-cta-pulse"
+                    style={{ backgroundColor: COLORS.coral }}
+                    whileHover={{ scale: 1.02, y: -2 }}
+                    whileTap={{ scale: 0.98 }}
+                    transition={{ duration: 0.2 }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = COLORS.coralDark}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = COLORS.coral}
+                  >
+                    <span className="relative z-10">Start Your Free Analysis</span>
+                    <ArrowRight className="relative z-10 w-5 h-5 transition-transform group-hover:translate-x-1" />
+                  </motion.button>
+                </Link>
+              </MagneticButton>
 
-              {/* SECONDARY BUTTON - OUTLINE */}
-              <a href="#how-it-works">
-                <button
-                  className="inline-flex items-center justify-center px-8 py-4 text-base font-medium rounded-full bg-transparent transition-all duration-200 w-full sm:w-auto hover:bg-[#FAF9F7]"
-                  style={{
-                    color: COLORS.volcanicBlack,
-                    border: '1px solid rgba(29, 29, 27, 0.2)',
-                  }}
-                >
-                  How It Works
-                </button>
+              {/* SOFT ANCHOR LINK - not competing CTA */}
+              <a
+                href="#how-it-works"
+                className="text-sm font-medium py-4 transition-colors duration-150"
+                style={{ color: COLORS.mushroomGrey }}
+                onMouseEnter={(e) => e.currentTarget.style.color = COLORS.volcanicBlack}
+                onMouseLeave={(e) => e.currentTarget.style.color = COLORS.mushroomGrey}
+              >
+                See how it works
               </a>
             </motion.div>
           </div>
 
-          {/* Stats */}
+          {/* Stats - Truthful, verifiable claims */}
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
@@ -587,14 +778,14 @@ export default function Home() {
             className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-8"
           >
             {[
-              { value: 10000, suffix: "+", label: "Plans analyzed" },
-              { value: 50, suffix: "", label: "States covered" },
-              { value: 98, suffix: "%", label: "Satisfaction rate" },
-              { value: 15, suffix: " min", label: "Average time" },
+              { value: 50, suffix: "", label: "States supported" },
+              { value: 6, suffix: "", label: "Core documents" },
+              { value: 15, suffix: " min", label: "To get started" },
+              { displayValue: "Free", label: "To analyze" },
             ].map((stat, index) => (
               <div key={index}>
                 <div className="text-3xl md:text-4xl font-normal" style={{ color: COLORS.volcanicBlack }}>
-                  <AnimatedCounter end={stat.value} suffix={stat.suffix} />
+                  {'displayValue' in stat ? stat.displayValue : <AnimatedCounter end={stat.value} suffix={stat.suffix} />}
                 </div>
                 <div className="text-sm mt-1" style={{ color: COLORS.mushroomGrey }}>{stat.label}</div>
               </div>
@@ -603,8 +794,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Logo Marquee - Trust indicators */}
-      <LogoMarquee />
+      {/* Trust Indicators - Truthful value props */}
+      <TrustIndicators />
 
       {/* Capabilities Section - How It Works (Analyze/Create/Protect) */}
       <CapabilitiesSection />
@@ -617,7 +808,7 @@ export default function Home() {
           description="A complete toolkit for understanding and improving your estate plan."
         />
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="card-group grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           <FeatureCard
             index={0}
             icon={ClipboardList}
@@ -764,7 +955,7 @@ export default function Home() {
           description="Generate drafts for these essential estate planning documents."
         />
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="card-group grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           <DocumentCard index={0} icon={FileText} name="Last Will & Testament" description="Instructions for asset distribution" />
           <DocumentCard index={1} icon={Building2} name="Living Trust" description="Avoid probate, ensure smooth transfer" />
           <DocumentCard index={2} icon={CreditCard} name="Financial Power of Attorney" description="Authorize financial management" />
@@ -783,45 +974,19 @@ export default function Home() {
       {/* Testimonials */}
       <TestimonialSection />
 
-      {/* CTA Section */}
-      <Section variant="dark" size="lg">
+      {/* Soft Closing Section - No aggressive CTA */}
+      <Section variant="cream" size="md">
         <div className="text-center max-w-2xl mx-auto">
-          <motion.h2
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ ease: [0.16, 1, 0.3, 1] }}
-            className="text-[clamp(32px,4vw,48px)] font-normal mb-4"
-            style={{ color: '#FFFFFF' }}
-          >
-            Get started for free
-          </motion.h2>
           <motion.p
             initial={{ opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-            className="text-lg mb-8"
-            style={{ color: 'rgba(255,255,255,0.6)' }}
+            transition={{ ease: [0.5, 0, 0.35, 1] }}
+            className="text-lg"
+            style={{ color: COLORS.mushroomGrey }}
           >
-            Complete your estate plan analysis in about 15 minutes. No credit card required.
+            Ready when you are. No pressure, no sales calls.
           </motion.p>
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-          >
-            <Link href="/intake">
-              <button
-                className="inline-flex items-center justify-center gap-3 px-8 py-4 text-lg font-medium rounded-full bg-white transition-all duration-[250ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-white/90"
-                style={{ color: COLORS.volcanicBlack }}
-              >
-                Start Analysis
-                <ArrowRight className="w-5 h-5" />
-              </button>
-            </Link>
-          </motion.div>
         </div>
       </Section>
 

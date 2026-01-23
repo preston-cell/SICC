@@ -2923,7 +2923,7 @@ function FamilyFormContent() {
                                                     columnNumber: 21
                                                 }, this)
                                             ]
-                                        }, child.id, true, {
+                                        }, child.id || `child-${index}`, true, {
                                             fileName: "[project]/app/intake/family/page.tsx",
                                             lineNumber: 291,
                                             columnNumber: 17

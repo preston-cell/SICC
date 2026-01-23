@@ -6,6 +6,11 @@ import { useMutation, useQuery, useAction } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { Id } from "../../../convex/_generated/dataModel";
 import Link from "next/link";
+import { useUser } from "@/app/components/ClerkComponents";
+import { useAuthSync } from "@/app/hooks/useAuthSync";
+
+// Check if Clerk authentication is configured
+const isAuthEnabled = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
 type DocumentType =
   | "will"
@@ -44,6 +49,14 @@ function UploadStepContent() {
   const searchParams = useSearchParams();
   const planId = searchParams.get("planId");
 
+  // Auth state (only relevant when Clerk is configured)
+  const { isSignedIn, isLoaded } = useUser();
+  useAuthSync();
+
+  // Get user ID from localStorage (set by useAuthSync) - only used when auth is enabled
+  const storedUserId = typeof window !== "undefined" ? localStorage.getItem("estatePlanUserId") : null;
+  const userId = isAuthEnabled && isSignedIn && storedUserId ? storedUserId : null;
+
   // State
   const [isCreatingPlan, setIsCreatingPlan] = useState(false);
   const [currentPlanId, setCurrentPlanId] = useState<Id<"estatePlans"> | null>(
@@ -77,9 +90,21 @@ function UploadStepContent() {
     currentPlanId ? { estatePlanId: currentPlanId } : "skip"
   );
 
+  // Redirect to intake if auth is enabled but not authenticated
+  useEffect(() => {
+    if (isAuthEnabled && isLoaded && !isSignedIn) {
+      router.push("/intake");
+    }
+  }, [isLoaded, isSignedIn, router]);
+
   // Create a new estate plan if needed
   useEffect(() => {
     const initializePlan = async () => {
+      // Wait for auth check if auth is enabled
+      if (isAuthEnabled && !isLoaded) {
+        return;
+      }
+
       if (!planId && !currentPlanId && !isCreatingPlan) {
         // Check localStorage for existing plan
         const savedPlanId = localStorage.getItem("estatePlanId");
@@ -92,14 +117,26 @@ function UploadStepContent() {
         // Create new plan
         setIsCreatingPlan(true);
         try {
-          const sessionId = `session_${Date.now()}_${Math.random().toString(36).substring(7)}`;
-          const newPlanId = await createEstatePlan({
-            sessionId,
-            name: "My Estate Plan",
-          });
-          localStorage.setItem("estatePlanSessionId", sessionId);
+          let newPlanId: string;
+
+          if (isAuthEnabled && userId) {
+            // Authenticated flow
+            newPlanId = await createEstatePlan({
+              userId: userId as Id<"users">,
+              name: "My Estate Plan",
+            });
+          } else {
+            // Anonymous flow
+            const sessionId = `session_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+            newPlanId = await createEstatePlan({
+              sessionId,
+              name: "My Estate Plan",
+            });
+            localStorage.setItem("estatePlanSessionId", sessionId);
+          }
+
           localStorage.setItem("estatePlanId", newPlanId);
-          setCurrentPlanId(newPlanId);
+          setCurrentPlanId(newPlanId as Id<"estatePlans">);
           router.replace(`/intake/upload?planId=${newPlanId}`);
         } catch (error) {
           console.error("Failed to create estate plan:", error);
@@ -110,7 +147,7 @@ function UploadStepContent() {
     };
 
     initializePlan();
-  }, [planId, currentPlanId, isCreatingPlan, createEstatePlan, router]);
+  }, [planId, currentPlanId, isCreatingPlan, createEstatePlan, router, isLoaded, userId]);
 
   // Handle file upload
   const handleFileUpload = useCallback(

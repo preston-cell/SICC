@@ -9,6 +9,9 @@
     },
     "/api/gap-analysis": {
       "maxDuration": 600
+    },
+    "/api/gap-analysis/orchestrate": {
+      "maxDuration": 900
     }
   }
 }

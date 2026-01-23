@@ -788,6 +788,83 @@ h5, .h5 {
 }
 
 /* =============================================================================
+   SUPERPOWER-INSPIRED ANIMATIONS
+   ============================================================================= */
+
+/* Custom easing - Superpower style */
+:root {
+  --ease-superpower: cubic-bezier(0.5, 0, 0.35, 1);
+  --ease-superpower-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Pulsing CTA border effect */
+@keyframes cta-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 119, 89, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 12px rgba(255, 119, 89, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 119, 89, 0);
+  }
+}
+
+.animate-cta-pulse {
+  animation: cta-pulse 2s ease-in-out infinite;
+}
+
+/* Card hover with sibling dimming */
+.card-group {
+  display: grid;
+}
+
+.card-group:hover .card-item:not(:hover) {
+  opacity: 0.5;
+  transform: scale(0.98);
+}
+
+.card-item {
+  transition:
+    opacity 0.4s var(--ease-superpower),
+    transform 0.4s var(--ease-superpower),
+    box-shadow 0.4s var(--ease-superpower);
+}
+
+.card-item:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: var(--shadow-xl);
+}
+
+/* Smooth reveal from bottom */
+@keyframes reveal-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-reveal-up {
+  animation: reveal-up 0.6s var(--ease-superpower) forwards;
+}
+
+/* Animated gradient flow - Superpower style */
+@keyframes gradient-flow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-gradient-flow {
+  background-size: 200% 200%;
+  animation: gradient-flow 15s ease infinite;
+}
+
+/* =============================================================================
    UTILITY CLASSES
    ============================================================================= */
 

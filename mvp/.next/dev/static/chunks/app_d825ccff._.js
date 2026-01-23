@@ -195,30 +195,37 @@ if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelper
 "use strict";
 
 __turbopack_context__.s([
+    "LinkButton",
+    ()=>LinkButton,
     "default",
     ()=>__TURBOPACK__default__export__
 ]);
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/compiled/react/jsx-dev-runtime.js [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/compiled/react/index.js [app-client] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$arrow$2d$right$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__ArrowRight$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/arrow-right.js [app-client] (ecmascript) <export default as ArrowRight>");
 "use client";
 ;
 ;
+;
+// Cohere-style button variants - pill-shaped, clean
 const variantStyles = {
-    primary: "bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800 disabled:bg-blue-300 dark:disabled:bg-blue-800",
-    secondary: "bg-gray-100 text-gray-900 hover:bg-gray-200 active:bg-gray-300 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600 disabled:bg-gray-100 disabled:text-gray-400 dark:disabled:bg-gray-800 dark:disabled:text-gray-600",
-    outline: "border-2 border-gray-300 text-gray-700 hover:bg-gray-50 active:bg-gray-100 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800 disabled:border-gray-200 disabled:text-gray-400 dark:disabled:border-gray-700 dark:disabled:text-gray-600",
-    ghost: "text-gray-700 hover:bg-gray-100 active:bg-gray-200 dark:text-gray-300 dark:hover:bg-gray-800 disabled:text-gray-400 dark:disabled:text-gray-600",
-    danger: "bg-red-600 text-white hover:bg-red-700 active:bg-red-800 disabled:bg-red-300 dark:disabled:bg-red-800"
+    primary: "bg-[var(--volcanic-black)] text-white hover:bg-[#2D2D2B] hover:-translate-y-[1px] hover:shadow-[var(--shadow-md)] active:translate-y-0 disabled:bg-[var(--stone-grey)] disabled:cursor-not-allowed",
+    secondary: "bg-transparent text-[var(--text-primary)] border border-[var(--border-strong)] hover:bg-[var(--cream)] hover:border-[var(--volcanic-black)] hover:-translate-y-[1px] active:translate-y-0 disabled:text-[var(--text-tertiary)] disabled:border-[var(--border)] disabled:cursor-not-allowed",
+    outline: "bg-transparent text-[var(--text-primary)] border border-[var(--border)] hover:bg-[var(--cream)] hover:border-[var(--text-primary)] hover:-translate-y-[1px] active:translate-y-0 disabled:text-[var(--text-tertiary)] disabled:border-[var(--border-light)] disabled:cursor-not-allowed",
+    accent: "bg-[var(--coral)] text-white hover:bg-[var(--coral-dark)] hover:-translate-y-[1px] hover:shadow-[var(--shadow-md)] active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed",
+    ghost: "bg-transparent text-[var(--text-secondary)] hover:bg-[var(--cream)] hover:text-[var(--text-primary)] disabled:text-[var(--text-tertiary)] disabled:cursor-not-allowed",
+    danger: "bg-[var(--error)] text-white hover:opacity-90 hover:-translate-y-[1px] active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed",
+    link: "text-[var(--text-primary)] font-medium hover:opacity-70 p-0 bg-transparent"
 };
 const sizeStyles = {
-    sm: "px-3 py-1.5 text-sm gap-1.5",
-    md: "px-4 py-2 text-base gap-2",
-    lg: "px-6 py-3 text-lg gap-2.5"
+    sm: "px-5 py-2.5 text-sm gap-2",
+    md: "px-7 py-3.5 text-base gap-2",
+    lg: "px-9 py-4 text-lg gap-3"
 };
 const iconSizes = {
     sm: "w-4 h-4",
     md: "w-5 h-5",
-    lg: "w-6 h-6"
+    lg: "w-5 h-5"
 };
 const Spinner = ({ size })=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("svg", {
         className: `animate-spin ${iconSizes[size]}`,
@@ -235,7 +242,7 @@ const Spinner = ({ size })=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b
                 strokeWidth: "4"
             }, void 0, false, {
                 fileName: "[project]/app/components/ui/Button.tsx",
-                lineNumber: 49,
+                lineNumber: 56,
                 columnNumber: 5
             }, ("TURBOPACK compile-time value", void 0)),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("path", {
@@ -244,30 +251,30 @@ const Spinner = ({ size })=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b
                 d: "M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
             }, void 0, false, {
                 fileName: "[project]/app/components/ui/Button.tsx",
-                lineNumber: 57,
+                lineNumber: 64,
                 columnNumber: 5
             }, ("TURBOPACK compile-time value", void 0))
         ]
     }, void 0, true, {
         fileName: "[project]/app/components/ui/Button.tsx",
-        lineNumber: 43,
+        lineNumber: 50,
         columnNumber: 3
     }, ("TURBOPACK compile-time value", void 0));
 _c = Spinner;
-const Button = /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["forwardRef"])(_c1 = ({ variant = "primary", size = "md", isLoading = false, leftIcon, rightIcon, fullWidth = false, disabled, className = "", children, ...props }, ref)=>{
+const Button = /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["forwardRef"])(_c1 = ({ variant = "primary", size = "md", isLoading = false, leftIcon, rightIcon, fullWidth = false, showArrow = false, disabled, className = "", children, ...props }, ref)=>{
     const isDisabled = disabled || isLoading;
+    const isLinkVariant = variant === "link";
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
         ref: ref,
         disabled: isDisabled,
         className: `
           inline-flex items-center justify-center
-          font-medium rounded-lg
-          transition-colors duration-150 ease-in-out
-          focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2
-          dark:focus-visible:ring-offset-gray-900
-          disabled:cursor-not-allowed
+          font-medium
+          transition-all duration-[250ms] ease-[cubic-bezier(0.16,1,0.3,1)]
+          focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--coral)] focus-visible:ring-offset-2
+          rounded-full
           ${variantStyles[variant]}
-          ${sizeStyles[size]}
+          ${isLinkVariant ? "" : sizeStyles[size]}
           ${fullWidth ? "w-full" : ""}
           ${className}
         `,
@@ -277,39 +284,90 @@ const Button = /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f
                 size: size
             }, void 0, false, {
                 fileName: "[project]/app/components/ui/Button.tsx",
-                lineNumber: 102,
+                lineNumber: 110,
                 columnNumber: 11
             }, ("TURBOPACK compile-time value", void 0)) : leftIcon ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                 className: iconSizes[size],
                 children: leftIcon
             }, void 0, false, {
                 fileName: "[project]/app/components/ui/Button.tsx",
-                lineNumber: 104,
+                lineNumber: 112,
                 columnNumber: 11
             }, ("TURBOPACK compile-time value", void 0)) : null,
-            children,
+            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                className: "relative z-10",
+                children: children
+            }, void 0, false, {
+                fileName: "[project]/app/components/ui/Button.tsx",
+                lineNumber: 114,
+                columnNumber: 9
+            }, ("TURBOPACK compile-time value", void 0)),
             !isLoading && rightIcon && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                 className: iconSizes[size],
                 children: rightIcon
             }, void 0, false, {
                 fileName: "[project]/app/components/ui/Button.tsx",
-                lineNumber: 108,
+                lineNumber: 116,
+                columnNumber: 11
+            }, ("TURBOPACK compile-time value", void 0)),
+            !isLoading && showArrow && !isLinkVariant && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$arrow$2d$right$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__ArrowRight$3e$__["ArrowRight"], {
+                className: `${iconSizes[size]} transition-transform duration-200`
+            }, void 0, false, {
+                fileName: "[project]/app/components/ui/Button.tsx",
+                lineNumber: 119,
+                columnNumber: 11
+            }, ("TURBOPACK compile-time value", void 0)),
+            !isLoading && isLinkVariant && showArrow && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$arrow$2d$right$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__ArrowRight$3e$__["ArrowRight"], {
+                className: "w-4 h-4 transition-transform group-hover:translate-x-1"
+            }, void 0, false, {
+                fileName: "[project]/app/components/ui/Button.tsx",
+                lineNumber: 122,
                 columnNumber: 11
             }, ("TURBOPACK compile-time value", void 0))
         ]
     }, void 0, true, {
         fileName: "[project]/app/components/ui/Button.tsx",
-        lineNumber: 84,
+        lineNumber: 93,
         columnNumber: 7
     }, ("TURBOPACK compile-time value", void 0));
 });
 _c2 = Button;
 Button.displayName = "Button";
 const __TURBOPACK__default__export__ = Button;
-var _c, _c1, _c2;
+const LinkButton = /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["forwardRef"])(_c3 = ({ children, className = "", showArrow = true, ...props }, ref)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("a", {
+        ref: ref,
+        className: `
+      inline-flex items-center gap-2
+      text-[var(--text-primary)] font-medium
+      transition-all duration-[250ms] ease-[cubic-bezier(0.16,1,0.3,1)]
+      hover:gap-3
+      group
+      ${className}
+    `,
+        ...props,
+        children: [
+            children,
+            showArrow && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$arrow$2d$right$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__ArrowRight$3e$__["ArrowRight"], {
+                className: "w-4 h-4 transition-transform group-hover:translate-x-1"
+            }, void 0, false, {
+                fileName: "[project]/app/components/ui/Button.tsx",
+                lineNumber: 152,
+                columnNumber: 7
+            }, ("TURBOPACK compile-time value", void 0))
+        ]
+    }, void 0, true, {
+        fileName: "[project]/app/components/ui/Button.tsx",
+        lineNumber: 138,
+        columnNumber: 3
+    }, ("TURBOPACK compile-time value", void 0)));
+_c4 = LinkButton;
+LinkButton.displayName = "LinkButton";
+var _c, _c1, _c2, _c3, _c4;
 __turbopack_context__.k.register(_c, "Spinner");
 __turbopack_context__.k.register(_c1, "Button$forwardRef");
 __turbopack_context__.k.register(_c2, "Button");
+__turbopack_context__.k.register(_c3, "LinkButton$forwardRef");
+__turbopack_context__.k.register(_c4, "LinkButton");
 if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelpers !== null) {
     __turbopack_context__.k.registerExports(__turbopack_context__.m, globalThis.$RefreshHelpers$);
 }
@@ -2546,28 +2604,28 @@ function VisualizationPage() {
     // Loading state
     if (estatePlan === undefined || intakeData === undefined) {
         return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-            className: "min-h-screen bg-gray-50 dark:bg-gray-900",
+            className: "min-h-screen bg-white",
             children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                 className: "max-w-6xl mx-auto px-4 py-8",
                 children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                     className: "animate-pulse space-y-8",
                     children: [
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                            className: "h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/3"
+                            className: "h-8 bg-gray-200  rounded w-1/3"
                         }, void 0, false, {
                             fileName: "[project]/app/analysis/[estatePlanId]/visualization/page.tsx",
                             lineNumber: 130,
                             columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                            className: "h-64 bg-gray-200 dark:bg-gray-700 rounded"
+                            className: "h-64 bg-gray-200  rounded"
                         }, void 0, false, {
                             fileName: "[project]/app/analysis/[estatePlanId]/visualization/page.tsx",
                             lineNumber: 131,
                             columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                            className: "h-96 bg-gray-200 dark:bg-gray-700 rounded"
+                            className: "h-96 bg-gray-200  rounded"
                         }, void 0, false, {
                             fileName: "[project]/app/analysis/[estatePlanId]/visualization/page.tsx",
                             lineNumber: 132,
@@ -2593,12 +2651,12 @@ function VisualizationPage() {
     // Not found state
     if (estatePlan === null) {
         return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-            className: "min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center",
+            className: "min-h-screen bg-white flex items-center justify-center",
             children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                 className: "text-center",
                 children: [
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h1", {
-                        className: "text-2xl font-bold text-gray-900 dark:text-white mb-4",
+                        className: "text-2xl font-bold text-[var(--text-heading)] mb-4",
                         children: "Estate Plan Not Found"
                     }, void 0, false, {
                         fileName: "[project]/app/analysis/[estatePlanId]/visualization/page.tsx",
@@ -2607,7 +2665,7 @@ function VisualizationPage() {
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$app$2d$dir$2f$link$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
                         href: "/",
-                        className: "text-blue-600 hover:text-blue-700",
+                        className: "text-[var(--accent-purple)] hover:opacity-80",
                         children: "Return Home"
                     }, void 0, false, {
                         fileName: "[project]/app/analysis/[estatePlanId]/visualization/page.tsx",
@@ -2645,7 +2703,7 @@ function VisualizationPage() {
         }
     ];
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-        className: "min-h-screen bg-gray-50 dark:bg-gray-900",
+        className: "min-h-screen bg-white",
         children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
             className: "max-w-6xl mx-auto px-4 py-8",
             children: [
@@ -2653,7 +2711,7 @@ function VisualizationPage() {
                     className: "mb-8",
                     children: [
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                            className: "flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-2",
+                            className: "flex items-center gap-2 text-sm text-[var(--text-muted)] mb-2",
                             children: [
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$app$2d$dir$2f$link$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
                                     href: `/analysis/${estatePlanId}`,
@@ -2703,7 +2761,7 @@ function VisualizationPage() {
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                     children: [
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h1", {
-                                            className: "text-3xl font-bold text-gray-900 dark:text-white",
+                                            className: "text-3xl font-bold text-[var(--text-heading)]",
                                             children: "Estate Distribution"
                                         }, void 0, false, {
                                             fileName: "[project]/app/analysis/[estatePlanId]/visualization/page.tsx",
@@ -2711,7 +2769,7 @@ function VisualizationPage() {
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                            className: "text-gray-600 dark:text-gray-400 mt-1",
+                                            className: "text-[var(--text-body)] mt-1",
                                             children: [
                                                 estatePlan.name || "My Estate Plan",
                                                 " — Visual breakdown of your estate"
@@ -2792,13 +2850,13 @@ function VisualizationPage() {
                     columnNumber: 11
                 }, this),
                 selectedScenario && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                    className: "mb-6 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg flex items-center justify-between",
+                    className: "mb-6 p-4 bg-[var(--warning-muted)] border border-[var(--warning)] rounded-lg flex items-center justify-between",
                     children: [
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                             className: "flex items-center gap-3",
                             children: [
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("svg", {
-                                    className: "w-5 h-5 text-amber-600 dark:text-amber-400",
+                                    className: "w-5 h-5 text-[var(--warning)]",
                                     fill: "none",
                                     stroke: "currentColor",
                                     viewBox: "0 0 24 24",
@@ -2820,7 +2878,7 @@ function VisualizationPage() {
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                     children: [
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                            className: "font-medium text-amber-800 dark:text-amber-200",
+                                            className: "font-medium text-[var(--warning)]",
                                             children: [
                                                 "Viewing Scenario: ",
                                                 SCENARIOS.find((s)=>s.id === selectedScenario)?.name
@@ -2831,7 +2889,7 @@ function VisualizationPage() {
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                            className: "text-sm text-amber-700 dark:text-amber-300",
+                                            className: "text-sm text-[var(--warning)]",
                                             children: SCENARIOS.find((s)=>s.id === selectedScenario)?.description
                                         }, void 0, false, {
                                             fileName: "[project]/app/analysis/[estatePlanId]/visualization/page.tsx",
@@ -2872,7 +2930,7 @@ function VisualizationPage() {
                     activeTab: activeTab,
                     onChange: setActiveTab,
                     children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                        className: "mt-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6",
+                        className: "mt-6 bg-white rounded-xl shadow-sm border border-[var(--border)] p-6",
                         children: [
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$ui$2f$Tabs$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["TabPanel"], {
                                 tabId: "distribution",
@@ -2882,7 +2940,7 @@ function VisualizationPage() {
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                             children: [
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
-                                                    className: "text-lg font-semibold text-gray-900 dark:text-white mb-4",
+                                                    className: "text-lg font-semibold text-[var(--text-heading)] mb-4",
                                                     children: "Distribution by Beneficiary"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/analysis/[estatePlanId]/visualization/page.tsx",
@@ -2906,7 +2964,7 @@ function VisualizationPage() {
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                             children: [
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
-                                                    className: "text-lg font-semibold text-gray-900 dark:text-white mb-4",
+                                                    className: "text-lg font-semibold text-[var(--text-heading)] mb-4",
                                                     children: "Key Insights"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/analysis/[estatePlanId]/visualization/page.tsx",
@@ -2917,7 +2975,7 @@ function VisualizationPage() {
                                                     className: "space-y-4",
                                                     children: [
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                            className: "p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg",
+                                                            className: "p-4 bg-white/50 rounded-lg",
                                                             children: [
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                                     className: "flex items-center gap-2 mb-2",
@@ -2943,7 +3001,7 @@ function VisualizationPage() {
                                                                             columnNumber: 25
                                                                         }, this),
                                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                                                            className: "font-medium text-gray-900 dark:text-white",
+                                                                            className: "font-medium text-[var(--text-heading)]",
                                                                             children: "Beneficiaries"
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/app/analysis/[estatePlanId]/visualization/page.tsx",
@@ -2957,7 +3015,7 @@ function VisualizationPage() {
                                                                     columnNumber: 23
                                                                 }, this),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                                                    className: "text-sm text-gray-600 dark:text-gray-400",
+                                                                    className: "text-sm text-[var(--text-body)]",
                                                                     children: [
                                                                         displayData.beneficiaries.length,
                                                                         " beneficiar",
@@ -2976,7 +3034,7 @@ function VisualizationPage() {
                                                             columnNumber: 21
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                            className: "p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg",
+                                                            className: "p-4 bg-white/50 rounded-lg",
                                                             children: [
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                                     className: "flex items-center gap-2 mb-2",
@@ -3002,7 +3060,7 @@ function VisualizationPage() {
                                                                             columnNumber: 25
                                                                         }, this),
                                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                                                            className: "font-medium text-gray-900 dark:text-white",
+                                                                            className: "font-medium text-[var(--text-heading)]",
                                                                             children: "Probate Avoidance"
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/app/analysis/[estatePlanId]/visualization/page.tsx",
@@ -3016,7 +3074,7 @@ function VisualizationPage() {
                                                                     columnNumber: 23
                                                                 }, this),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                                                    className: "text-sm text-gray-600 dark:text-gray-400",
+                                                                    className: "text-sm text-[var(--text-body)]",
                                                                     children: [
                                                                         displayData.assets.filter((a)=>a.bypassesProbate).length,
                                                                         " of ",
@@ -3061,7 +3119,7 @@ function VisualizationPage() {
                                                                             columnNumber: 27
                                                                         }, this),
                                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                                                            className: "font-medium text-amber-800 dark:text-amber-200",
+                                                                            className: "font-medium text-[var(--warning)]",
                                                                             children: "Attention Needed"
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/app/analysis/[estatePlanId]/visualization/page.tsx",
@@ -3075,7 +3133,7 @@ function VisualizationPage() {
                                                                     columnNumber: 25
                                                                 }, this),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                                                    className: "text-sm text-amber-700 dark:text-amber-300",
+                                                                    className: "text-sm text-[var(--warning)]",
                                                                     children: [
                                                                         displayData.warnings.length,
                                                                         " issue",
@@ -3168,7 +3226,7 @@ function VisualizationPage() {
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                             children: [
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
-                                                    className: "text-lg font-semibold text-gray-900 dark:text-white mb-2",
+                                                    className: "text-lg font-semibold text-[var(--text-heading)] mb-2",
                                                     children: "What-If Scenarios"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/analysis/[estatePlanId]/visualization/page.tsx",
@@ -3176,7 +3234,7 @@ function VisualizationPage() {
                                                     columnNumber: 17
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                                    className: "text-gray-600 dark:text-gray-400",
+                                                    className: "text-[var(--text-body)]",
                                                     children: "Explore how your estate distribution changes under different circumstances. Select a scenario to see the impact on your beneficiaries."
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/analysis/[estatePlanId]/visualization/page.tsx",
@@ -3193,10 +3251,10 @@ function VisualizationPage() {
                                             className: "grid grid-cols-1 md:grid-cols-3 gap-4",
                                             children: SCENARIOS.map((scenario)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
                                                     onClick: ()=>setSelectedScenario(scenario.id === selectedScenario ? null : scenario.id),
-                                                    className: `p-5 rounded-xl border-2 text-left transition-all ${selectedScenario === scenario.id ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20" : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"}`,
+                                                    className: `p-5 rounded-xl border-2 text-left transition-all ${selectedScenario === scenario.id ? "border-[var(--accent-purple)] bg-[var(--accent-muted)]" : "border-[var(--border)] hover:border-gray-300 dark:hover:border-gray-600"}`,
                                                     children: [
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                            className: `w-12 h-12 rounded-lg flex items-center justify-center mb-3 ${selectedScenario === scenario.id ? "bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-400" : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"}`,
+                                                            className: `w-12 h-12 rounded-lg flex items-center justify-center mb-3 ${selectedScenario === scenario.id ? "bg-[var(--accent-muted)] text-[var(--accent-purple)]" : "bg-[var(--off-white)] text-[var(--text-muted)]"}`,
                                                             children: scenario.icon
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/analysis/[estatePlanId]/visualization/page.tsx",
@@ -3204,7 +3262,7 @@ function VisualizationPage() {
                                                             columnNumber: 21
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h4", {
-                                                            className: `font-semibold ${selectedScenario === scenario.id ? "text-blue-900 dark:text-blue-100" : "text-gray-900 dark:text-white"}`,
+                                                            className: `font-semibold ${selectedScenario === scenario.id ? "text-[var(--accent-purple)]" : "text-[var(--text-heading)]"}`,
                                                             children: scenario.name
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/analysis/[estatePlanId]/visualization/page.tsx",
@@ -3212,7 +3270,7 @@ function VisualizationPage() {
                                                             columnNumber: 21
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                                            className: `text-sm mt-1 ${selectedScenario === scenario.id ? "text-blue-700 dark:text-blue-300" : "text-gray-600 dark:text-gray-400"}`,
+                                                            className: `text-sm mt-1 ${selectedScenario === scenario.id ? "text-[var(--accent-purple)]" : "text-[var(--text-body)]"}`,
                                                             children: scenario.description
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/analysis/[estatePlanId]/visualization/page.tsx",
@@ -3220,7 +3278,7 @@ function VisualizationPage() {
                                                             columnNumber: 21
                                                         }, this),
                                                         selectedScenario === scenario.id && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                            className: "mt-3 flex items-center gap-1 text-sm font-medium text-blue-600 dark:text-blue-400",
+                                                            className: "mt-3 flex items-center gap-1 text-sm font-medium text-[var(--accent-purple)]",
                                                             children: [
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("svg", {
                                                                     className: "w-4 h-4",
@@ -3261,10 +3319,10 @@ function VisualizationPage() {
                                             columnNumber: 15
                                         }, this),
                                         selectedScenario && displayData && estateData && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                            className: "mt-8 p-6 bg-gray-50 dark:bg-gray-900/50 rounded-xl",
+                                            className: "mt-8 p-6 bg-white/50 rounded-xl",
                                             children: [
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h4", {
-                                                    className: "font-semibold text-gray-900 dark:text-white mb-4",
+                                                    className: "font-semibold text-[var(--text-heading)] mb-4",
                                                     children: "Distribution Comparison"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/analysis/[estatePlanId]/visualization/page.tsx",
@@ -3277,7 +3335,7 @@ function VisualizationPage() {
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                             children: [
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                                                    className: "text-sm text-gray-500 dark:text-gray-400 mb-3",
+                                                                    className: "text-sm text-[var(--text-muted)] mb-3",
                                                                     children: "Current Plan"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/app/analysis/[estatePlanId]/visualization/page.tsx",
@@ -3290,7 +3348,7 @@ function VisualizationPage() {
                                                                             className: "flex items-center justify-between",
                                                                             children: [
                                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                                                                    className: "text-sm text-gray-700 dark:text-gray-300",
+                                                                                    className: "text-sm text-[var(--text-body)]",
                                                                                     children: b.name
                                                                                 }, void 0, false, {
                                                                                     fileName: "[project]/app/analysis/[estatePlanId]/visualization/page.tsx",
@@ -3298,7 +3356,7 @@ function VisualizationPage() {
                                                                                     columnNumber: 29
                                                                                 }, this),
                                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                                                                    className: "font-medium text-gray-900 dark:text-white",
+                                                                                    className: "font-medium text-[var(--text-heading)]",
                                                                                     children: [
                                                                                         b.percentage.toFixed(0),
                                                                                         "%"
@@ -3328,7 +3386,7 @@ function VisualizationPage() {
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                             children: [
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                                                    className: "text-sm text-gray-500 dark:text-gray-400 mb-3",
+                                                                    className: "text-sm text-[var(--text-muted)] mb-3",
                                                                     children: "With Scenario"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/app/analysis/[estatePlanId]/visualization/page.tsx",
@@ -3341,7 +3399,7 @@ function VisualizationPage() {
                                                                             className: "flex items-center justify-between",
                                                                             children: [
                                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                                                                    className: "text-sm text-gray-700 dark:text-gray-300",
+                                                                                    className: "text-sm text-[var(--text-body)]",
                                                                                     children: b.name
                                                                                 }, void 0, false, {
                                                                                     fileName: "[project]/app/analysis/[estatePlanId]/visualization/page.tsx",
@@ -3349,7 +3407,7 @@ function VisualizationPage() {
                                                                                     columnNumber: 31
                                                                                 }, this),
                                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                                                                    className: "font-medium text-gray-900 dark:text-white",
+                                                                                    className: "font-medium text-[var(--text-heading)]",
                                                                                     children: [
                                                                                         b.percentage.toFixed(0),
                                                                                         "%"
@@ -3365,7 +3423,7 @@ function VisualizationPage() {
                                                                             lineNumber: 398,
                                                                             columnNumber: 29
                                                                         }, this)) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                                                        className: "text-sm text-amber-600 dark:text-amber-400",
+                                                                        className: "text-sm text-[var(--warning)]",
                                                                         children: "No remaining beneficiaries — contingent beneficiaries would receive assets"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/app/analysis/[estatePlanId]/visualization/page.tsx",
@@ -3396,7 +3454,7 @@ function VisualizationPage() {
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                            className: "p-4 bg-gray-100 dark:bg-gray-900/50 rounded-lg text-sm text-gray-600 dark:text-gray-400",
+                                            className: "p-4 bg-[var(--off-white)] rounded-lg text-sm text-[var(--text-body)]",
                                             children: [
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("strong", {
                                                     children: "Note:"
@@ -3461,7 +3519,7 @@ function EmptyState() {
         className: "text-center py-12",
         children: [
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                className: "w-16 h-16 mx-auto mb-4 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center",
+                className: "w-16 h-16 mx-auto mb-4 bg-[var(--off-white)] rounded-full flex items-center justify-center",
                 children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("svg", {
                     className: "w-8 h-8 text-gray-400",
                     fill: "none",
@@ -3488,7 +3546,7 @@ function EmptyState() {
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
-                className: "text-lg font-medium text-gray-900 dark:text-white mb-2",
+                className: "text-lg font-medium text-[var(--text-heading)] mb-2",
                 children: "No Data Available"
             }, void 0, false, {
                 fileName: "[project]/app/analysis/[estatePlanId]/visualization/page.tsx",
@@ -3496,7 +3554,7 @@ function EmptyState() {
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                className: "text-gray-500 dark:text-gray-400 max-w-md mx-auto",
+                className: "text-[var(--text-muted)] max-w-md mx-auto",
                 children: "Complete your estate planning intake form to see your estate visualization. We need information about your assets, family, and goals."
             }, void 0, false, {
                 fileName: "[project]/app/analysis/[estatePlanId]/visualization/page.tsx",

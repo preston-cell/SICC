@@ -7,15 +7,16 @@ const isClerkConfigured = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
 // Routes that require authentication
 const isProtectedRoute = createRouteMatcher([
+  "/intake/(.*)",              // All intake pages require login
+  "/analysis/(.*)",            // Analysis requires login
   "/documents/generate/(.*)",  // Document generation requires login
+  "/documents/upload/(.*)",    // Document upload requires login
 ]);
 
 // Routes that should be accessible to everyone (public)
 const isPublicRoute = createRouteMatcher([
   "/",
-  "/intake(.*)",
-  "/analysis/(.*)",
-  "/documents/upload/(.*)",
+  "/intake",                   // Landing page only (shows sign-in prompt)
   "/sign-in(.*)",
   "/sign-up(.*)",
   "/api/(.*)",

@@ -30,6 +30,38 @@
       "namedRegex": "^/analysis/(?<nxtPestatePlanId>[^/]+?)(?:/)?$"
     },
     {
+      "page": "/analysis/[estatePlanId]/prepare",
+      "regex": "^/analysis/([^/]+?)/prepare(?:/)?$",
+      "routeKeys": {
+        "nxtPestatePlanId": "nxtPestatePlanId"
+      },
+      "namedRegex": "^/analysis/(?<nxtPestatePlanId>[^/]+?)/prepare(?:/)?$"
+    },
+    {
+      "page": "/analysis/[estatePlanId]/prepare/contacts",
+      "regex": "^/analysis/([^/]+?)/prepare/contacts(?:/)?$",
+      "routeKeys": {
+        "nxtPestatePlanId": "nxtPestatePlanId"
+      },
+      "namedRegex": "^/analysis/(?<nxtPestatePlanId>[^/]+?)/prepare/contacts(?:/)?$"
+    },
+    {
+      "page": "/analysis/[estatePlanId]/prepare/documents",
+      "regex": "^/analysis/([^/]+?)/prepare/documents(?:/)?$",
+      "routeKeys": {
+        "nxtPestatePlanId": "nxtPestatePlanId"
+      },
+      "namedRegex": "^/analysis/(?<nxtPestatePlanId>[^/]+?)/prepare/documents(?:/)?$"
+    },
+    {
+      "page": "/analysis/[estatePlanId]/prepare/questions",
+      "regex": "^/analysis/([^/]+?)/prepare/questions(?:/)?$",
+      "routeKeys": {
+        "nxtPestatePlanId": "nxtPestatePlanId"
+      },
+      "namedRegex": "^/analysis/(?<nxtPestatePlanId>[^/]+?)/prepare/questions(?:/)?$"
+    },
+    {
       "page": "/analysis/[estatePlanId]/reminders",
       "regex": "^/analysis/([^/]+?)/reminders(?:/)?$",
       "routeKeys": {
@@ -60,6 +92,14 @@
         "nxtPestatePlanId": "nxtPestatePlanId"
       },
       "namedRegex": "^/documents/upload/(?<nxtPestatePlanId>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/intake/guided/[step]",
+      "regex": "^/intake/guided/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPstep": "nxtPstep"
+      },
+      "namedRegex": "^/intake/guided/(?<nxtPstep>[^/]+?)(?:/)?$"
     },
     {
       "page": "/sign-in/[[...sign-in]]",
@@ -116,6 +156,12 @@
       "namedRegex": "^/api/gap\\-analysis(?:/)?$"
     },
     {
+      "page": "/api/gap-analysis/orchestrate",
+      "regex": "^/api/gap\\-analysis/orchestrate(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/gap\\-analysis/orchestrate(?:/)?$"
+    },
+    {
       "page": "/api/run",
       "regex": "^/api/run(?:/)?$",
       "routeKeys": {},
@@ -156,6 +202,12 @@
       "regex": "^/intake/goals(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/intake/goals(?:/)?$"
+    },
+    {
+      "page": "/intake/guided",
+      "regex": "^/intake/guided(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/intake/guided(?:/)?$"
     },
     {
       "page": "/intake/personal",

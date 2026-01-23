@@ -26,6 +26,8 @@ const documentTypeValidator = v.union(
 // ============================================
 
 // Create a new estate plan
+// When auth is enabled: requires userId
+// When auth is disabled: uses sessionId for anonymous tracking (can be linked to user later)
 export const createEstatePlan = mutation({
   args: {
     userId: v.optional(v.id("users")),
@@ -33,10 +35,23 @@ export const createEstatePlan = mutation({
     name: v.optional(v.string()),
   },
   handler: async (ctx, { userId, sessionId, name }) => {
+    // Require either userId or sessionId
+    if (!userId && !sessionId) {
+      throw new Error("Either userId or sessionId is required to create an estate plan.");
+    }
+
+    // If userId provided, verify user exists
+    if (userId) {
+      const user = await ctx.db.get(userId);
+      if (!user) {
+        throw new Error("User not found. Please sign in to create an estate plan.");
+      }
+    }
+
     const now = Date.now();
     const estatePlanId = await ctx.db.insert("estatePlans", {
       userId,
-      sessionId,
+      sessionId: userId ? undefined : sessionId, // Only use sessionId if no userId
       name: name || "My Estate Plan",
       status: "draft",
       createdAt: now,
