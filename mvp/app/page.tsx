@@ -56,14 +56,23 @@ function AnimatedCounter({ end, suffix = "" }: { end: number; suffix?: string })
   useEffect(() => {
     if (!isInView) return;
     let startTime: number;
+    let animationFrameId: number;
     const duration = 2000;
     const animate = (currentTime: number) => {
       if (!startTime) startTime = currentTime;
       const progress = Math.min((currentTime - startTime) / duration, 1);
       setCount(Math.floor(progress * end));
-      if (progress < 1) requestAnimationFrame(animate);
+      if (progress < 1) {
+        animationFrameId = requestAnimationFrame(animate);
+      }
     };
-    requestAnimationFrame(animate);
+    animationFrameId = requestAnimationFrame(animate);
+
+    return () => {
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
+    };
   }, [end, isInView]);
 
   return <span ref={ref}>{count.toLocaleString()}{suffix}</span>;
