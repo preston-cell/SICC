@@ -10,6 +10,20 @@ import {
   useLatestGapAnalysis,
   saveGapAnalysis,
 } from "../../hooks/usePrismaQueries";
+
+// Helper to get sessionId from localStorage
+function getSessionId(): string | null {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem("estatePlanSessionId");
+}
+
+// Helper to append sessionId to URL for auth
+function appendSessionId(url: string): string {
+  const sessionId = getSessionId();
+  if (!sessionId) return url;
+  const separator = url.includes("?") ? "&" : "?";
+  return `${url}${separator}sessionId=${sessionId}`;
+}
 import { Tabs, TabPanel } from "../../components/ui/Tabs";
 import Badge from "../../components/ui/Badge";
 import Button from "../../components/ui/Button";
@@ -203,7 +217,7 @@ export default function AnalysisPage() {
         ? "/api/gap-analysis/orchestrate"
         : "/api/gap-analysis";
 
-      const response = await fetch(endpoint, {
+      const response = await fetch(appendSessionId(endpoint), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ intakeData: apiIntakeData, mode, estatePlanId }),
