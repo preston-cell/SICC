@@ -1,13 +1,12 @@
 "use client";
 
-import { useState, use, ReactNode } from "react";
+import { useState, use, useEffect, useRef, ReactNode } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { Id } from "../../../../convex/_generated/dataModel";
 import Link from "next/link";
 import { ReminderCard } from "../../../components/ReminderCard";
 import { LifeEventsChecklist } from "../../../components/LifeEventsChecklist";
-import Badge from "../../../components/ui/Badge";
 
 interface PageProps {
   params: Promise<{ estatePlanId: string }>;
@@ -37,7 +36,6 @@ export default function RemindersPage({ params }: PageProps) {
 
   const [activeTab, setActiveTab] = useState<"reminders" | "life-events" | "settings">("reminders");
   const [showAddForm, setShowAddForm] = useState(false);
-  const [isImporting, setIsImporting] = useState(false);
   const [newReminder, setNewReminder] = useState({
     type: "custom" as ReminderType,
     title: "",
@@ -56,13 +54,35 @@ export default function RemindersPage({ params }: PageProps) {
   const createDefaultReminders = useMutation(api.reminders.createDefaultReminders);
   const generateActionItems = useMutation(api.reminders.generateActionItemsFromAnalysis);
 
+  // Track if we've already auto-imported for this analysis
+  const autoImportedRef = useRef<string | null>(null);
+
   // Parse recommendations from gap analysis
   const recommendations: Recommendation[] = latestAnalysis?.recommendations
     ? JSON.parse(latestAnalysis.recommendations)
     : [];
 
-  // Check if recommendations have been imported as reminders
-  const hasImportedRecommendations = reminders?.some(r => r.sourceType === "gap_analysis") ?? false;
+  // Check if recommendations have been imported as reminders (excluding dismissed ones)
+  const activeGapAnalysisReminders = reminders?.filter(r => r.sourceType === "gap_analysis" && r.status !== "dismissed") ?? [];
+  const hasImportedRecommendations = activeGapAnalysisReminders.length > 0;
+
+  // Auto-import recommendations when gap analysis is available and hasn't been imported yet
+  useEffect(() => {
+    const analysisId = latestAnalysis?._id;
+    if (!analysisId || !reminders || autoImportedRef.current === analysisId) return;
+
+    // Check if we already have reminders from this analysis
+    const existingFromAnalysis = reminders.some(r => r.sourceType === "gap_analysis");
+
+    if (!existingFromAnalysis && recommendations.length > 0) {
+      // Auto-import the recommendations
+      autoImportedRef.current = analysisId;
+      generateActionItems({ estatePlanId: estatePlanIdTyped }).catch(console.error);
+    } else {
+      // Mark as already imported so we don't check again
+      autoImportedRef.current = analysisId;
+    }
+  }, [latestAnalysis?._id, reminders, recommendations.length, estatePlanIdTyped, generateActionItems]);
 
   const pendingReminders = reminders?.filter(r => r.status === "pending") || [];
   const overdueReminders = reminders?.filter(r => r.status === "pending" && r.dueDate < Date.now()) || [];
@@ -232,95 +252,23 @@ export default function RemindersPage({ params }: PageProps) {
         {/* Reminders Tab */}
         {activeTab === "reminders" && (
           <div className="space-y-6">
-            {/* Recommended Actions from Gap Analysis */}
-            {recommendations.length > 0 && (
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-[var(--text-heading)] flex items-center gap-2">
-                    <svg className="w-5 h-5 text-[var(--accent-purple)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                    </svg>
-                    Recommended Actions ({recommendations.length})
-                  </h3>
-                  {!hasImportedRecommendations && (
-                    <button
-                      onClick={async () => {
-                        setIsImporting(true);
-                        try {
-                          await generateActionItems({ estatePlanId: estatePlanIdTyped });
-                        } finally {
-                          setIsImporting(false);
-                        }
-                      }}
-                      disabled={isImporting}
-                      className="inline-flex items-center gap-2 px-3 py-1.5 text-sm bg-[var(--accent-muted)] text-[var(--accent-purple)] font-medium rounded-lg hover:bg-[var(--accent-purple)] hover:text-white transition-all disabled:opacity-50"
-                    >
-                      {isImporting ? (
-                        <>
-                          <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
-                          Importing...
-                        </>
-                      ) : (
-                        <>
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                          </svg>
-                          Add to Reminders
-                        </>
-                      )}
-                    </button>
-                  )}
+            {/* Auto-imported info banner */}
+            {hasImportedRecommendations && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <svg className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <div>
+                    <p className="text-sm text-blue-800 font-medium">
+                      Recommendations auto-imported from your gap analysis
+                    </p>
+                    <p className="text-xs text-blue-600 mt-1">
+                      These action items were automatically added based on your estate plan analysis.
+                      You can dismiss any items you don&apos;t want to track.
+                    </p>
+                  </div>
                 </div>
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {recommendations.map((rec, idx) => {
-                    const priority = rec.priority || "medium";
-                    const priorityColors = {
-                      critical: "border-red-500 bg-red-50",
-                      high: "border-red-400 bg-red-50",
-                      medium: "border-yellow-400 bg-yellow-50",
-                      low: "border-green-400 bg-green-50",
-                    };
-                    return (
-                      <div
-                        key={idx}
-                        className={`rounded-xl border-l-4 p-4 bg-white shadow-sm ${priorityColors[priority]}`}
-                      >
-                        <div className="flex items-start justify-between mb-2">
-                          <h4 className="font-medium text-[var(--text-heading)] text-sm">
-                            {rec.action || "Recommendation"}
-                          </h4>
-                          <Badge
-                            variant={priority === "critical" || priority === "high" ? "error" : priority === "medium" ? "warning" : "success"}
-                            size="sm"
-                          >
-                            {priority}
-                          </Badge>
-                        </div>
-                        {rec.reason && (
-                          <p className="text-xs text-[var(--text-muted)] mb-2 line-clamp-2">{rec.reason}</p>
-                        )}
-                        {rec.timeline && (
-                          <p className="text-xs text-[var(--text-body)]">
-                            <span className="font-medium">Timeline:</span> {rec.timeline}
-                          </p>
-                        )}
-                        {rec.estimatedCost && (
-                          <p className="text-xs text-[var(--text-muted)] mt-1">
-                            Est. cost: ${rec.estimatedCost.low?.toLocaleString()} - ${rec.estimatedCost.high?.toLocaleString()}
-                          </p>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-                {hasImportedRecommendations && (
-                  <p className="text-xs text-[var(--text-muted)] mt-2 flex items-center gap-1">
-                    <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    These recommendations have been added to your reminders below
-                  </p>
-                )}
               </div>
             )}
 

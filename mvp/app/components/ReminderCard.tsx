@@ -177,12 +177,12 @@ export function ReminderCard({ reminder, onComplete, subTaskCount }: ReminderCar
           {/* Content */}
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-2">
-              <h3 className="font-semibold text-gray-900 dark:text-white truncate">
+              <h3 className={`font-semibold text-gray-900 dark:text-white ${!isExpanded ? "line-clamp-1" : ""}`}>
                 {reminder.title}
               </h3>
 
               {/* Priority badge */}
-              <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${PRIORITY_COLORS[reminder.priority]}`}>
+              <span className={`flex-shrink-0 px-2 py-0.5 text-xs font-medium rounded-full ${PRIORITY_COLORS[reminder.priority]}`}>
                 {reminder.priority}
               </span>
             </div>
@@ -216,23 +216,24 @@ export function ReminderCard({ reminder, onComplete, subTaskCount }: ReminderCar
               )}
             </div>
 
-            {/* Description (expandable) */}
-            {reminder.description && (
-              <button
-                onClick={() => setIsExpanded(!isExpanded)}
-                className="mt-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white flex items-center gap-1"
-              >
-                {isExpanded ? "Hide details" : "Show details"}
-                <svg className={`w-3.5 h-3.5 transition-transform ${isExpanded ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-            )}
+            {/* Expand/collapse button */}
+            <button
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="mt-2 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 flex items-center gap-1"
+            >
+              {isExpanded ? "Show less" : "Show more"}
+              <svg className={`w-3 h-3 transition-transform ${isExpanded ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
 
+            {/* Description - visible when expanded */}
             {isExpanded && reminder.description && (
-              <p className="mt-2 text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-900/50 p-3 rounded-lg">
-                {reminder.description}
-              </p>
+              <div className="mt-2">
+                <p className="text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-900/50 p-3 rounded-lg whitespace-pre-wrap">
+                  {reminder.description}
+                </p>
+              </div>
             )}
 
             {/* Sub-task progress indicator */}

@@ -145,7 +145,7 @@ var _s = __turbopack_context__.k.signature();
 "use client";
 ;
 ;
-const convex = new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$convex$2f$dist$2f$esm$2f$react$2f$client$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["ConvexReactClient"](("TURBOPACK compile-time value", "https://dusty-chameleon-664.convex.cloud"));
+const convex = new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$convex$2f$dist$2f$esm$2f$react$2f$client$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["ConvexReactClient"](("TURBOPACK compile-time value", "https://adjoining-impala-776.convex.cloud"));
 // Component that syncs Clerk auth with Convex
 function AuthSyncWrapper({ children }) {
     _s();
