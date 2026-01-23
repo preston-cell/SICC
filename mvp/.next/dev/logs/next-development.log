@@ -8,3 +8,15 @@
 [00:02:50.745] Server  LOG     ✓ Compiled in 48ms
 [00:03:03.405] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
 [00:03:23.482] Server  LOG     ✓ Compiled in 51ms
+[00:05:55.244] Server  LOG     ✓ Compiled in 42ms
+[00:27:49.560] Server  LOG     ✓ Compiled in 115ms
+[00:27:50.492] Browser ERROR   uncaughtError: TypeError: Cannot read properties of undefined (reading 'bg')
+[00:28:07.740] Server  WARN    ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[00:28:07.815] Server  LOG     ✓ Compiled in 50ms
+[00:28:07.976] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:28:16.955] Server  LOG     ✓ Compiled in 50ms
+[00:32:42.053] Server  LOG     ✓ Compiled in 125ms
+[00:33:01.056] Server  LOG     ✓ Compiled in 82ms
+[00:33:15.627] Server  LOG     ✓ Compiled in 48ms
+[00:33:30.196] Server  LOG     ✓ Compiled in 35ms
+[00:34:07.597] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
