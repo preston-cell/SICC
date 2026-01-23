@@ -113,6 +113,14 @@ export async function PUT(
       )
     }
 
+    // Verify question belongs to this estate plan
+    const existingQuestion = await prisma.attorneyQuestion.findFirst({
+      where: { id, estatePlanId },
+    })
+    if (!existingQuestion) {
+      return NextResponse.json({ error: 'Question not found' }, { status: 404 })
+    }
+
     const data: {
       question?: string
       category?: string
@@ -166,6 +174,14 @@ export async function DELETE(
         { error: 'Question ID is required' },
         { status: 400 }
       )
+    }
+
+    // Verify question belongs to this estate plan
+    const existingQuestion = await prisma.attorneyQuestion.findFirst({
+      where: { id: questionId, estatePlanId },
+    })
+    if (!existingQuestion) {
+      return NextResponse.json({ error: 'Question not found' }, { status: 404 })
     }
 
     await prisma.attorneyQuestion.delete({

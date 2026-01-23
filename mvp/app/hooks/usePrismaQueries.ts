@@ -496,7 +496,7 @@ export async function completeReminder(reminderId: string, estatePlanId: string)
   // Invalidate cache
   mutate(`/api/estate-plans/${estatePlanId}/reminders`)
 
-  return res.json()
+  return await res.json()
 }
 
 /**
@@ -521,7 +521,7 @@ export async function snoozeReminder(
   // Invalidate cache
   mutate(`/api/estate-plans/${estatePlanId}/reminders`)
 
-  return res.json()
+  return await res.json()
 }
 
 /**
@@ -542,7 +542,7 @@ export async function dismissReminder(reminderId: string, estatePlanId: string) 
   // Invalidate cache
   mutate(`/api/estate-plans/${estatePlanId}/reminders`)
 
-  return res.json()
+  return await res.json()
 }
 
 // ============================================
@@ -651,7 +651,7 @@ export async function getOrCreateUser(data: { email: string; name: string }) {
     throw new Error(error.error)
   }
 
-  return res.json()
+  return await res.json()
 }
 
 /**
@@ -672,7 +672,7 @@ export async function linkSessionToUser(sessionId: string) {
   // Invalidate estate plans cache
   mutate((key: string) => typeof key === 'string' && key.startsWith('/api/estate-plans'))
 
-  return res.json()
+  return await res.json()
 }
 
 // ============================================
@@ -835,7 +835,7 @@ export async function deleteFamilyContact(estatePlanId: string, contactId: strin
   const res = await authFetch(`/api/estate-plans/${estatePlanId}/family-contacts?contactId=${contactId}`, { method: 'DELETE' })
   if (!res.ok) throw new Error('Failed to delete contact')
   mutate(`/api/estate-plans/${estatePlanId}/family-contacts`)
-  return res.json()
+  return await res.json()
 }
 
 // ============================================
@@ -893,7 +893,7 @@ export async function deleteAttorneyQuestion(estatePlanId: string, questionId: s
   if (!res.ok) throw new Error('Failed to delete question')
   mutate(`/api/estate-plans/${estatePlanId}/attorney-questions`)
   mutate(`/api/estate-plans/${estatePlanId}/attorney-questions?count=true`)
-  return res.json()
+  return await res.json()
 }
 
 // ============================================

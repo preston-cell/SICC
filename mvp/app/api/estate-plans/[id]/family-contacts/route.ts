@@ -104,6 +104,14 @@ export async function PUT(
       )
     }
 
+    // Verify contact belongs to this estate plan
+    const existingContact = await prisma.familyContact.findFirst({
+      where: { id, estatePlanId },
+    })
+    if (!existingContact) {
+      return NextResponse.json({ error: 'Contact not found' }, { status: 404 })
+    }
+
     const contact = await prisma.familyContact.update({
       where: { id },
       data: {
@@ -147,6 +155,14 @@ export async function DELETE(
         { error: 'Contact ID is required' },
         { status: 400 }
       )
+    }
+
+    // Verify contact belongs to this estate plan
+    const existingContact = await prisma.familyContact.findFirst({
+      where: { id: contactId, estatePlanId },
+    })
+    if (!existingContact) {
+      return NextResponse.json({ error: 'Contact not found' }, { status: 404 })
     }
 
     await prisma.familyContact.delete({

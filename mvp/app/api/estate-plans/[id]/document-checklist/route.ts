@@ -224,6 +224,20 @@ export async function PUT(
       )
     }
 
+    // Validate status value
+    const validStatuses = ['not_gathered', 'in_progress', 'gathered']
+    if (!validStatuses.includes(status)) {
+      return NextResponse.json({ error: 'Invalid status value' }, { status: 400 })
+    }
+
+    // Verify item belongs to this estate plan
+    const existingItem = await prisma.documentChecklistItem.findFirst({
+      where: { id, estatePlanId },
+    })
+    if (!existingItem) {
+      return NextResponse.json({ error: 'Checklist item not found' }, { status: 404 })
+    }
+
     const updated = await prisma.documentChecklistItem.update({
       where: { id },
       data: { status },
