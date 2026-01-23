@@ -12,7 +12,7 @@
     "@anthropic-ai/sdk": "^0.71.2",
     "@clerk/nextjs": "^6.36.7",
     "@prisma/adapter-pg": "^7.2.0",
-    "@prisma/client": "^7.2.0",
+    "@prisma/client": "^7.3.0",
     "@prisma/extension-accelerate": "^2.0.2",
     "chalk": "^4.1.2",
     "dotenv": "^17.2.3",
@@ -38,7 +38,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.1.1",
-    "prisma": "^7.2.0",
+    "prisma": "^7.3.0",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vercel": "^50.1.6"
