@@ -149,15 +149,17 @@ async function executeComprehensiveAnalysis(
 
     // Save final synthesized results to the estate plan
     if (researchResult.success && researchResult.analysisResult) {
+      const analysisData = researchResult.analysisResult;
       await prisma.gapAnalysis.create({
         data: {
           estatePlanId,
-          score: researchResult.analysisResult.score || 0,
-          summary: researchResult.analysisResult.executiveSummary?.oneLineSummary || "",
-          details: JSON.stringify(researchResult.analysisResult),
-          recommendations: JSON.stringify(
-            researchResult.analysisResult.recommendations || []
-          ),
+          score: analysisData.score || 0,
+          missingDocuments: JSON.stringify(analysisData.missingDocuments || []),
+          outdatedDocuments: JSON.stringify(analysisData.outdatedDocuments || []),
+          inconsistencies: JSON.stringify(analysisData.inconsistencies || []),
+          recommendations: JSON.stringify(analysisData.recommendations || []),
+          stateSpecificNotes: JSON.stringify(analysisData.stateSpecificNotes || []),
+          rawAnalysis: JSON.stringify(analysisData),
         },
       });
     }
