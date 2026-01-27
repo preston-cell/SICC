@@ -70,7 +70,7 @@
 **Action:** Show analysis in progress (or skip if showing pre-completed)
 
 **Narrator Script:**
-> "Once uploaded, our AI gets to work. We're extracting key elements — beneficiaries, executors, trustees, assets mentioned. We're checking against California's specific legal requirements. And we're comparing to best practices to identify gaps."
+> "Once uploaded, our AI gets to work. We're extracting key elements — beneficiaries, executors, trustees, assets mentioned. We're checking against Massachusetts' specific legal requirements. And we're comparing to best practices to identify gaps."
 
 **Show:** Progress indicator with steps:
 - Extracting document structure...

@@ -1,8 +1,10 @@
 # EstateAI: Technical Architecture
 
+> **Note:** This document describes the initial architecture design. The implemented MVP expanded significantly beyond this design -- see the [MVP README](../mvp/README.md) for the current system overview, including the 22-table database schema, three-phase gap analysis orchestration, and 7-type document generation system.
+
 ## System Overview
 
-EstateAI is built on a modern serverless architecture using **Next.js** for the frontend, **Convex** for the backend (real-time database + serverless functions), and **E2B** for isolated AI execution. Claude Code runs inside E2B sandboxes to analyze estate planning documents and generate draft legal documents.
+EstateAI is built on a modern serverless architecture using **Next.js** for the frontend, **Convex** for the backend (real-time database + serverless functions), and **E2B** for isolated AI execution. The Claude API (Anthropic) powers the AI analysis, document generation, and document review features.
 
 ---
 

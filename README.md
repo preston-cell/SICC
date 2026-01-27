@@ -1,19 +1,51 @@
 # EstateAI: AI-Powered Estate Planning Assistant
-<!-- Last updated: 2026-01-09 -->
 
-> **Draft Documents Only** - This tool generates draft legal documents for informational purposes only. All generated documents should be reviewed by a licensed attorney before use. This is not a substitute for professional legal advice.
+> **Draft Documents Only** -- This tool generates draft legal documents for informational purposes only. All generated documents should be reviewed by a licensed attorney before use. This is not a substitute for professional legal advice.
 
 ---
 
 ## Overview
 
-EstateAI is an AI-powered estate planning tool that provides **gap analysis** of existing estate plans and generates **draft legal documents**. Built with Next.js, Convex, and E2B, using Claude Code to intelligently analyze user situations and generate customized legal documents.
+EstateAI is an AI-powered estate planning platform that helps high-net-worth individuals ($2M--$50M) understand, analyze, and improve their estate plans. Users complete a guided intake questionnaire, receive an AI-driven gap analysis of their estate plan, upload existing legal documents for review, and generate draft legal documents -- all tailored to their state's specific legal requirements.
 
-### What It Does
+### Key Capabilities
 
-1. **Gap Analysis**: Upload or describe your current estate planning situation, and receive AI-powered analysis identifying missing documents, outdated provisions, or potential issues
-2. **Document Generation**: Generate draft legal documents (wills, trusts, powers of attorney, healthcare directives, etc.) tailored to your specific situation
-3. **Guided Experience**: Walk through estate planning step-by-step with AI assistance
+- **Guided Intake Wizard** -- Multi-step questionnaire covering personal info, family, assets, existing documents, and estate planning goals
+- **AI Gap Analysis** -- Three-phase orchestrated analysis (state law research, document analysis, synthesis) producing risk-scored findings and prioritized recommendations
+- **Document Generation** -- Draft generation of 7 legal document types (wills, trusts, POAs, healthcare directives, HIPAA authorizations, instruction letters) with 50-state compliance
+- **Document Upload and AI Review** -- Upload existing PDFs for AI-powered analysis, cross-referencing against intake data to detect conflicts and outdated provisions
+- **Estate Visualization** -- Interactive family tree and asset distribution diagrams
+- **Beneficiary Tracking** -- Track designations across retirement accounts, life insurance, and TOD/POD accounts
+- **Reminder System** -- Automated notifications for document reviews and life event triggers
+
+---
+
+## Repository Structure
+
+```
+SICC/
+├── README.md                 # This file
+├── mvp/                      # MVP application (Next.js + Convex)
+│   ├── app/                  # Next.js App Router (pages, API routes, components)
+│   ├── convex/               # Convex backend (schema, queries, mutations, actions)
+│   ├── components/           # Shared React components
+│   ├── lib/                  # Document templates, gap analysis orchestration, utilities
+│   ├── skills/               # AI skill definitions (estate analyzer, financial classifier)
+│   ├── types/                # TypeScript type definitions
+│   ├── package.json          # Dependencies and scripts
+│   ├── .env.example          # Environment variable template
+│   └── README.md             # MVP-specific setup and development docs
+├── docs/                     # Business and technical documentation
+│   ├── architecture.md       # System architecture and data flows
+│   ├── business-plan.md      # Opportunity brief, personas, revenue model
+│   ├── research-notes.md     # User research, competitive analysis, legal considerations
+│   └── tam-analysis.md       # Total addressable market sizing
+├── demo/                     # Demo materials
+│   ├── demo-script.md        # 5-7 minute demo walkthrough script
+│   └── setup-instructions.md # Demo environment setup guide
+└── slides/
+    └── final-deck.md         # Pitch deck content outline
+```
 
 ---
 
@@ -21,167 +53,101 @@ EstateAI is an AI-powered estate planning tool that provides **gap analysis** of
 
 | Layer | Technology | Purpose |
 |-------|------------|---------|
-| **Frontend** | Next.js 16 (App Router), React 19, Tailwind CSS 4 | User interface |
-| **Backend** | Convex | Real-time database + serverless functions |
-| **Sandboxing** | E2B SDK | Isolated code execution for document generation |
-| **AI** | Claude Code CLI (@anthropic-ai/claude-code) | Document analysis and generation |
-
----
-
-## Project Structure
-
-```
-├── app/
-│   ├── components/
-│   │   └── FilePreviewModal.tsx    # Modal for previewing generated documents
-│   ├── ConvexClientProvider.tsx    # Convex React client setup
-│   ├── layout.tsx                  # Root layout with metadata
-│   ├── page.tsx                    # Main UI: prompt input, status, document list
-│   └── globals.css                 # Tailwind CSS
-├── convex/
-│   ├── schema.ts                   # Database schema (agentRuns, generatedFiles)
-│   ├── mutations.ts                # Internal mutations (createRun, updateRun, saveFile)
-│   ├── queries.ts                  # Queries (getRun, listRuns, getFilesForRun)
-│   └── runAgent.ts                 # Main action: runs Claude Code in E2B sandbox
-├── docs/                           # Business documentation
-│   ├── business-plan.md            # Opportunity refinement brief
-│   ├── tam-analysis.md             # Market sizing analysis
-│   ├── research-notes.md           # Research and insights
-│   └── architecture.md             # Technical architecture details
-├── mvp/                            # MVP implementation
-│   └── feasibility-spike.md        # Technical validation spikes
-├── slides/                         # Pitch materials
-│   └── final-deck.md               # Pitch deck outline
-├── demo/                           # Demo resources
-│   ├── demo-script.md              # Demo walkthrough script
-│   └── setup-instructions.md       # Demo setup guide
-└── package.json
-```
+| Frontend | Next.js 16, React 19, TypeScript | App framework with SSR and App Router |
+| Styling | Tailwind CSS 4, Framer Motion | Utility-first CSS and animations |
+| Backend | Convex | Real-time database and serverless functions |
+| AI | Anthropic Claude API | Gap analysis, document generation, document review |
+| Sandboxing | E2B SDK | Isolated code execution environment |
+| Auth | Clerk | User authentication and session management |
+| Notifications | Resend, Web Push | Email and push notification delivery |
+| Deployment | Vercel + Convex Cloud | Frontend hosting and backend infrastructure |
 
 ---
 
 ## System Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                     Frontend (Next.js)                      │
-│  ┌───────────────┐  ┌───────────────┐  ┌────────────────┐   │
-│  │ Estate Input  │→ │ Analysis View │  │   Documents    │   │
-│  │ (situation,   │  │ (gap report,  │  │   (download,   │   │
-│  │  goals, assets│  │  suggestions) │  │    preview)    │   │
-│  └───────────────┘  └───────────────┘  └────────────────┘   │
-│           │                ↑                   ↑            │
-│           ↓                │                   │            │
-│    useAction(runAgent)   useQuery(getRun, getFilesForRun)   │
-└───────────────┬─────────────────────────────────┬───────────┘
-                │                                 │
-                ↓                                 ↓
-┌─────────────────────────────────────────────────────────────┐
-│                      Convex Backend                         │
-│  ┌──────────────────┐       ┌─────────────────────────────┐ │
-│  │  runAgent Action │       │         Queries             │ │
-│  │                  │       └─────────────────────────────┘ │
-│  │  1. Create run   │                    ↑                  │
-│  │  2. Start E2B    │       ┌────────────┴────────────────┐ │
-│  │  3. Run Claude   │──────→│        Database             │ │
-│  │  4. Save docs    │       │    (runs, documents)        │ │
-│  └──────────────────┘       └─────────────────────────────┘ │
-│           │                                                 │
-└───────────┼─────────────────────────────────────────────────┘
-            ↓
-┌─────────────────────────────────────────────────────────────┐
-│                   E2B Sandbox (isolated)                    │
-│  ┌────────────────────────────────────────────────────────┐ │
-│  │  Claude Code analyzes estate planning situation        │ │
-│  │  and generates:                                        │ │
-│  │  - Gap analysis reports                                │ │
-│  │  - Draft legal documents                               │ │
-│  │  - Checklists and recommendations                      │ │
-│  └────────────────────────────────────────────────────────┘ │
-└─────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────┐
+│                     Frontend (Next.js 16)                        │
+│                                                                  │
+│   Intake Wizard ──→ Gap Analysis ──→ Document     ──→ Document   │
+│   (5 steps +        (3-phase         Generation       Upload &   │
+│    guided mode)      orchestration)   (7 doc types)   AI Review  │
+│                                                                  │
+│   Estate Visualization │ Beneficiary Tracking │ Reminders        │
+└───────────────┬──────────────────────────────────┬───────────────┘
+                │          Convex SDK              │
+                ▼                                  ▼
+┌──────────────────────────────────────────────────────────────────┐
+│                     Convex Backend                               │
+│                                                                  │
+│   22 tables │ Real-time queries │ Serverless actions │ Cron jobs │
+│                                                                  │
+│   Gap Analysis Orchestration (3 phases):                         │
+│     Phase 1: State law research                                  │
+│     Phase 2: Document/family/asset analysis                      │
+│     Phase 3: Scenario synthesis + priority matrix                │
+└───────────────┬──────────────────────────────────────────────────┘
+                │
+                ▼
+┌──────────────────────────────────────────────────────────────────┐
+│   Claude API (Anthropic)  │  E2B Sandbox (isolated execution)   │
+└──────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Database Schema (Convex)
+## Getting Started
 
-### `agentRuns` Table
+### Prerequisites
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `prompt` | string | User's estate planning request/situation |
-| `status` | enum | `"pending"` \| `"running"` \| `"completed"` \| `"failed"` |
-| `output` | string? | Agent analysis and reasoning |
-| `error` | string? | Error message if failed |
-| `createdAt` | number | Timestamp of creation |
-| `completedAt` | number? | Timestamp of completion |
+- Node.js 20+
+- npm
+- A [Convex](https://convex.dev) account (free tier available)
+- An [Anthropic](https://console.anthropic.com) API key
+- An [E2B](https://e2b.dev) API key
 
-### `generatedFiles` Table
+### Quick Start
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `runId` | Id<"agentRuns"> | Reference to parent run |
-| `path` | string | Document filename (e.g., `"last_will.docx"`, `"gap_analysis.md"`) |
-| `content` | string | Base64 for binary files, plain text otherwise |
-| `isBinary` | boolean | Whether content is base64 encoded |
-| `size` | number | File size in bytes |
+```bash
+# Clone the repository
+git clone https://github.com/preston-cell/SICC.git
+cd SICC/mvp
 
----
+# Install dependencies
+npm install
 
-## Current Features (MVP)
+# Set up environment variables
+cp .env.example .env.local
+# Edit .env.local with your API keys (see .env.example for details)
 
-- [x] Enter estate planning situation or request
-- [x] Real-time processing status (pending → running → completed/failed)
-- [x] Preview generated documents in modal
-- [x] Download individual documents or all at once
-- [x] View AI reasoning and analysis
-- [x] Browse session history
+# Start the Convex backend (in one terminal)
+npx convex dev
 
----
+# Start the Next.js dev server (in another terminal)
+npm run dev
 
-## Planned Features
+# Open http://localhost:3000
+```
 
-### Estate Planning Intake
-- [ ] Guided questionnaire for family situation, assets, goals
-- [ ] State selection (Massachusetts first, then expansion)
-- [ ] Net worth tier assessment for document recommendations
+### Optional: Authentication
 
-### Document Types
-- [ ] Last Will and Testament
-- [ ] Revocable Living Trust
-- [ ] Pour-Over Will
-- [ ] Durable Power of Attorney (Financial)
-- [ ] Healthcare Power of Attorney
-- [ ] Advance Healthcare Directive / Living Will
-- [ ] HIPAA Authorization
-- [ ] Beneficiary Designations Review
-- [ ] Digital Asset Authorization
-
-### Gap Analysis Engine
-- [ ] Identify missing documents based on situation
-- [ ] Flag outdated provisions
-- [ ] Beneficiary consistency check across documents
-- [ ] State-specific compliance review
-- [ ] Risk scoring and prioritization
-
-### User Experience
-- [ ] User authentication and saved plans
-- [ ] Document versioning and change tracking
-- [ ] PDF and DOCX export
-- [ ] Attorney review workflow integration
-- [ ] Multi-language support
+Clerk authentication is optional. Without Clerk keys, the app runs in anonymous session mode. To enable auth, add your Clerk keys to `.env.local` (see `.env.example`).
 
 ---
 
-## Key Insights Embedded
+## Documentation
 
-The system is built on these estate planning principles:
-
-1. **"There is no single estate plan — there is a document ecosystem"**
-2. **Outcome priority order:** Asset title → Beneficiary forms → Trust instruments → Contracts → Wills → State default law
-3. **"Most estate failures occur not because documents are missing, but because they conflict"**
-4. **Risk progression:** Incapacity risk → Probate inefficiency → Behavioral risk → Tax risk → Governance risk
-5. **"If the state default result is unacceptable, a document is required"**
+| Document | Description |
+|----------|-------------|
+| [MVP README](mvp/README.md) | Development setup, project structure, and deployment |
+| [Architecture](docs/architecture.md) | System architecture, data flows, and technical design |
+| [Business Plan](docs/business-plan.md) | Opportunity brief, customer personas, revenue model |
+| [TAM Analysis](docs/tam-analysis.md) | Market sizing and geographic prioritization |
+| [Research Notes](docs/research-notes.md) | User research, competitive analysis, legal considerations |
+| [Demo Script](demo/demo-script.md) | 5-7 minute demo walkthrough |
+| [Demo Setup](demo/setup-instructions.md) | Demo environment configuration |
+| [Pitch Deck](slides/final-deck.md) | Investor pitch deck outline |
 
 ---
 
@@ -191,81 +157,38 @@ The system is built on these estate planning principles:
 
 | Segment | Fit |
 |---------|-----|
-| **<$2M** | Basic needs — DIY tools often suffice |
-| **$2M–$50M** | Complex enough for professional analysis, underserved by traditional services |
-| **>$50M** | Requires white-glove human services |
+| <$2M | Basic needs -- DIY tools often suffice |
+| **$2M--$50M** | **Complex enough for professional analysis, underserved by traditional services** |
+| >$50M | Requires white-glove human services |
 
 **Initial Geographic Focus:** Massachusetts (with planned expansion to NY, CA, FL)
 
 ---
 
+## Key Design Principles
+
+1. **"There is no single estate plan -- there is a document ecosystem"** -- Analysis examines cross-document relationships, not just individual documents
+2. **"Most estate failures occur not because documents are missing, but because they conflict"** -- The system prioritizes conflict detection across beneficiary designations, trustees, and asset ownership
+3. **"If the state default result is unacceptable, a document is required"** -- Gap analysis compares user situations against state intestacy laws to identify coverage gaps
+
+---
+
 ## Team
 
-| Name | Role | Responsibilities |
-|------|------|------------------|
-| Preston Dinh | [Role] | [Key responsibilities] |
-| Ezekiel Dube-Garrett | [Role] | [Key responsibilities] |
-| Keegan Harrison | [Role] | [Key responsibilities] |
-| Colton Pozniak | [Role] | [Key responsibilities] |
+| Name | Role |
+|------|------|
+| Preston Dinh | Developer |
+| Ezekiel Dube-Garrett | Developer |
+| Keegan Harrison | Developer |
+| Colton Pozniak | Developer |
 
----
-
-## Getting Started
-
-### Prerequisites
-
-- Node.js 18+
-- npm or yarn
-- Convex account
-- E2B account
-- Anthropic API key
-
-### Environment Variables
-
-Create a `.env.local` file with:
-
-```env
-ANTHROPIC_API_KEY=your_anthropic_api_key
-E2B_API_KEY=your_e2b_api_key
-NEXT_PUBLIC_CONVEX_URL=your_convex_deployment_url
-```
-
-### Installation
-
-```bash
-# Clone the repository
-git clone https://github.com/preston-cell/SICC.git
-cd SICC
-
-# Install dependencies
-npm install
-
-# Start Convex development server
-npx convex dev
-
-# In a separate terminal, start Next.js
-npm run dev
-
-# Open http://localhost:3000
-```
-
----
-
-## Documentation
-
-| Document | Description |
-|----------|-------------|
-| [Business Plan](docs/business-plan.md) | Opportunity refinement, personas, pricing |
-| [TAM Analysis](docs/tam-analysis.md) | Market sizing and geographic prioritization |
-| [Research Notes](docs/research-notes.md) | User research, competitive analysis, legal considerations |
-| [Architecture](docs/architecture.md) | Technical architecture and data flows |
-| [Feasibility Spike](mvp/feasibility-spike.md) | Technical validation approach |
+Built at [Link Studio](https://linkstudio.io).
 
 ---
 
 ## Legal Disclaimer
 
-**IMPORTANT: This tool is for informational and educational purposes only.**
+**This tool is for informational and educational purposes only.**
 
 - Generated documents are **drafts** that require review by a licensed attorney
 - This tool does **not** provide legal advice
@@ -277,10 +200,4 @@ npm run dev
 
 ## License
 
-[To be determined]
-
----
-
-## Contact
-
-[Contact information]
+Proprietary -- Link Studio

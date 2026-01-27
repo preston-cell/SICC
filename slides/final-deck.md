@@ -63,7 +63,7 @@
 - Next.js 16 + React 19 frontend
 - Convex real-time backend
 - E2B sandboxed execution
-- Claude Code CLI for AI analysis
+- Claude API (Anthropic) for AI analysis
 
 **Process:**
 - Extract key elements (beneficiaries, executors, assets)
@@ -172,17 +172,19 @@
 ### Slide 12: Traction / Roadmap
 
 **Current Status:**
-- [x] Architecture designed (Next.js + Convex + E2B + Claude Code)
-- [x] Initial documentation complete
-- [x] Technical spike framework ready
-- [ ] Feasibility spikes in progress
-- [ ] Massachusetts rules research
+- [x] Architecture designed (Next.js + Convex + E2B + Claude API)
+- [x] MVP built and deployed (9 development phases complete)
+- [x] Guided intake wizard with 5-step questionnaire
+- [x] Three-phase AI gap analysis engine
+- [x] Document generation for 7 legal document types (50-state compliant)
+- [x] Document upload and AI-powered review
+- [x] Massachusetts-specific compliance rules implemented
 
 **Tech Stack Validated:**
 - Next.js 16 + React 19 (App Router)
 - Convex (real-time database + serverless)
 - E2B SDK (sandboxed code execution)
-- Claude Code CLI (AI analysis engine)
+- Claude API / Anthropic SDK (AI analysis engine)
 
 **Milestones:**
 - Month 1–2: MVP development
@@ -194,15 +196,14 @@
 
 ### Slide 13: Team
 
-| Name | Role | Background |
-|------|------|------------|
-| [Founder 1] | CEO | [Relevant experience] |
-| [Founder 2] | CTO | [Relevant experience] |
-| [Advisor] | Legal | Estate planning attorney |
+| Name | Role |
+|------|------|
+| Preston Dinh | Developer |
+| Ezekiel Dube-Garrett | Developer |
+| Keegan Harrison | Developer |
+| Colton Pozniak | Developer |
 
-**What we're looking for:**
-- Technical co-founder with AI/ML experience
-- Legal advisor with estate planning expertise
+Built at Link Studio.
 
 ---
 
@@ -217,7 +218,7 @@
 - Operations (5%)
 
 **Milestones this funding enables:**
-- MVP launch in California
+- MVP launch in Massachusetts
 - 750+ paying customers
 - Expansion to 4 states
 - Path to profitability
@@ -228,7 +229,7 @@
 
 **Why Now:**
 - AI/LLM capabilities finally enable sophisticated document analysis
-- Claude Code CLI provides agentic AI for complex legal analysis
+- Claude API provides advanced AI for complex legal analysis
 - E2B sandboxing enables secure, isolated document processing
 - HNW demographic entering peak estate planning years
 - Digital adoption accelerating across all segments
@@ -236,7 +237,7 @@
 **Why Us:**
 - Deep understanding of HNW segment needs
 - Analysis-first approach is defensible differentiation
-- Modern tech stack (Next.js + Convex + E2B + Claude Code)
+- Modern tech stack (Next.js + Convex + E2B + Claude API)
 - Technical capability to execute
 
 ---

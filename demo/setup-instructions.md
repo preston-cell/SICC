@@ -84,17 +84,17 @@ Use for demos emphasizing blended family complexity:
 ```bash
 # Clone repository
 git clone https://github.com/preston-cell/SICC.git
-cd SICC
+cd SICC/mvp
 
 # Install dependencies
 npm install
 
 # Set up environment variables
 cp .env.example .env.local
-# Edit .env.local with your keys:
-# - ANTHROPIC_API_KEY (for Claude Code CLI)
-# - E2B_API_KEY (for sandbox execution)
+# Edit .env.local with your keys (see .env.example for full list):
 # - NEXT_PUBLIC_CONVEX_URL (from Convex dashboard)
+# - ANTHROPIC_API_KEY (for Claude API)
+# - E2B_API_KEY (for sandbox execution)
 
 # Start Convex development server
 npx convex dev
@@ -124,7 +124,7 @@ npm run dev
 - Frontend: Vercel deployment (Next.js 16)
 - Backend: Convex (serverless functions + real-time database)
 - Sandboxing: E2B (isolated code execution)
-- AI: Claude Code CLI (@anthropic-ai/claude-code)
+- AI: Claude API (Anthropic)
 
 ---
 
@@ -163,7 +163,7 @@ npm run dev
 1. Navigate to `/signup`
 2. Use demo email: `demo+[date]@estateai.com`
 3. Complete onboarding:
-   - State: California
+   - State: Massachusetts
    - Net worth range: $5M–$10M
    - Has existing estate plan: Yes
 4. Upload sample documents
