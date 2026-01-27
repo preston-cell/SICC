@@ -28,6 +28,9 @@ SICC/
 ├── mvp/                      # MVP application (Next.js + Convex)
 │   ├── app/                  # Next.js App Router (pages, API routes, components)
 │   ├── convex/               # Convex backend (schema, queries, mutations, actions)
+│   ├── backend/              # Backend architecture overview
+│   ├── frontend/             # Frontend architecture overview
+│   ├── agents/               # AI agent architecture overview
 │   ├── components/           # Shared React components
 │   ├── lib/                  # Document templates, gap analysis orchestration, utilities
 │   ├── skills/               # AI skill definitions (estate analyzer, financial classifier)
@@ -39,7 +42,12 @@ SICC/
 │   ├── architecture.md       # System architecture and data flows
 │   ├── business-plan.md      # Opportunity brief, personas, revenue model
 │   ├── research-notes.md     # User research, competitive analysis, legal considerations
-│   └── tam-analysis.md       # Total addressable market sizing
+│   ├── tam-analysis.md       # Total addressable market sizing
+│   └── budget-summary.md     # Development budget and cost analysis
+├── data/                     # Data assets
+│   ├── sample-data/          # Sample data for testing and demos
+│   └── schemas/              # Data schema definitions
+├── scripts/                  # Utility scripts
 ├── demo/                     # Demo materials
 │   ├── demo-script.md        # 5-7 minute demo walkthrough script
 │   └── setup-instructions.md # Demo environment setup guide
@@ -145,6 +153,7 @@ Clerk authentication is optional. Without Clerk keys, the app runs in anonymous 
 | [Business Plan](docs/business-plan.md) | Opportunity brief, customer personas, revenue model |
 | [TAM Analysis](docs/tam-analysis.md) | Market sizing and geographic prioritization |
 | [Research Notes](docs/research-notes.md) | User research, competitive analysis, legal considerations |
+| [Budget Summary](docs/budget-summary.md) | Development costs and infrastructure budget |
 | [Demo Script](demo/demo-script.md) | 5-7 minute demo walkthrough |
 | [Demo Setup](demo/setup-instructions.md) | Demo environment configuration |
 | [Pitch Deck](slides/final-deck.md) | Investor pitch deck outline |
