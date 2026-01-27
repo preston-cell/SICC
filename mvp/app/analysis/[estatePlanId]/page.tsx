@@ -8,6 +8,7 @@ import {
   useEstatePlanFull,
   useIntakeProgress,
   useLatestGapAnalysis,
+  useGuidedIntakeProgress,
   saveGapAnalysis,
 } from "../../hooks/usePrismaQueries";
 
@@ -155,6 +156,7 @@ export default function AnalysisPage() {
   const { data: estatePlan, isLoading: estatePlanLoading } = useEstatePlan(estatePlanId);
   const { data: latestAnalysis } = useLatestGapAnalysis(estatePlanId);
   const { data: intakeProgress } = useIntakeProgress(estatePlanId);
+  const { data: guidedProgress } = useGuidedIntakeProgress(estatePlanId);
 
   // Active comprehensive analysis run (tracked locally via comprehensiveRunId)
   const activeRun = null as { runId: string; overallProgress: number; currentPhase: number } | null;
@@ -349,8 +351,9 @@ export default function AnalysisPage() {
     }
   }, [latestAnalysis?.rawAnalysis]);
 
-  // Check if intake is complete
-  const intakeComplete = intakeProgress?.isAllComplete;
+  // Check if intake is complete (either comprehensive form OR guided flow)
+  const guidedFlowComplete = guidedProgress?.completedSteps?.length >= 8;
+  const intakeComplete = intakeProgress?.isAllComplete || guidedFlowComplete;
 
   // Score interpretation
   const scoreInfo = latestAnalysis?.score
@@ -492,10 +495,13 @@ export default function AnalysisPage() {
                 <h3 className="font-medium text-[var(--warning)]">Intake Incomplete</h3>
                 <p className="text-sm text-[var(--warning)] mt-1">
                   Complete all intake sections for the most accurate analysis.
-                  You&apos;ve completed {intakeProgress?.completedCount || 0} of {intakeProgress?.totalCount || 5} sections.
+                  {guidedProgress?.completedSteps?.length > 0
+                    ? ` You\u2019ve completed ${guidedProgress.completedSteps.length} of 8 guided steps.`
+                    : ` You\u2019ve completed ${intakeProgress?.completedCount || 0} of ${intakeProgress?.totalCount || 5} sections.`
+                  }
                 </p>
                 <Link
-                  href={`/intake?planId=${estatePlanId}`}
+                  href={guidedProgress?.completedSteps?.length > 0 ? `/intake/guided?planId=${estatePlanId}` : `/intake?planId=${estatePlanId}`}
                   className="inline-block mt-2 text-sm font-medium text-[var(--warning)] hover:underline"
                 >
                   Complete Intake →
