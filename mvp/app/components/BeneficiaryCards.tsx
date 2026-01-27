@@ -190,9 +190,9 @@ export function BeneficiaryCards({ beneficiaries, assets, totalValue }: Benefici
                     <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
                       Assets Received
                     </h4>
-                    {beneficiaryAssets.map((asset, index) => (
+                    {beneficiaryAssets.map((asset) => (
                       <div
-                        key={index}
+                        key={`${asset.name}-${asset.transferMethod}`}
                         className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-900/30 rounded-lg"
                       >
                         <div>

@@ -1,10 +1,13 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef, useMemo } from "react";
-import { useQuery, useMutation } from "convex/react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import {
+  useIntakeSection,
+  useIntakeProgress,
+  useExtractedDataBySection,
+  updateIntakeData,
+} from "../hooks/usePrismaQueries";
 import { useRouter, useSearchParams } from "next/navigation";
-import { api } from "../../convex/_generated/api";
-import { Id } from "../../convex/_generated/dataModel";
 import { IntakeStep } from "../components/IntakeProgress";
 
 type Section = "personal" | "family" | "assets" | "existing_documents" | "goals";
@@ -76,32 +79,23 @@ export function useIntakeForm<T extends object>(
   }, [formData]);
 
   // Convert planId to proper type
-  const estatePlanId = planId as Id<"estatePlans"> | null;
+  const estatePlanId = planId;
 
-  // Fetch existing intake data
-  const existingData = useQuery(
-    api.queries.getIntakeSection,
-    estatePlanId
-      ? { estatePlanId, section: STEP_TO_SECTION[step] }
-      : "skip"
+  // Fetch existing intake data using SWR
+  const { data: existingData, isLoading: existingDataLoading } = useIntakeSection(
+    estatePlanId,
+    STEP_TO_SECTION[step]
   );
 
-  // Fetch extracted data for pre-fill
-  const extractedData = useQuery(
-    api.extractedData.getExtractedDataBySection,
-    estatePlanId
-      ? { estatePlanId, section: STEP_TO_SECTION[step] }
-      : "skip"
-  ) as ExtractedDataRecord | null | undefined;
-
-  // Fetch intake progress
-  const progress = useQuery(
-    api.queries.getIntakeProgress,
-    estatePlanId ? { estatePlanId } : "skip"
+  // Fetch extracted data for pre-fill using SWR
+  const { data: extractedData, isLoading: extractedDataLoading } = useExtractedDataBySection(
+    estatePlanId,
+    STEP_TO_SECTION[step]
   );
 
-  // Mutation to save intake data
-  const updateIntakeData = useMutation(api.estatePlanning.updateIntakeData);
+  // Fetch intake progress using SWR
+  const { data: progress } = useIntakeProgress(estatePlanId);
+
 
   // Merge extracted data with existing/default data
   // Priority: existing manual data > extracted data > default
@@ -182,12 +176,14 @@ export function useIntakeForm<T extends object>(
     setSaveError(null);
 
     try {
-      await updateIntakeData({
+      await updateIntakeData(
         estatePlanId,
-        section: STEP_TO_SECTION[step],
-        data: JSON.stringify(data),
-        isComplete: markComplete,
-      });
+        STEP_TO_SECTION[step],
+        {
+          data: JSON.stringify(data),
+          isComplete: markComplete,
+        }
+      );
       setHasChanges(false);
       setSaveStatus("saved");
       setLastSaved(new Date());
@@ -198,7 +194,7 @@ export function useIntakeForm<T extends object>(
       setSaveError(error instanceof Error ? error.message : "Failed to save");
       return false;
     }
-  }, [estatePlanId, step, updateIntakeData]);
+  }, [estatePlanId, step]);
 
   // Debounced auto-save
   const triggerAutoSave = useCallback(() => {
@@ -282,7 +278,8 @@ export function useIntakeForm<T extends object>(
   const completedSteps = new Set<IntakeStep>();
   if (progress?.sections) {
     for (const [section, status] of Object.entries(progress.sections)) {
-      if (status.isComplete) {
+      const s = status as { isComplete: boolean };
+      if (s.isComplete) {
         // Reverse map section to step
         const stepEntry = Object.entries(STEP_TO_SECTION).find(
           ([_, sec]) => sec === section
@@ -317,7 +314,7 @@ export function useIntakeForm<T extends object>(
     estatePlanId,
     completedSteps,
     progress,
-    isLoading: existingData === undefined || extractedData === undefined || !dataInitialized,
+    isLoading: existingDataLoading || extractedDataLoading || !dataInitialized,
     // Auto-save related
     saveStatus,
     lastSaved,
@@ -393,14 +390,9 @@ export function useOtherSectionData<T>(
   estatePlanId: string | null,
   section: Section
 ): { data: T | null; isLoading: boolean } {
-  const sectionData = useQuery(
-    api.queries.getIntakeSection,
-    estatePlanId
-      ? { estatePlanId: estatePlanId as Id<"estatePlans">, section }
-      : "skip"
-  );
+  const { data: sectionData, isLoading } = useIntakeSection(estatePlanId, section);
 
-  if (sectionData === undefined) {
+  if (isLoading) {
     return { data: null, isLoading: true };
   }
 

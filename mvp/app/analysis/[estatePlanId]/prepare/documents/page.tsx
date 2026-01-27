@@ -1,9 +1,12 @@
 "use client";
 
 import { use, useEffect } from "react";
-import { useQuery, useMutation } from "convex/react";
-import { api } from "../../../../../convex/_generated/api";
-import { Id } from "../../../../../convex/_generated/dataModel";
+import {
+  useDocumentChecklist,
+  useChecklistProgress,
+  generateDocumentChecklist,
+  updateChecklistItemStatus,
+} from "@/app/hooks/usePrismaQueries";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
@@ -70,26 +73,18 @@ const CATEGORY_ICONS: Record<ChecklistCategory, React.ReactNode> = {
 
 export default function DocumentsPage({ params }: PageProps) {
   const { estatePlanId } = use(params);
-  const estatePlanIdTyped = estatePlanId as Id<"estatePlans">;
   const searchParams = useSearchParams();
   const runId = searchParams.get("runId");
 
-  const checklistItems = useQuery(api.preparationTasks.getChecklistItems, {
-    estatePlanId: estatePlanIdTyped,
-  });
-  const checklistProgress = useQuery(api.preparationTasks.getChecklistProgress, {
-    estatePlanId: estatePlanIdTyped,
-  });
-
-  const generateChecklist = useMutation(api.preparationTasks.generateChecklist);
-  const updateChecklistStatus = useMutation(api.preparationTasks.updateChecklistStatus);
+  const { data: checklistItems, mutate: mutateItems } = useDocumentChecklist(estatePlanId);
+  const { data: checklistProgress } = useChecklistProgress(estatePlanId);
 
   // Auto-generate checklist if not exists
   useEffect(() => {
     if (checklistItems && checklistItems.length === 0) {
-      generateChecklist({ estatePlanId: estatePlanIdTyped });
+      generateDocumentChecklist(estatePlanId).then(() => mutateItems());
     }
-  }, [checklistItems, estatePlanIdTyped, generateChecklist]);
+  }, [checklistItems, estatePlanId, mutateItems]);
 
   if (!checklistItems) {
     return (
@@ -99,22 +94,31 @@ export default function DocumentsPage({ params }: PageProps) {
     );
   }
 
+  interface ChecklistItem {
+    id: string;
+    title: string;
+    description?: string | null;
+    category: string;
+    status: string;
+  }
+
   // Group items by category
-  const itemsByCategory = checklistItems.reduce(
-    (acc, item) => {
+  const itemsByCategory = (checklistItems as ChecklistItem[]).reduce(
+    (acc: Record<ChecklistCategory, ChecklistItem[]>, item: ChecklistItem) => {
       const category = item.category as ChecklistCategory;
       if (!acc[category]) acc[category] = [];
       acc[category].push(item);
       return acc;
     },
-    {} as Record<ChecklistCategory, typeof checklistItems>
+    {} as Record<ChecklistCategory, ChecklistItem[]>
   );
 
   const handleStatusChange = async (
-    itemId: Id<"documentChecklistItems">,
+    itemId: string,
     status: "not_gathered" | "in_progress" | "gathered"
   ) => {
-    await updateChecklistStatus({ itemId, status });
+    await updateChecklistItemStatus(estatePlanId, itemId, status);
+    mutateItems();
   };
 
   const getStatusIcon = (status: string) => {
@@ -211,7 +215,7 @@ export default function DocumentsPage({ params }: PageProps) {
               </div>
               <div className="divide-y divide-[var(--border)]">
                 {itemsByCategory[category].map((item) => (
-                  <div key={item._id} className="px-6 py-4 flex items-center gap-4">
+                  <div key={item.id} className="px-6 py-4 flex items-center gap-4">
                     <button
                       onClick={() => {
                         const nextStatus =
@@ -220,7 +224,7 @@ export default function DocumentsPage({ params }: PageProps) {
                             : item.status === "in_progress"
                             ? "gathered"
                             : "not_gathered";
-                        handleStatusChange(item._id, nextStatus);
+                        handleStatusChange(item.id, nextStatus);
                       }}
                       className="flex-shrink-0 hover:opacity-80 transition-opacity"
                     >
@@ -244,7 +248,7 @@ export default function DocumentsPage({ params }: PageProps) {
                       value={item.status}
                       onChange={(e) =>
                         handleStatusChange(
-                          item._id,
+                          item.id,
                           e.target.value as "not_gathered" | "in_progress" | "gathered"
                         )
                       }

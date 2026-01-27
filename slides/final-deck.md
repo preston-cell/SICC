@@ -61,7 +61,7 @@
 
 **Technology Stack:**
 - Next.js 16 + React 19 frontend
-- Convex real-time backend
+- PostgreSQL via Prisma ORM
 - E2B sandboxed execution
 - Claude API (Anthropic) for AI analysis
 
@@ -172,17 +172,15 @@
 ### Slide 12: Traction / Roadmap
 
 **Current Status:**
-- [x] Architecture designed (Next.js + Convex + E2B + Claude API)
-- [x] MVP built and deployed (9 development phases complete)
-- [x] Guided intake wizard with 5-step questionnaire
-- [x] Three-phase AI gap analysis engine
-- [x] Document generation for 7 legal document types (50-state compliant)
-- [x] Document upload and AI-powered review
-- [x] Massachusetts-specific compliance rules implemented
+- [x] Architecture designed (Next.js + Prisma/PostgreSQL + E2B + Claude API)
+- [x] Initial documentation complete
+- [x] Technical spike framework ready
+- [x] MVP built and deployed
+- [ ] Massachusetts rules research
 
 **Tech Stack Validated:**
 - Next.js 16 + React 19 (App Router)
-- Convex (real-time database + serverless)
+- PostgreSQL via Prisma ORM (19 models, REST API)
 - E2B SDK (sandboxed code execution)
 - Claude API / Anthropic SDK (AI analysis engine)
 
@@ -196,14 +194,15 @@
 
 ### Slide 13: Team
 
-| Name | Role |
-|------|------|
-| Preston Dinh | Developer |
-| Ezekiel Dube-Garrett | Developer |
-| Keegan Harrison | Developer |
-| Colton Pozniak | Developer |
+| Name | Role | Background |
+|------|------|------------|
+| [Founder 1] | CEO | [Relevant experience] |
+| [Founder 2] | CTO | [Relevant experience] |
+| [Advisor] | Legal | Estate planning attorney |
 
-Built at Link Studio.
+**What we're looking for:**
+- Technical co-founder with AI/ML experience
+- Legal advisor with estate planning expertise
 
 ---
 
@@ -218,7 +217,7 @@ Built at Link Studio.
 - Operations (5%)
 
 **Milestones this funding enables:**
-- MVP launch in Massachusetts
+- MVP launch in California
 - 750+ paying customers
 - Expansion to 4 states
 - Path to profitability
@@ -229,7 +228,7 @@ Built at Link Studio.
 
 **Why Now:**
 - AI/LLM capabilities finally enable sophisticated document analysis
-- Claude API provides advanced AI for complex legal analysis
+- Claude API provides agentic AI for complex legal analysis
 - E2B sandboxing enables secure, isolated document processing
 - HNW demographic entering peak estate planning years
 - Digital adoption accelerating across all segments
@@ -237,7 +236,7 @@ Built at Link Studio.
 **Why Us:**
 - Deep understanding of HNW segment needs
 - Analysis-first approach is defensible differentiation
-- Modern tech stack (Next.js + Convex + E2B + Claude API)
+- Modern tech stack (Next.js + Prisma/PostgreSQL + E2B + Claude API)
 - Technical capability to execute
 
 ---

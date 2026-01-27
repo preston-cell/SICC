@@ -1,9 +1,12 @@
 "use client";
 
 import { use, useState } from "react";
-import { useQuery, useMutation } from "convex/react";
-import { api } from "../../../../../convex/_generated/api";
-import { Id } from "../../../../../convex/_generated/dataModel";
+import {
+  useFamilyContacts,
+  createFamilyContact,
+  updateFamilyContact,
+  deleteFamilyContact,
+} from "@/app/hooks/usePrismaQueries";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
@@ -46,14 +49,24 @@ const ROLE_DESCRIPTIONS: Record<ContactRole, string> = {
   other: "Other important contact",
 };
 
+interface Contact {
+  id: string;
+  name: string;
+  relationship?: string | null;
+  role: string;
+  phone?: string | null;
+  email?: string | null;
+  address?: string | null;
+  notes?: string | null;
+}
+
 export default function ContactsPage({ params }: PageProps) {
   const { estatePlanId } = use(params);
-  const estatePlanIdTyped = estatePlanId as Id<"estatePlans">;
   const searchParams = useSearchParams();
   const runId = searchParams.get("runId");
 
   const [showAddForm, setShowAddForm] = useState(false);
-  const [editingContact, setEditingContact] = useState<Id<"familyContacts"> | null>(null);
+  const [editingContact, setEditingContact] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     relationship: "",
@@ -64,31 +77,20 @@ export default function ContactsPage({ params }: PageProps) {
     notes: "",
   });
 
-  const contacts = useQuery(api.familyContacts.getContacts, {
-    estatePlanId: estatePlanIdTyped,
-  });
-
-  const createContact = useMutation(api.familyContacts.createContact);
-  const updateContact = useMutation(api.familyContacts.updateContact);
-  const deleteContact = useMutation(api.familyContacts.deleteContact);
+  const { data: contacts, mutate } = useFamilyContacts(estatePlanId);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.role) return;
 
     if (editingContact) {
-      await updateContact({
-        contactId: editingContact,
-        ...formData,
-      });
+      await updateFamilyContact(estatePlanId, editingContact, formData);
       setEditingContact(null);
     } else {
-      await createContact({
-        estatePlanId: estatePlanIdTyped,
-        ...formData,
-      });
+      await createFamilyContact(estatePlanId, formData);
     }
 
+    mutate();
     setFormData({
       name: "",
       relationship: "",
@@ -101,23 +103,24 @@ export default function ContactsPage({ params }: PageProps) {
     setShowAddForm(false);
   };
 
-  const handleEdit = (contact: NonNullable<typeof contacts>[number]) => {
+  const handleEdit = (contact: Contact) => {
     setFormData({
       name: contact.name,
-      relationship: contact.relationship,
+      relationship: contact.relationship || "",
       role: contact.role as ContactRole,
       phone: contact.phone || "",
       email: contact.email || "",
       address: contact.address || "",
       notes: contact.notes || "",
     });
-    setEditingContact(contact._id);
+    setEditingContact(contact.id);
     setShowAddForm(true);
   };
 
-  const handleDelete = async (contactId: Id<"familyContacts">) => {
+  const handleDelete = async (contactId: string) => {
     if (confirm("Are you sure you want to delete this contact?")) {
-      await deleteContact({ contactId });
+      await deleteFamilyContact(estatePlanId, contactId);
+      mutate();
     }
   };
 
@@ -187,7 +190,7 @@ export default function ContactsPage({ params }: PageProps) {
             <h3 className="font-semibold text-[var(--text-heading)] mb-3">Suggested Contacts</h3>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               {(["executor", "healthcare_proxy", "financial_poa", "guardian", "attorney", "advisor"] as ContactRole[])
-                .filter((role) => !contacts.some((c) => c.role === role))
+                .filter((role) => !contacts.some((c: { role: string }) => c.role === role))
                 .slice(0, 6)
                 .map((role) => (
                   <button
@@ -340,9 +343,9 @@ export default function ContactsPage({ params }: PageProps) {
         {/* Contacts list */}
         {contacts.length > 0 ? (
           <div className="space-y-4">
-            {contacts.map((contact) => (
+            {(contacts as Contact[]).map((contact) => (
               <div
-                key={contact._id}
+                key={contact.id}
                 className="bg-white rounded-xl border border-[var(--border)] p-6"
               >
                 <div className="flex items-start justify-between">
@@ -370,7 +373,7 @@ export default function ContactsPage({ params }: PageProps) {
                       </svg>
                     </button>
                     <button
-                      onClick={() => handleDelete(contact._id)}
+                      onClick={() => handleDelete(contact.id)}
                       className="p-2 text-[var(--text-muted)] hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -2,9 +2,10 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useMutation, useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import { Id } from "@/convex/_generated/dataModel";
+import {
+  useGuidedIntakeProgress,
+  createEstatePlan,
+} from "@/app/hooks/usePrismaQueries";
 import { Loader2, ArrowRight, Clock, Shield, Heart } from "lucide-react";
 import { Button } from "@/app/components/ui";
 import { EmotionalBanner } from "@/components/intake";
@@ -22,21 +23,8 @@ function GuidedIntakeContent() {
 
   const [isStarting, setIsStarting] = useState(false);
 
-  // Auth state (only relevant when Clerk is configured)
-  const { isSignedIn, isLoaded } = useUser();
-  useAuthSync();
-
-  // Get user ID from localStorage (set by useAuthSync) - only used when auth is enabled
-  const storedUserId = typeof window !== "undefined" ? localStorage.getItem("estatePlanUserId") : null;
-  const userId = isAuthEnabled && isSignedIn && storedUserId ? storedUserId : null;
-
-  const createEstatePlan = useMutation(api.estatePlanning.createEstatePlan);
-
-  // Check for existing guided progress
-  const existingProgress = useQuery(
-    api.guidedIntake.getGuidedProgress,
-    planId ? { estatePlanId: planId as Id<"estatePlans"> } : "skip"
-  );
+  // Check for existing guided progress using SWR hook
+  const { data: existingProgress, isLoading } = useGuidedIntakeProgress(planId);
 
   // Redirect to intake landing if auth is enabled but not authenticated
   useEffect(() => {
@@ -52,26 +40,14 @@ function GuidedIntakeContent() {
 
       // Create a new plan if we don't have one
       if (!currentPlanId) {
-        let newPlanId: string;
-
-        if (isAuthEnabled && userId) {
-          // Authenticated flow
-          newPlanId = await createEstatePlan({
-            userId: userId as Id<"users">,
-            name: "My Estate Plan",
-          });
-        } else {
-          // Anonymous flow
-          const sessionId = `session_${Date.now()}_${Math.random().toString(36).substring(7)}`;
-          newPlanId = await createEstatePlan({
-            sessionId,
-            name: "My Estate Plan",
-          });
-          localStorage.setItem("estatePlanSessionId", sessionId);
-        }
-
-        localStorage.setItem("estatePlanId", newPlanId);
-        currentPlanId = newPlanId;
+        const sessionId = `session_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+        const newPlan = await createEstatePlan({
+          sessionId,
+          name: "My Estate Plan",
+        });
+        localStorage.setItem("estatePlanSessionId", sessionId);
+        localStorage.setItem("estatePlanId", newPlan.id);
+        currentPlanId = newPlan.id;
       }
 
       // Navigate to first step
@@ -84,12 +60,16 @@ function GuidedIntakeContent() {
 
   const handleContinue = () => {
     if (existingProgress && planId) {
-      // If all steps are completed (currentStep > 8), go to review or completion
-      if (existingProgress.currentStep > GUIDED_STEPS.length) {
+      const stepNumber = existingProgress.currentStep || 1;
+
+      // All steps completed - go to completion
+      if (stepNumber > GUIDED_STEPS.length) {
         router.push(`/intake?planId=${planId}&complete=true`);
         return;
       }
-      const currentStep = GUIDED_STEPS.find((s) => s.id === existingProgress.currentStep);
+
+      // Normal flow - go to current step
+      const currentStep = GUIDED_STEPS.find((s) => s.id === stepNumber);
       if (currentStep) {
         router.push(`/intake/guided/${currentStep.slug}?planId=${planId}`);
       } else {
@@ -100,8 +80,8 @@ function GuidedIntakeContent() {
     }
   };
 
-  // Show loading while checking auth (only when auth is enabled)
-  if (isAuthEnabled && !isLoaded) {
+  // Show loading state while checking for existing progress
+  if (isLoading && planId) {
     return (
       <div className="flex items-center justify-center py-12">
         <Loader2 className="w-6 h-6 animate-spin text-[var(--accent-purple)]" />
@@ -109,8 +89,9 @@ function GuidedIntakeContent() {
     );
   }
 
-  // If we have existing progress, show continue option
-  if (existingProgress && planId) {
+  // If we have existing progress with completed steps, show continue option
+  const hasExistingProgress = existingProgress && existingProgress.completedSteps?.length > 0;
+  if (hasExistingProgress && planId) {
     const currentStep = GUIDED_STEPS.find((s) => s.id === existingProgress.currentStep);
     const completedCount = existingProgress.completedSteps.length;
     const totalSteps = getTotalSteps();

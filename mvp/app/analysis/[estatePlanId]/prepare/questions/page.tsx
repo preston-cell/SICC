@@ -1,9 +1,13 @@
 "use client";
 
 import { use, useState } from "react";
-import { useQuery, useMutation } from "convex/react";
-import { api } from "../../../../../convex/_generated/api";
-import { Id } from "../../../../../convex/_generated/dataModel";
+import {
+  useAttorneyQuestions,
+  useAttorneyQuestionCount,
+  createAttorneyQuestion,
+  updateAttorneyQuestion,
+  deleteAttorneyQuestion,
+} from "@/app/hooks/usePrismaQueries";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
@@ -29,6 +33,14 @@ const CATEGORY_COLORS: Record<QuestionCategory, string> = {
   general: "bg-gray-100 text-gray-700",
 };
 
+interface Question {
+  id: string;
+  question: string;
+  category: string;
+  isAnswered: boolean;
+  answer?: string | null;
+}
+
 const SUGGESTED_QUESTIONS: { question: string; category: QuestionCategory }[] = [
   { question: "What type of trust would be best for my situation?", category: "documents" },
   { question: "How can I minimize estate taxes for my heirs?", category: "tax" },
@@ -40,7 +52,6 @@ const SUGGESTED_QUESTIONS: { question: string; category: QuestionCategory }[] = 
 
 export default function QuestionsPage({ params }: PageProps) {
   const { estatePlanId } = use(params);
-  const estatePlanIdTyped = estatePlanId as Id<"estatePlans">;
   const searchParams = useSearchParams();
   const runId = searchParams.get("runId");
 
@@ -48,50 +59,38 @@ export default function QuestionsPage({ params }: PageProps) {
   const [selectedCategory, setSelectedCategory] = useState<QuestionCategory>("general");
   const [filter, setFilter] = useState<"all" | "unanswered" | "answered">("all");
 
-  const questions = useQuery(api.attorneyQuestions.getQuestions, {
-    estatePlanId: estatePlanIdTyped,
-  });
-  const questionCount = useQuery(api.attorneyQuestions.getQuestionCount, {
-    estatePlanId: estatePlanIdTyped,
-  });
-
-  const createQuestion = useMutation(api.attorneyQuestions.createQuestion);
-  const updateQuestion = useMutation(api.attorneyQuestions.updateQuestion);
-  const markAnswered = useMutation(api.attorneyQuestions.markAnswered);
-  const markUnanswered = useMutation(api.attorneyQuestions.markUnanswered);
-  const deleteQuestion = useMutation(api.attorneyQuestions.deleteQuestion);
+  const { data: questions, mutate: mutateQuestions } = useAttorneyQuestions(estatePlanId);
+  const { data: questionCount } = useAttorneyQuestionCount(estatePlanId);
 
   const handleAddQuestion = async () => {
     if (!newQuestion.trim()) return;
 
-    await createQuestion({
-      estatePlanId: estatePlanIdTyped,
+    await createAttorneyQuestion(estatePlanId, {
       question: newQuestion.trim(),
       category: selectedCategory,
     });
 
+    mutateQuestions();
     setNewQuestion("");
   };
 
   const handleAddSuggested = async (question: string, category: QuestionCategory) => {
-    await createQuestion({
-      estatePlanId: estatePlanIdTyped,
+    await createAttorneyQuestion(estatePlanId, {
       question,
       category,
     });
+    mutateQuestions();
   };
 
-  const handleToggleAnswered = async (questionId: Id<"attorneyQuestions">, isAnswered: boolean) => {
-    if (isAnswered) {
-      await markUnanswered({ questionId });
-    } else {
-      await markAnswered({ questionId });
-    }
+  const handleToggleAnswered = async (questionId: string, isAnswered: boolean) => {
+    await updateAttorneyQuestion(estatePlanId, questionId, { isAnswered: !isAnswered });
+    mutateQuestions();
   };
 
-  const handleDelete = async (questionId: Id<"attorneyQuestions">) => {
+  const handleDelete = async (questionId: string) => {
     if (confirm("Delete this question?")) {
-      await deleteQuestion({ questionId });
+      await deleteAttorneyQuestion(estatePlanId, questionId);
+      mutateQuestions();
     }
   };
 
@@ -103,7 +102,7 @@ export default function QuestionsPage({ params }: PageProps) {
     );
   }
 
-  const filteredQuestions = questions.filter((q) => {
+  const filteredQuestions = (questions as Question[]).filter((q: Question) => {
     if (filter === "unanswered") return !q.isAnswered;
     if (filter === "answered") return q.isAnswered;
     return true;
@@ -111,7 +110,7 @@ export default function QuestionsPage({ params }: PageProps) {
 
   // Get questions that haven't been added yet
   const unusedSuggestions = SUGGESTED_QUESTIONS.filter(
-    (s) => !questions.some((q) => q.question.toLowerCase() === s.question.toLowerCase())
+    (s) => !(questions as Question[]).some((q: Question) => q.question.toLowerCase() === s.question.toLowerCase())
   );
 
   return (
@@ -260,14 +259,14 @@ export default function QuestionsPage({ params }: PageProps) {
           <div className="space-y-4">
             {filteredQuestions.map((question) => (
               <div
-                key={question._id}
+                key={question.id}
                 className={`bg-white rounded-xl border p-5 ${
                   question.isAnswered ? "border-green-200 bg-green-50/30" : "border-[var(--border)]"
                 }`}
               >
                 <div className="flex items-start gap-4">
                   <button
-                    onClick={() => handleToggleAnswered(question._id, question.isAnswered)}
+                    onClick={() => handleToggleAnswered(question.id, question.isAnswered)}
                     className={`flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${
                       question.isAnswered
                         ? "bg-green-500 border-green-500 text-white"
@@ -302,7 +301,7 @@ export default function QuestionsPage({ params }: PageProps) {
                     </div>
                   </div>
                   <button
-                    onClick={() => handleDelete(question._id)}
+                    onClick={() => handleDelete(question.id)}
                     className="p-2 text-[var(--text-muted)] hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -2,9 +2,11 @@
 
 import { useState, useMemo, ReactNode } from "react";
 import { useParams } from "next/navigation";
-import { useQuery } from "convex/react";
-import { api } from "../../../../convex/_generated/api";
-import { Id } from "../../../../convex/_generated/dataModel";
+import {
+  useEstatePlan,
+  useIntakeData,
+  useBeneficiaryDesignations,
+} from "../../../hooks/usePrismaQueries";
 import Link from "next/link";
 import { Tabs, TabPanel } from "../../../components/ui/Tabs";
 import Button from "../../../components/ui/Button";
@@ -72,15 +74,15 @@ const SCENARIOS: Scenario[] = [
 
 export default function VisualizationPage() {
   const params = useParams();
-  const estatePlanId = params.estatePlanId as Id<"estatePlans">;
+  const estatePlanId = params.estatePlanId as string;
 
   const [activeTab, setActiveTab] = useState("distribution");
   const [selectedScenario, setSelectedScenario] = useState<string | null>(null);
 
-  // Fetch data
-  const estatePlan = useQuery(api.queries.getEstatePlan, { estatePlanId });
-  const intakeData = useQuery(api.queries.getIntakeData, { estatePlanId });
-  const beneficiaryDesignations = useQuery(api.queries.getBeneficiaryDesignations, { estatePlanId });
+  // Fetch data using SWR hooks
+  const { data: estatePlan, isLoading: estatePlanLoading } = useEstatePlan(estatePlanId);
+  const { data: intakeData, isLoading: intakeDataLoading } = useIntakeData(estatePlanId);
+  const { data: beneficiaryDesignations } = useBeneficiaryDesignations(estatePlanId);
 
   // Parse intake data into estate visualization format
   const estateData = useMemo(() => {
@@ -122,7 +124,7 @@ export default function VisualizationPage() {
   const displayData = scenarioData || estateData;
 
   // Loading state
-  if (estatePlan === undefined || intakeData === undefined) {
+  if (estatePlanLoading || intakeDataLoading) {
     return (
       <div className="min-h-screen bg-white">
         <div className="max-w-6xl mx-auto px-4 py-8">
@@ -137,7 +139,7 @@ export default function VisualizationPage() {
   }
 
   // Not found state
-  if (estatePlan === null) {
+  if (!estatePlan) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">

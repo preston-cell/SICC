@@ -1,9 +1,14 @@
 "use client";
 
 import { useState, use, ReactNode } from "react";
-import { useQuery, useMutation } from "convex/react";
-import { api } from "../../../../convex/_generated/api";
-import { Id } from "../../../../convex/_generated/dataModel";
+import {
+  useEstatePlan,
+  useReminders,
+  useReminderStats,
+  createReminder,
+  createDefaultReminders,
+  generateActionItems,
+} from "../../../hooks/usePrismaQueries";
 import Link from "next/link";
 import { ReminderCard } from "../../../components/ReminderCard";
 import { LifeEventsChecklist } from "../../../components/LifeEventsChecklist";
@@ -17,6 +22,19 @@ interface PageProps {
 type ReminderType = "annual_review" | "life_event" | "document_update" | "beneficiary_review" | "custom";
 type PriorityType = "low" | "medium" | "high" | "urgent";
 type RecurrencePattern = "monthly" | "quarterly" | "annually" | "biannually";
+
+interface Reminder {
+  id: string;
+  type: "annual_review" | "life_event" | "document_update" | "beneficiary_review" | "custom";
+  title: string;
+  description?: string;
+  dueDate: number | string;
+  status: "pending" | "completed" | "snoozed" | "dismissed";
+  priority: "low" | "medium" | "high" | "urgent";
+  isRecurring: boolean;
+  recurrencePattern?: string;
+  completedAt?: string;
+}
 
 interface Recommendation {
   rank?: number;
@@ -34,7 +52,7 @@ interface Recommendation {
 
 export default function RemindersPage({ params }: PageProps) {
   const { estatePlanId } = use(params);
-  const estatePlanIdTyped = estatePlanId as Id<"estatePlans">;
+  const estatePlanIdTyped = estatePlanId as string;
 
   const [activeTab, setActiveTab] = useState<"reminders" | "life-events" | "settings">("reminders");
   const [showAddForm, setShowAddForm] = useState(false);
@@ -49,35 +67,26 @@ export default function RemindersPage({ params }: PageProps) {
     recurrencePattern: "annually" as RecurrencePattern,
   });
 
-  const estatePlan = useQuery(api.queries.getEstatePlan, { estatePlanId: estatePlanIdTyped });
-  const reminders = useQuery(api.reminders.getReminders, { estatePlanId: estatePlanIdTyped });
-  const stats = useQuery(api.reminders.getReminderStats, { estatePlanId: estatePlanIdTyped });
-  const latestAnalysis = useQuery(api.queries.getLatestGapAnalysis, { estatePlanId: estatePlanIdTyped });
-  const createReminder = useMutation(api.reminders.createReminder);
-  const createDefaultReminders = useMutation(api.reminders.createDefaultReminders);
-  const generateActionItems = useMutation(api.reminders.generateActionItemsFromAnalysis);
+  const { data: estatePlan, isLoading: estatePlanLoading } = useEstatePlan(estatePlanIdTyped);
+  const { data: reminders, isLoading: remindersLoading } = useReminders(estatePlanIdTyped);
+  const { data: stats } = useReminderStats(estatePlanIdTyped);
 
-  // Parse recommendations from gap analysis
-  const recommendations: Recommendation[] = latestAnalysis?.recommendations
-    ? JSON.parse(latestAnalysis.recommendations)
-    : [];
+  // Parse recommendations from gap analysis (for future use when gap analysis API is integrated)
+  const recommendations: Recommendation[] = [];
+  const hasImportedRecommendations = reminders?.some((r: { sourceType?: string }) => r.sourceType === "gap_analysis") ?? false;
 
-  // Check if recommendations have been imported as reminders
-  const hasImportedRecommendations = reminders?.some(r => r.sourceType === "gap_analysis") ?? false;
-
-  const pendingReminders = reminders?.filter(r => r.status === "pending") || [];
-  const overdueReminders = reminders?.filter(r => r.status === "pending" && r.dueDate < Date.now()) || [];
-  const completedReminders = reminders?.filter(r => r.status === "completed") || [];
+  const pendingReminders = reminders?.filter((r: { status: string; dueDate: number }) => r.status === "pending") || [];
+  const overdueReminders = reminders?.filter((r: { status: string; dueDate: number }) => r.status === "pending" && new Date(r.dueDate) < new Date()) || [];
+  const completedReminders = reminders?.filter((r: { status: string; dueDate: number }) => r.status === "completed") || [];
 
   const handleCreateReminder = async () => {
     if (!newReminder.title || !newReminder.dueDate) return;
 
-    await createReminder({
-      estatePlanId: estatePlanIdTyped,
+    await createReminder(estatePlanIdTyped, {
       type: newReminder.type,
       title: newReminder.title,
       description: newReminder.description || undefined,
-      dueDate: new Date(newReminder.dueDate).getTime(),
+      dueDate: new Date(newReminder.dueDate).toISOString(),
       priority: newReminder.priority,
       isRecurring: newReminder.isRecurring,
       recurrencePattern: newReminder.isRecurring ? newReminder.recurrencePattern : undefined,
@@ -96,7 +105,7 @@ export default function RemindersPage({ params }: PageProps) {
   };
 
   const handleSetupDefaultReminders = async () => {
-    await createDefaultReminders({ estatePlanId: estatePlanIdTyped });
+    await createDefaultReminders(estatePlanIdTyped);
   };
 
   const StatCard = ({ icon, label, value, color }: { icon: ReactNode; label: string; value: number; color: string }) => (
@@ -224,7 +233,7 @@ export default function RemindersPage({ params }: PageProps) {
             <StatCard
               icon={<svg className="w-5 h-5 text-[var(--warning)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>}
               label="Urgent"
-              value={stats.urgent}
+              value={0}
               color="bg-[var(--warning-muted)]"
             />
           </div>
@@ -335,25 +344,25 @@ export default function RemindersPage({ params }: PageProps) {
                   Overdue ({overdueReminders.length})
                 </h3>
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {overdueReminders.map((reminder) => (
-                    <ReminderCard key={reminder._id} reminder={reminder} />
+                  {overdueReminders.map((reminder: Reminder) => (
+                    <ReminderCard key={reminder.id} reminder={reminder} estatePlanId={estatePlanIdTyped} />
                   ))}
                 </div>
               </div>
             )}
 
             {/* Pending section */}
-            {pendingReminders.filter(r => r.dueDate >= Date.now()).length > 0 && (
+            {pendingReminders.filter((r: Reminder) => new Date(r.dueDate) >= new Date()).length > 0 && (
               <div>
                 <h3 className="text-lg font-semibold text-[var(--text-heading)] mb-4">
                   Upcoming Reminders
                 </h3>
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {pendingReminders
-                    .filter(r => r.dueDate >= Date.now())
-                    .sort((a, b) => a.dueDate - b.dueDate)
+                  {(pendingReminders as Reminder[])
+                    .filter(r => new Date(r.dueDate) >= new Date())
+                    .sort((a: Reminder, b: Reminder) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
                     .map((reminder) => (
-                      <ReminderCard key={reminder._id} reminder={reminder} />
+                      <ReminderCard key={reminder.id} reminder={reminder} estatePlanId={estatePlanIdTyped} />
                     ))}
                 </div>
               </div>
@@ -397,10 +406,10 @@ export default function RemindersPage({ params }: PageProps) {
                   Recently Completed
                 </h3>
                 <div className="space-y-2">
-                  {completedReminders.slice(0, 5).map((reminder) => (
+                  {completedReminders.slice(0, 5).map((reminder: Reminder) => (
                     <div
-                      key={reminder._id}
-                      className="flex items-center gap-3 p-3 bg-[var(--cream)] rounded-lg"
+                      key={reminder.id}
+                      className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg"
                     >
                       <svg className="w-5 h-5 text-[var(--success)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />

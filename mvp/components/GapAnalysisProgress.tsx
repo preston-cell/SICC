@@ -1,11 +1,10 @@
 "use client";
 
-import { useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import { Id } from "@/convex/_generated/dataModel";
+import { useGapAnalysisRunProgress } from "@/app/hooks/usePrismaQueries";
 
 interface GapAnalysisProgressProps {
-  runId: Id<"gapAnalysisRuns">;
+  estatePlanId: string;
+  runId: string;
   onComplete?: () => void;
 }
 
@@ -31,8 +30,30 @@ const runTypeLabels: Record<string, string> = {
   final_report: "Generating Final Report",
 };
 
-export function GapAnalysisProgress({ runId, onComplete }: GapAnalysisProgressProps) {
-  const progress = useQuery(api.gapAnalysisProgress.getRunProgress, { runId });
+interface PhaseData {
+  phaseNumber: number;
+  name: string;
+  status: string;
+  runResults?: Array<{
+    id: string;
+    runType: string;
+    status: string;
+  }>;
+}
+
+interface RunData {
+  id: string;
+  status: string;
+  progressPercent: number;
+  error?: string | null;
+  phases: PhaseData[];
+}
+
+export function GapAnalysisProgress({ estatePlanId, runId, onComplete }: GapAnalysisProgressProps) {
+  const { data: runData } = useGapAnalysisRunProgress(estatePlanId, runId);
+
+  // Transform run data into progress format
+  const progress = runData ? transformRunToProgress(runData as RunData) : null;
 
   // Call onComplete when analysis finishes
   if (progress?.status === "completed" || progress?.status === "partial") {
@@ -138,6 +159,54 @@ export function GapAnalysisProgress({ runId, onComplete }: GapAnalysisProgressPr
   );
 }
 
+// Transform the raw run data from Prisma into the progress format expected by the UI
+function transformRunToProgress(runData: RunData) {
+  const phases = runData.phases || [];
+
+  // Calculate totals from run results
+  let totalRuns = 0;
+  let completedRuns = 0;
+
+  phases.forEach((phase) => {
+    const results = phase.runResults || [];
+    totalRuns += results.length;
+    completedRuns += results.filter((r) => r.status === "completed").length;
+  });
+
+  // Find currently running task
+  let currentRun = null;
+  for (const phase of phases) {
+    const runningResult = phase.runResults?.find((r) => r.status === "running");
+    if (runningResult) {
+      currentRun = { runType: runningResult.runType };
+      break;
+    }
+  }
+
+  // Calculate overall progress
+  const overallProgress = runData.progressPercent ||
+    (totalRuns > 0 ? Math.round((completedRuns / totalRuns) * 100) : 0);
+
+  return {
+    status: runData.status,
+    overallProgress,
+    currentRun,
+    phases: phases.map((phase) => {
+      const results = phase.runResults || [];
+      return {
+        phaseNumber: phase.phaseNumber,
+        phaseType: phase.name,
+        status: phase.status,
+        totalRuns: results.length,
+        completedRuns: results.filter((r) => r.status === "completed").length,
+        failedRuns: results.filter((r) => r.status === "failed").length,
+      };
+    }),
+    estimatedCompletionMs: null, // Not tracked in current schema
+    error: runData.error || null,
+  };
+}
+
 interface PhaseCardProps {
   phase: {
     phaseNumber: number;
@@ -153,7 +222,6 @@ function PhaseCard({ phase }: PhaseCardProps) {
   const isComplete = phase.status === "completed";
   const isFailed = phase.status === "failed";
   const isRunning = phase.status === "running";
-  const isPending = phase.status === "pending";
 
   return (
     <div

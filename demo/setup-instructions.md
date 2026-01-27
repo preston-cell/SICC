@@ -84,47 +84,50 @@ Use for demos emphasizing blended family complexity:
 ```bash
 # Clone repository
 git clone https://github.com/preston-cell/SICC.git
-cd SICC/mvp
+cd SICC
 
 # Install dependencies
 npm install
 
 # Set up environment variables
-cp .env.example .env.local
-# Edit .env.local with your keys (see .env.example for full list):
-# - NEXT_PUBLIC_CONVEX_URL (from Convex dashboard)
+cp .env.example .env
+# Edit .env with your keys:
+# - DATABASE_URL (PostgreSQL connection string)
 # - ANTHROPIC_API_KEY (for Claude API)
 # - E2B_API_KEY (for sandbox execution)
 
-# Start Convex development server
-npx convex dev
+# Run database migrations
+npx prisma migrate deploy
 
-# In another terminal, start Next.js
+# Start Next.js development server
 npm run dev
 
 # Access at http://localhost:3000
 ```
 
-### Convex Setup
+### PostgreSQL / Prisma Setup
 
-1. Create a Convex account at [convex.dev](https://convex.dev)
-2. Run `npx convex init` to initialize the project
-3. Copy the deployment URL to your `.env.local`
-4. Run `npx convex dev` to sync schema and functions
+1. Install PostgreSQL locally or use an AWS RDS instance
+2. Create a database: `createdb estateai_dev`
+3. Set `DATABASE_URL` in your `.env` file:
+   - Local: `postgresql://user:password@localhost:5432/estateai_dev`
+   - AWS RDS: `postgresql://user:password@your-instance.region.rds.amazonaws.com:5432/estateai_dev?sslmode=require`
+4. Run migrations: `npx prisma migrate deploy`
+5. (Optional) Open Prisma Studio: `npx prisma studio`
 
 ### E2B Setup
 
 1. Create an E2B account at [e2b.dev](https://e2b.dev)
 2. Generate an API key from the dashboard
-3. Add `E2B_API_KEY` to your `.env.local`
+3. Add `E2B_API_KEY` to your `.env`
 
 ### Staging/Demo Environment
 
 **Production Configuration:**
 - Frontend: Vercel deployment (Next.js 16)
-- Backend: Convex (serverless functions + real-time database)
+- Backend: Next.js API Routes + PostgreSQL via Prisma ORM
 - Sandboxing: E2B (isolated code execution)
-- AI: Claude API (Anthropic)
+- AI: Claude API (Anthropic SDK)
 
 ---
 
@@ -163,7 +166,7 @@ npm run dev
 1. Navigate to `/signup`
 2. Use demo email: `demo+[date]@estateai.com`
 3. Complete onboarding:
-   - State: Massachusetts
+   - State: California
    - Net worth range: $5M–$10M
    - Has existing estate plan: Yes
 4. Upload sample documents

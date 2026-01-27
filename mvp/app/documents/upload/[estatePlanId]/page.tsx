@@ -1,12 +1,24 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { useQuery, useMutation, useAction } from "convex/react";
-import { api } from "../../../../convex/_generated/api";
-import { Id } from "../../../../convex/_generated/dataModel";
+import { useEstatePlan, useUploadedDocuments } from "../../../hooks/usePrismaQueries";
 import Link from "next/link";
 import { useState, useCallback, useRef } from "react";
 import ReactMarkdown from "react-markdown";
+
+// Helper to get sessionId from localStorage
+function getSessionId(): string | null {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem("estatePlanSessionId");
+}
+
+// Helper to append sessionId to URL for auth
+function appendSessionId(url: string): string {
+  const sessionId = getSessionId();
+  if (!sessionId) return url;
+  const separator = url.includes("?") ? "&" : "?";
+  return `${url}${separator}sessionId=${sessionId}`;
+}
 
 type DocumentType =
   | "will"
@@ -83,7 +95,7 @@ interface AnalysisResult {
 
 export default function DocumentUploadPage() {
   const params = useParams();
-  const estatePlanId = params.estatePlanId as Id<"estatePlans">;
+  const estatePlanId = params.estatePlanId as string;
 
   // State
   const [uploadState, setUploadState] = useState<UploadState>({
@@ -94,22 +106,24 @@ export default function DocumentUploadPage() {
   const [selectedType, setSelectedType] = useState<DocumentType>("will");
   const [description, setDescription] = useState("");
   const [isDragging, setIsDragging] = useState(false);
-  const [selectedDocId, setSelectedDocId] = useState<Id<"uploadedDocuments"> | null>(null);
+  const [selectedDocId, setSelectedDocId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Queries
-  const estatePlan = useQuery(api.queries.getEstatePlan, { estatePlanId });
-  const uploadedDocs = useQuery(api.uploadedDocuments.getUploadedDocuments, { estatePlanId });
-  const analysisSummary = useQuery(api.uploadedDocuments.getDocumentAnalysisSummary, { estatePlanId });
+  // Queries - SWR hooks
+  const { data: estatePlan, isLoading: estatePlanLoading } = useEstatePlan(estatePlanId);
+  const { data: uploadedDocs, mutate: mutateUploadedDocs } = useUploadedDocuments(estatePlanId);
 
-  // Mutations & Actions
-  const generateUploadUrl = useMutation(api.uploadedDocuments.generateUploadUrl);
-  const saveUploadedDocument = useMutation(api.uploadedDocuments.saveUploadedDocument);
-  const deleteDocument = useMutation(api.uploadedDocuments.deleteUploadedDocument);
-  const analyzeDocument = useAction(api.documentAnalysis.analyzeDocument);
+  // Compute analysis summary from uploadedDocs
+  const analysisSummary = uploadedDocs ? {
+    totalDocuments: uploadedDocs.length,
+    completed: uploadedDocs.filter((d: { analysisStatus: string }) => d.analysisStatus === "completed").length,
+    pendingAnalysis: uploadedDocs.filter((d: { analysisStatus: string }) => d.analysisStatus === "pending").length,
+    inProgress: uploadedDocs.filter((d: { analysisStatus: string }) => ["extracting", "analyzing"].includes(d.analysisStatus)).length,
+    failed: uploadedDocs.filter((d: { analysisStatus: string }) => d.analysisStatus === "failed").length,
+  } : null;
 
   // Get selected document
-  const selectedDoc = uploadedDocs?.find((d) => d._id === selectedDocId);
+  const selectedDoc = uploadedDocs?.find((d) => d.id === selectedDocId);
   const selectedAnalysis: AnalysisResult | null = selectedDoc?.analysisResult
     ? JSON.parse(selectedDoc.analysisResult)
     : null;
@@ -130,39 +144,59 @@ export default function DocumentUploadPage() {
       setUploadState({ isUploading: true, progress: 10, error: null });
 
       try {
-        // Get upload URL
-        const uploadUrl = await generateUploadUrl();
-        setUploadState((prev) => ({ ...prev, progress: 30 }));
+        // Upload file to /api/upload
+        const formData = new FormData();
+        formData.append("file", file);
 
-        // Upload file
-        const result = await fetch(uploadUrl, {
+        const uploadResult = await fetch("/api/upload", {
           method: "POST",
-          headers: { "Content-Type": file.type },
-          body: file,
+          body: formData,
         });
 
-        if (!result.ok) {
-          throw new Error("Upload failed");
+        if (!uploadResult.ok) {
+          const errorData = await uploadResult.json();
+          throw new Error(errorData.error || "Upload failed");
         }
 
-        const { storageId } = await result.json();
-        setUploadState((prev) => ({ ...prev, progress: 60 }));
+        const { storageId } = await uploadResult.json();
+        setUploadState((prev) => ({ ...prev, progress: 50 }));
 
-        // Save document metadata
-        const docId = await saveUploadedDocument({
-          estatePlanId,
-          storageId,
-          fileName: file.name,
-          fileSize: file.size,
-          mimeType: file.type,
-          documentType: selectedType,
-          description: description || undefined,
+        // Save document metadata via API
+        const saveResult = await fetch(appendSessionId(`/api/estate-plans/${estatePlanId}/uploaded-documents`), {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            storageId,
+            fileName: file.name,
+            fileSize: file.size,
+            mimeType: file.type,
+            documentType: selectedType,
+            description: description || undefined,
+          }),
         });
-        setUploadState((prev) => ({ ...prev, progress: 80 }));
 
-        // Start analysis
-        analyzeDocument({ documentId: docId });
+        if (!saveResult.ok) {
+          const errorData = await saveResult.json();
+          throw new Error(errorData.error || "Failed to save document");
+        }
+
+        const savedDoc = await saveResult.json();
+        setUploadState((prev) => ({ ...prev, progress: 75 }));
+
+        // Start analysis via API (fire and forget)
+        fetch(appendSessionId(`/api/estate-plans/${estatePlanId}/uploaded-documents/analyze`), {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ documentId: savedDoc.id }),
+        }).then(() => {
+          // Refresh the documents list after analysis starts
+          mutateUploadedDocs();
+        });
+
         setUploadState({ isUploading: false, progress: 100, error: null });
+
+        // Refresh the documents list
+        mutateUploadedDocs();
 
         // Reset form
         setDescription("");
@@ -177,7 +211,7 @@ export default function DocumentUploadPage() {
         });
       }
     },
-    [estatePlanId, selectedType, description, generateUploadUrl, saveUploadedDocument, analyzeDocument]
+    [estatePlanId, selectedType, description, mutateUploadedDocs]
   );
 
   // Drag and drop handlers
@@ -206,23 +240,43 @@ export default function DocumentUploadPage() {
 
   // Handle delete
   const handleDelete = useCallback(
-    async (docId: Id<"uploadedDocuments">) => {
+    async (docId: string) => {
       if (confirm("Are you sure you want to delete this document?")) {
-        await deleteDocument({ documentId: docId });
-        if (selectedDocId === docId) {
-          setSelectedDocId(null);
+        try {
+          const result = await fetch(
+            appendSessionId(`/api/estate-plans/${estatePlanId}/uploaded-documents?documentId=${docId}`),
+            { method: "DELETE" }
+          );
+          if (!result.ok) {
+            throw new Error("Failed to delete document");
+          }
+          if (selectedDocId === docId) {
+            setSelectedDocId(null);
+          }
+          mutateUploadedDocs();
+        } catch (error) {
+          console.error("Delete error:", error);
         }
       }
     },
-    [deleteDocument, selectedDocId]
+    [estatePlanId, selectedDocId, mutateUploadedDocs]
   );
 
   // Handle re-analyze
   const handleReanalyze = useCallback(
-    async (docId: Id<"uploadedDocuments">) => {
-      await analyzeDocument({ documentId: docId });
+    async (docId: string) => {
+      try {
+        await fetch(appendSessionId(`/api/estate-plans/${estatePlanId}/uploaded-documents/analyze`), {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ documentId: docId }),
+        });
+        mutateUploadedDocs();
+      } catch (error) {
+        console.error("Reanalyze error:", error);
+      }
     },
-    [analyzeDocument]
+    [estatePlanId, mutateUploadedDocs]
   );
 
   if (!estatePlan) {
@@ -401,11 +455,11 @@ export default function DocumentUploadPage() {
                 <div className="space-y-3">
                   {uploadedDocs.map((doc) => (
                     <div
-                      key={doc._id}
-                      onClick={() => setSelectedDocId(doc._id)}
+                      key={doc.id}
+                      onClick={() => setSelectedDocId(doc.id)}
                       className={`
                         p-4 rounded-lg border cursor-pointer transition-colors
-                        ${selectedDocId === doc._id
+                        ${selectedDocId === doc.id
                           ? "border-[var(--accent-purple)] bg-[var(--accent-muted)]"
                           : "border-[var(--border)] bg-white hover:border-blue-300"
                         }
@@ -458,7 +512,7 @@ export default function DocumentUploadPage() {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleDelete(doc._id);
+                              handleDelete(doc.id);
                             }}
                             className="p-1 text-gray-400 hover:text-red-500 transition-colors"
                           >
@@ -526,7 +580,7 @@ export default function DocumentUploadPage() {
                   </p>
                 </div>
                 <button
-                  onClick={() => handleReanalyze(selectedDoc._id)}
+                  onClick={() => handleReanalyze(selectedDoc.id)}
                   className="w-full px-4 py-2 bg-[var(--accent-purple)] hover:opacity-90 text-white rounded-lg font-medium transition-colors"
                 >
                   Try Again
