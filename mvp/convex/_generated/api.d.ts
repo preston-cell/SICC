@@ -9,6 +9,7 @@
  */
 
 import type * as attorneyQuestions from "../attorneyQuestions.js";
+import type * as crons from "../crons.js";
 import type * as documentAnalysis from "../documentAnalysis.js";
 import type * as documentExtraction from "../documentExtraction.js";
 import type * as documentGeneration from "../documentGeneration.js";
@@ -23,6 +24,8 @@ import type * as gapAnalysisProgress from "../gapAnalysisProgress.js";
 import type * as gapAnalysisQueries from "../gapAnalysisQueries.js";
 import type * as guidedIntake from "../guidedIntake.js";
 import type * as mutations from "../mutations.js";
+import type * as notificationActions from "../notificationActions.js";
+import type * as notifications from "../notifications.js";
 import type * as preparationTasks from "../preparationTasks.js";
 import type * as queries from "../queries.js";
 import type * as reminders from "../reminders.js";
@@ -40,6 +43,7 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   attorneyQuestions: typeof attorneyQuestions;
+  crons: typeof crons;
   documentAnalysis: typeof documentAnalysis;
   documentExtraction: typeof documentExtraction;
   documentGeneration: typeof documentGeneration;
@@ -54,6 +58,8 @@ declare const fullApi: ApiFromModules<{
   gapAnalysisQueries: typeof gapAnalysisQueries;
   guidedIntake: typeof guidedIntake;
   mutations: typeof mutations;
+  notificationActions: typeof notificationActions;
+  notifications: typeof notifications;
   preparationTasks: typeof preparationTasks;
   queries: typeof queries;
   reminders: typeof reminders;

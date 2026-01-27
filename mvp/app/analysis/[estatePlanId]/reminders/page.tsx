@@ -7,6 +7,7 @@ import { Id } from "../../../../convex/_generated/dataModel";
 import Link from "next/link";
 import { ReminderCard } from "../../../components/ReminderCard";
 import { LifeEventsChecklist } from "../../../components/LifeEventsChecklist";
+import { NotificationSettings } from "../../../components/NotificationSettings";
 import Badge from "../../../components/ui/Badge";
 
 interface PageProps {
@@ -115,7 +116,7 @@ export default function RemindersPage({ params }: PageProps) {
   if (!estatePlan) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--coral)]"></div>
       </div>
     );
   }
@@ -146,7 +147,7 @@ export default function RemindersPage({ params }: PageProps) {
               </div>
               <button
                 onClick={() => setShowAddForm(true)}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-medium rounded-lg hover:from-blue-600 hover:to-indigo-600 transition-all"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--coral)] text-white font-medium rounded-lg hover:bg-[var(--coral-dark)] transition-all"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -162,13 +163,13 @@ export default function RemindersPage({ params }: PageProps) {
               onClick={() => setActiveTab("reminders")}
               className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
                 activeTab === "reminders"
-                  ? "border-blue-500 text-[var(--accent-purple)]"
+                  ? "border-[var(--coral)] text-[var(--coral)]"
                   : "border-transparent text-[var(--text-muted)] hover:text-[var(--text-body)]"
               }`}
             >
               Reminders
               {stats?.pending ? (
-                <span className="ml-2 px-2 py-0.5 text-xs bg-[var(--accent-muted)] text-blue-700 dark:text-blue-400 rounded-full">
+                <span className="ml-2 px-2 py-0.5 text-xs bg-[var(--accent-muted)] text-[var(--coral)] rounded-full">
                   {stats.pending}
                 </span>
               ) : null}
@@ -177,7 +178,7 @@ export default function RemindersPage({ params }: PageProps) {
               onClick={() => setActiveTab("life-events")}
               className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
                 activeTab === "life-events"
-                  ? "border-blue-500 text-[var(--accent-purple)]"
+                  ? "border-[var(--coral)] text-[var(--coral)]"
                   : "border-transparent text-[var(--text-muted)] hover:text-[var(--text-body)]"
               }`}
             >
@@ -187,7 +188,7 @@ export default function RemindersPage({ params }: PageProps) {
               onClick={() => setActiveTab("settings")}
               className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
                 activeTab === "settings"
-                  ? "border-blue-500 text-[var(--accent-purple)]"
+                  ? "border-[var(--coral)] text-[var(--coral)]"
                   : "border-transparent text-[var(--text-muted)] hover:text-[var(--text-body)]"
               }`}
             >
@@ -275,10 +276,10 @@ export default function RemindersPage({ params }: PageProps) {
                   {recommendations.map((rec, idx) => {
                     const priority = rec.priority || "medium";
                     const priorityColors = {
-                      critical: "border-red-500 bg-red-50",
-                      high: "border-red-400 bg-red-50",
-                      medium: "border-yellow-400 bg-yellow-50",
-                      low: "border-green-400 bg-green-50",
+                      critical: "border-[var(--error)] bg-[var(--error-muted)]",
+                      high: "border-[var(--error)] bg-[var(--error-muted)]",
+                      medium: "border-[var(--warning)] bg-[var(--warning-muted)]",
+                      low: "border-[var(--success)] bg-[var(--success-muted)]",
                     };
                     return (
                       <div
@@ -315,7 +316,7 @@ export default function RemindersPage({ params }: PageProps) {
                 </div>
                 {hasImportedRecommendations && (
                   <p className="text-xs text-[var(--text-muted)] mt-2 flex items-center gap-1">
-                    <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4 text-[var(--success)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     These recommendations have been added to your reminders below
@@ -362,7 +363,7 @@ export default function RemindersPage({ params }: PageProps) {
             {pendingReminders.length === 0 && (
               <div className="text-center py-12 bg-white rounded-xl border border-[var(--border)]">
                 <div className="w-16 h-16 mx-auto mb-4 bg-[var(--off-white)] rounded-full flex items-center justify-center">
-                  <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-8 h-8 text-[var(--text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                   </svg>
                 </div>
@@ -375,13 +376,13 @@ export default function RemindersPage({ params }: PageProps) {
                 <div className="flex gap-3 justify-center">
                   <button
                     onClick={handleSetupDefaultReminders}
-                    className="px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-medium rounded-lg hover:from-blue-600 hover:to-indigo-600 transition-all"
+                    className="px-4 py-2 bg-[var(--coral)] text-white font-medium rounded-lg hover:bg-[var(--coral-dark)] transition-all"
                   >
                     Set Up Default Reminders
                   </button>
                   <button
                     onClick={() => setShowAddForm(true)}
-                    className="px-4 py-2 bg-[var(--off-white)] text-[var(--text-body)] font-medium rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                    className="px-4 py-2 bg-[var(--off-white)] text-[var(--text-body)] font-medium rounded-lg hover:bg-[var(--stone-grey)] transition-colors"
                   >
                     Create Custom Reminder
                   </button>
@@ -399,15 +400,15 @@ export default function RemindersPage({ params }: PageProps) {
                   {completedReminders.slice(0, 5).map((reminder) => (
                     <div
                       key={reminder._id}
-                      className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg"
+                      className="flex items-center gap-3 p-3 bg-[var(--cream)] rounded-lg"
                     >
-                      <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-5 h-5 text-[var(--success)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                       <span className="flex-1 text-[var(--text-body)] line-through">
                         {reminder.title}
                       </span>
-                      <span className="text-xs text-gray-400">
+                      <span className="text-xs text-[var(--text-muted)]">
                         {reminder.completedAt && new Date(reminder.completedAt).toLocaleDateString()}
                       </span>
                     </div>
@@ -427,57 +428,10 @@ export default function RemindersPage({ params }: PageProps) {
 
         {/* Settings Tab */}
         {activeTab === "settings" && (
-          <div className="bg-white rounded-xl border border-[var(--border)] p-6 space-y-6">
-            <div>
-              <h3 className="text-lg font-semibold text-[var(--text-heading)] mb-2">
-                Reminder Settings
-              </h3>
-              <p className="text-[var(--text-muted)]">
-                Configure how and when you receive reminders about your estate plan.
-              </p>
-            </div>
-
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 bg-white/50 rounded-lg">
-                <div>
-                  <p className="font-medium text-[var(--text-heading)]">Annual Review Reminders</p>
-                  <p className="text-sm text-[var(--text-muted)]">Remind me to review my estate plan each year</p>
-                </div>
-                <button className="relative w-12 h-6 bg-blue-500 rounded-full transition-colors">
-                  <span className="absolute right-1 top-1 w-4 h-4 bg-white rounded-full shadow transition-transform"></span>
-                </button>
-              </div>
-
-              <div className="flex items-center justify-between p-4 bg-white/50 rounded-lg">
-                <div>
-                  <p className="font-medium text-[var(--text-heading)]">Beneficiary Review</p>
-                  <p className="text-sm text-[var(--text-muted)]">Remind me to check beneficiary designations every 6 months</p>
-                </div>
-                <button className="relative w-12 h-6 bg-blue-500 rounded-full transition-colors">
-                  <span className="absolute right-1 top-1 w-4 h-4 bg-white rounded-full shadow transition-transform"></span>
-                </button>
-              </div>
-
-              <div className="flex items-center justify-between p-4 bg-white/50 rounded-lg">
-                <div>
-                  <p className="font-medium text-[var(--text-heading)]">Life Event Prompts</p>
-                  <p className="text-sm text-[var(--text-muted)]">Create reminders when I log major life events</p>
-                </div>
-                <button className="relative w-12 h-6 bg-blue-500 rounded-full transition-colors">
-                  <span className="absolute right-1 top-1 w-4 h-4 bg-white rounded-full shadow transition-transform"></span>
-                </button>
-              </div>
-            </div>
-
-            <div className="pt-4 border-t border-[var(--border)]">
-              <button
-                onClick={handleSetupDefaultReminders}
-                className="px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-medium rounded-lg hover:from-blue-600 hover:to-indigo-600 transition-all"
-              >
-                Reset to Default Reminders
-              </button>
-            </div>
-          </div>
+          <NotificationSettings
+            estatePlanId={estatePlanIdTyped}
+            onSetupDefaultReminders={handleSetupDefaultReminders}
+          />
         )}
       </main>
 
@@ -491,7 +445,7 @@ export default function RemindersPage({ params }: PageProps) {
               </h3>
               <button
                 onClick={() => setShowAddForm(false)}
-                className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                className="p-1 text-[var(--text-muted)] hover:text-[var(--text-body)]"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -507,7 +461,7 @@ export default function RemindersPage({ params }: PageProps) {
                 <select
                   value={newReminder.type}
                   onChange={(e) => setNewReminder({ ...newReminder, type: e.target.value as ReminderType })}
-                  className="w-full px-3 py-2 bg-white border border-[var(--border)] rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 bg-white border border-[var(--border)] rounded-lg focus:ring-2 focus:ring-[var(--coral)] focus:border-transparent"
                 >
                   <option value="custom">Custom Reminder</option>
                   <option value="annual_review">Annual Review</option>
@@ -524,7 +478,7 @@ export default function RemindersPage({ params }: PageProps) {
                   type="text"
                   value={newReminder.title}
                   onChange={(e) => setNewReminder({ ...newReminder, title: e.target.value })}
-                  className="w-full px-3 py-2 bg-white border border-[var(--border)] rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 bg-white border border-[var(--border)] rounded-lg focus:ring-2 focus:ring-[var(--coral)] focus:border-transparent"
                   placeholder="e.g., Review retirement account beneficiaries"
                 />
               </div>
@@ -537,7 +491,7 @@ export default function RemindersPage({ params }: PageProps) {
                   value={newReminder.description}
                   onChange={(e) => setNewReminder({ ...newReminder, description: e.target.value })}
                   rows={2}
-                  className="w-full px-3 py-2 bg-white border border-[var(--border)] rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                  className="w-full px-3 py-2 bg-white border border-[var(--border)] rounded-lg focus:ring-2 focus:ring-[var(--coral)] focus:border-transparent resize-none"
                   placeholder="Add any helpful details..."
                 />
               </div>
@@ -551,7 +505,7 @@ export default function RemindersPage({ params }: PageProps) {
                     type="date"
                     value={newReminder.dueDate}
                     onChange={(e) => setNewReminder({ ...newReminder, dueDate: e.target.value })}
-                    className="w-full px-3 py-2 bg-white border border-[var(--border)] rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 bg-white border border-[var(--border)] rounded-lg focus:ring-2 focus:ring-[var(--coral)] focus:border-transparent"
                   />
                 </div>
 
@@ -562,7 +516,7 @@ export default function RemindersPage({ params }: PageProps) {
                   <select
                     value={newReminder.priority}
                     onChange={(e) => setNewReminder({ ...newReminder, priority: e.target.value as PriorityType })}
-                    className="w-full px-3 py-2 bg-white border border-[var(--border)] rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 bg-white border border-[var(--border)] rounded-lg focus:ring-2 focus:ring-[var(--coral)] focus:border-transparent"
                   >
                     <option value="low">Low</option>
                     <option value="medium">Medium</option>
@@ -578,7 +532,7 @@ export default function RemindersPage({ params }: PageProps) {
                   id="isRecurring"
                   checked={newReminder.isRecurring}
                   onChange={(e) => setNewReminder({ ...newReminder, isRecurring: e.target.checked })}
-                  className="w-4 h-4 text-blue-600 bg-white border-[var(--border)] rounded focus:ring-blue-500"
+                  className="w-4 h-4 text-[var(--coral)] bg-white border-[var(--border)] rounded focus:ring-[var(--coral)]"
                 />
                 <label htmlFor="isRecurring" className="text-sm text-[var(--text-body)]">
                   Repeat this reminder
@@ -587,7 +541,7 @@ export default function RemindersPage({ params }: PageProps) {
                   <select
                     value={newReminder.recurrencePattern}
                     onChange={(e) => setNewReminder({ ...newReminder, recurrencePattern: e.target.value as RecurrencePattern })}
-                    className="ml-auto px-3 py-1 text-sm bg-white border border-[var(--border)] rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="ml-auto px-3 py-1 text-sm bg-white border border-[var(--border)] rounded-lg focus:ring-2 focus:ring-[var(--coral)] focus:border-transparent"
                   >
                     <option value="monthly">Monthly</option>
                     <option value="quarterly">Quarterly</option>
@@ -602,13 +556,13 @@ export default function RemindersPage({ params }: PageProps) {
               <button
                 onClick={handleCreateReminder}
                 disabled={!newReminder.title || !newReminder.dueDate}
-                className="flex-1 px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-medium rounded-lg hover:from-blue-600 hover:to-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                className="flex-1 px-4 py-2 bg-[var(--coral)] text-white font-medium rounded-lg hover:bg-[var(--coral-dark)] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
               >
                 Create Reminder
               </button>
               <button
                 onClick={() => setShowAddForm(false)}
-                className="px-4 py-2 bg-[var(--off-white)] text-[var(--text-body)] font-medium rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                className="px-4 py-2 bg-[var(--off-white)] text-[var(--text-body)] font-medium rounded-lg hover:bg-[var(--stone-grey)] transition-colors"
               >
                 Cancel
               </button>

@@ -153,6 +153,14 @@
   --gradient-cream: linear-gradient(180deg, var(--cream) 0%, var(--white) 100%);
   --gradient-dark: linear-gradient(180deg, var(--volcanic-black) 0%, #2A2A28 100%);
   --gradient-hero: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(255, 119, 89, 0.08) 0%, transparent 60%);
+
+  /* Gradient variants for reminder types */
+  --gradient-purple: linear-gradient(135deg, var(--quartz) 0%, var(--quartz-dark) 100%);
+  --gradient-coral-accent: linear-gradient(135deg, var(--coral) 0%, var(--coral-dark) 100%);
+  --gradient-success: linear-gradient(135deg, var(--success) 0%, #2D7A4A 100%);
+  --gradient-info: linear-gradient(135deg, var(--info) 0%, #3A6BBB 100%);
+  --gradient-warning: linear-gradient(135deg, var(--warning) 0%, #B8893E 100%);
+  --gradient-error: linear-gradient(135deg, var(--error) 0%, #A33D3D 100%);
 }
 
 /* Tailwind theme integration */
@@ -658,6 +666,21 @@ h5, .h5 {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.3s var(--ease-out) forwards;
 }
 
 @keyframes blob-morph {

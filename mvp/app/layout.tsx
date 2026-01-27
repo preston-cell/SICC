@@ -3,6 +3,7 @@ import { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import ConvexClientProvider from "./ConvexClientProvider";
 import { DM_Sans, JetBrains_Mono } from "next/font/google";
+import { ToastProvider } from "./components/ui/Toast";
 
 // Primary font - DM Sans (Cohere-style)
 const dmSans = DM_Sans({
@@ -37,7 +38,9 @@ export default function RootLayout({
     <html lang="en" className={`${dmSans.variable} ${jetbrainsMono.variable}`}>
       <body className={dmSans.className}>
         <ConvexClientProvider>
-          {children}
+          <ToastProvider>
+            {children}
+          </ToastProvider>
         </ConvexClientProvider>
       </body>
     </html>

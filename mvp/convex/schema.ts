@@ -424,6 +424,70 @@ export default defineSchema({
     .index("by_event_type", ["estatePlanId", "eventType"]),
 
   // ============================================
+  // NOTIFICATION SYSTEM
+  // ============================================
+
+  // Notification preferences per estate plan
+  notificationPreferences: defineTable({
+    estatePlanId: v.id("estatePlans"),
+    userId: v.optional(v.id("users")),
+    // Email notifications
+    emailEnabled: v.boolean(),
+    emailAddress: v.optional(v.string()),
+    emailVerified: v.boolean(),
+    // Push notifications
+    pushEnabled: v.boolean(),
+    pushSubscription: v.optional(v.string()), // JSON stringified push subscription
+    // Digest preferences
+    digestEnabled: v.boolean(),
+    digestFrequency: v.union(
+      v.literal("daily"),
+      v.literal("weekly"),
+      v.literal("monthly")
+    ),
+    // Reminder type preferences
+    annualReviewReminders: v.boolean(),
+    beneficiaryReviewReminders: v.boolean(),
+    lifeEventPrompts: v.boolean(),
+    overdueAlerts: v.boolean(),
+    // Timestamps
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index("by_estate_plan", ["estatePlanId"])
+    .index("by_user", ["userId"]),
+
+  // Notification delivery log
+  notificationLog: defineTable({
+    estatePlanId: v.id("estatePlans"),
+    reminderId: v.optional(v.id("reminders")),
+    // Notification type
+    type: v.union(
+      v.literal("email"),
+      v.literal("push"),
+      v.literal("digest")
+    ),
+    // Notification content
+    subject: v.string(),
+    body: v.optional(v.string()),
+    // Delivery status
+    status: v.union(
+      v.literal("pending"),
+      v.literal("sent"),
+      v.literal("failed"),
+      v.literal("delivered")
+    ),
+    sentAt: v.optional(v.number()),
+    deliveredAt: v.optional(v.number()),
+    // Error tracking
+    error: v.optional(v.string()),
+    retryCount: v.optional(v.number()),
+    // Timestamps
+    createdAt: v.number(),
+  }).index("by_estate_plan", ["estatePlanId"])
+    .index("by_reminder", ["reminderId"])
+    .index("by_status", ["status"]),
+
+  // ============================================
   // UPLOADED DOCUMENTS (Phase 9)
   // ============================================
 

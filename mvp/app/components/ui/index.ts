@@ -12,3 +12,4 @@ export { default as Tabs, TabPanel } from "./Tabs";
 export { default as Spinner } from "./Spinner";
 export { default as Skeleton } from "./Skeleton";
 export { default as Tooltip } from "./Tooltip";
+export { ToastProvider, useToast } from "./Toast";

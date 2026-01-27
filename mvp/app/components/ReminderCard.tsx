@@ -4,6 +4,7 @@ import { useState, ReactNode } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { Id } from "../../convex/_generated/dataModel";
+import { useToast } from "./ui/Toast";
 
 interface Reminder {
   _id: Id<"reminders">;
@@ -67,19 +68,19 @@ const TYPE_ICONS: Record<string, ReactNode> = {
 };
 
 const PRIORITY_COLORS = {
-  low: "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400",
-  medium: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
-  high: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400",
-  urgent: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
+  low: "bg-[var(--success-muted)] text-[var(--success)]",
+  medium: "bg-[var(--info-muted)] text-[var(--info)]",
+  high: "bg-[var(--warning-muted)] text-[var(--warning)]",
+  urgent: "bg-[var(--error-muted)] text-[var(--error)]",
 };
 
 const TYPE_COLORS = {
-  annual_review: "from-indigo-500 to-purple-500",
-  life_event: "from-pink-500 to-rose-500",
-  document_update: "from-blue-500 to-cyan-500",
-  beneficiary_review: "from-emerald-500 to-green-500",
-  custom: "from-gray-500 to-slate-500",
-  preparation_task: "from-amber-500 to-orange-500",
+  annual_review: "bg-[var(--quartz-dark)]",
+  life_event: "bg-[var(--coral)]",
+  document_update: "bg-[var(--info)]",
+  beneficiary_review: "bg-[var(--success)]",
+  custom: "bg-[var(--mushroom-grey)]",
+  preparation_task: "bg-[var(--warning)]",
 };
 
 export function ReminderCard({ reminder, onComplete, subTaskCount }: ReminderCardProps) {
@@ -87,6 +88,7 @@ export function ReminderCard({ reminder, onComplete, subTaskCount }: ReminderCar
   const [isExpanded, setIsExpanded] = useState(false);
   const [showSubTasks, setShowSubTasks] = useState(false);
 
+  const { addToast } = useToast();
   const completeReminder = useMutation(api.reminders.completeReminder);
   const snoozeReminder = useMutation(api.reminders.snoozeReminder);
   const dismissReminder = useMutation(api.reminders.dismissReminder);
@@ -123,6 +125,12 @@ export function ReminderCard({ reminder, onComplete, subTaskCount }: ReminderCar
       await completeParentIfAllDone({ parentReminderId: reminder.parentReminderId });
     }
 
+    addToast({
+      type: "success",
+      title: "Reminder completed",
+      message: "Great job staying on top of your estate plan!",
+    });
+
     onComplete?.();
   };
 
@@ -145,11 +153,25 @@ export function ReminderCard({ reminder, onComplete, subTaskCount }: ReminderCar
       snoozeUntil,
     });
     setShowSnoozeMenu(false);
+
+    addToast({
+      type: "info",
+      title: "Reminder snoozed",
+      message: `We'll remind you again in ${days} day${days !== 1 ? "s" : ""}.`,
+    });
+
     onComplete?.();
   };
 
   const handleDismiss = async () => {
     await dismissReminder({ reminderId: reminder._id });
+
+    addToast({
+      type: "info",
+      title: "Reminder dismissed",
+      message: "You can always create a new reminder if needed.",
+    });
+
     onComplete?.();
   };
 
@@ -158,19 +180,19 @@ export function ReminderCard({ reminder, onComplete, subTaskCount }: ReminderCar
   }
 
   return (
-    <div className={`group relative bg-white dark:bg-gray-800 rounded-xl border-2 transition-all duration-200 overflow-hidden ${
+    <div className={`group relative bg-white dark:bg-[var(--charcoal)] rounded-xl border-2 transition-all duration-200 overflow-hidden ${
       isOverdue
-        ? "border-red-300 dark:border-red-700"
-        : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
+        ? "border-[var(--error)] dark:border-[var(--error)]"
+        : "border-[var(--border)] dark:border-[var(--border)] hover:border-[var(--stone-grey)] dark:hover:border-[var(--stone-grey)]"
     }`}>
       {/* Color accent bar */}
-      <div className={`h-1 bg-gradient-to-r ${TYPE_COLORS[reminder.type]}`} />
+      <div className={`h-1 ${TYPE_COLORS[reminder.type]}`} />
 
       <div className="p-4">
         {/* Header */}
         <div className="flex items-start gap-3">
           {/* Icon */}
-          <div className={`p-2 rounded-lg bg-gradient-to-br ${TYPE_COLORS[reminder.type]} text-white`}>
+          <div className={`p-2 rounded-lg ${TYPE_COLORS[reminder.type]} text-white`}>
             {TYPE_ICONS[reminder.type]}
           </div>
 
@@ -189,7 +211,7 @@ export function ReminderCard({ reminder, onComplete, subTaskCount }: ReminderCar
 
             {/* Due date */}
             <div className={`flex items-center gap-2 mt-1 text-sm ${
-              isOverdue ? "text-red-600 dark:text-red-400" : "text-gray-500 dark:text-gray-400"
+              isOverdue ? "text-[var(--error)]" : "text-[var(--text-muted)]"
             }`}>
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -207,7 +229,7 @@ export function ReminderCard({ reminder, onComplete, subTaskCount }: ReminderCar
               </span>
 
               {reminder.isRecurring && (
-                <span className="flex items-center gap-1 text-blue-600 dark:text-blue-400">
+                <span className="flex items-center gap-1 text-[var(--coral)]">
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                   </svg>
@@ -254,9 +276,9 @@ export function ReminderCard({ reminder, onComplete, subTaskCount }: ReminderCar
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </div>
-                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                <div className="w-full bg-[var(--stone-grey)] dark:bg-[var(--charcoal)] rounded-full h-2">
                   <div
-                    className="bg-gradient-to-r from-green-500 to-emerald-500 h-2 rounded-full transition-all duration-300"
+                    className="bg-[var(--success)] h-2 rounded-full transition-all duration-300"
                     style={{ width: `${(subTaskCount.completed / subTaskCount.total) * 100}%` }}
                   />
                 </div>
@@ -291,8 +313,8 @@ export function ReminderCard({ reminder, onComplete, subTaskCount }: ReminderCar
                     disabled={subTask.status === "completed"}
                     className={`flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
                       subTask.status === "completed"
-                        ? "bg-green-500 border-green-500 text-white"
-                        : "border-gray-300 dark:border-gray-600 hover:border-green-500 dark:hover:border-green-500"
+                        ? "bg-[var(--success)] border-[var(--success)] text-white"
+                        : "border-[var(--border)] dark:border-[var(--stone-grey)] hover:border-[var(--success)] dark:hover:border-[var(--success)]"
                     }`}
                   >
                     {subTask.status === "completed" && (
@@ -321,7 +343,7 @@ export function ReminderCard({ reminder, onComplete, subTaskCount }: ReminderCar
           {/* Complete button */}
           <button
             onClick={handleComplete}
-            className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white text-sm font-medium rounded-lg hover:from-green-600 hover:to-emerald-600 transition-all"
+            className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-[var(--success)] text-white text-sm font-medium rounded-lg hover:opacity-90 transition-all"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
