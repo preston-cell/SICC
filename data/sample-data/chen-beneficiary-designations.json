@@ -1,0 +1,85 @@
+{
+  "meta": {
+    "description": "Beneficiary designations on accounts that pass outside the trust/will (by beneficiary designation). These override the will and trust.",
+    "persona": "Robert Chen",
+    "fictional": true,
+    "note": "Retirement accounts, life insurance, and TOD/POD accounts pass directly to named beneficiaries, NOT through probate or the trust."
+  },
+  "designations": [
+    {
+      "assetType": "retirement_401k",
+      "assetName": "Fidelity 401(k)",
+      "institution": "Fidelity Investments",
+      "accountNumber": "XXXX-6238",
+      "estimatedValue": "$1,850,000",
+      "primaryBeneficiaryName": "Susan Marie Chen",
+      "primaryBeneficiaryRelationship": "Spouse",
+      "primaryBeneficiaryPercentage": 100,
+      "contingentBeneficiaryName": "Chen Family Revocable Living Trust",
+      "contingentBeneficiaryRelationship": "Trust",
+      "contingentBeneficiaryPercentage": 100,
+      "lastReviewedDate": "2016-03-15",
+      "notes": "Spousal beneficiary designation. Contingent beneficiary is the trust. Review: ensure trust contingent designation is still appropriate and that successor trustee is valid."
+    },
+    {
+      "assetType": "retirement_ira",
+      "assetName": "Fidelity Traditional IRA",
+      "institution": "Fidelity Investments",
+      "accountNumber": "XXXX-8914",
+      "estimatedValue": "$420,000",
+      "primaryBeneficiaryName": "Susan Marie Chen",
+      "primaryBeneficiaryRelationship": "Spouse",
+      "primaryBeneficiaryPercentage": 100,
+      "contingentBeneficiaryName": "Emily Chen and Michael Chen",
+      "contingentBeneficiaryRelationship": "Children",
+      "contingentBeneficiaryPercentage": 100,
+      "lastReviewedDate": "2016-03-15",
+      "notes": "Spousal rollover eligible. Contingent beneficiaries are children in equal shares."
+    },
+    {
+      "assetType": "retirement_ira",
+      "assetName": "Fidelity Roth IRA (Susan)",
+      "institution": "Fidelity Investments",
+      "accountNumber": "XXXX-2047",
+      "estimatedValue": "$280,000",
+      "primaryBeneficiaryName": "Robert James Chen",
+      "primaryBeneficiaryRelationship": "Spouse",
+      "primaryBeneficiaryPercentage": 100,
+      "contingentBeneficiaryName": "Emily Chen and Michael Chen",
+      "contingentBeneficiaryRelationship": "Children",
+      "contingentBeneficiaryPercentage": 100,
+      "lastReviewedDate": "2016-03-15",
+      "notes": "Susan's Roth IRA. Spousal rollover eligible."
+    },
+    {
+      "assetType": "life_insurance",
+      "assetName": "Northwestern Mutual Term Life Policy",
+      "institution": "Northwestern Mutual",
+      "accountNumber": "Policy #NWM-7742891",
+      "estimatedValue": "$750,000",
+      "primaryBeneficiaryName": "Susan Marie Chen",
+      "primaryBeneficiaryRelationship": "Spouse",
+      "primaryBeneficiaryPercentage": 100,
+      "contingentBeneficiaryName": "Emily Chen and Michael Chen",
+      "contingentBeneficiaryRelationship": "Children",
+      "contingentBeneficiaryPercentage": 100,
+      "lastReviewedDate": "2016-03-15",
+      "notes": "20-year term life policy. Contingent beneficiaries are children in equal shares. Consider whether ILIT (Irrevocable Life Insurance Trust) would be beneficial for estate tax purposes given estate size."
+    },
+    {
+      "assetType": "brokerage_tod",
+      "assetName": "Charles Schwab Individual Brokerage (Robert)",
+      "institution": "Charles Schwab",
+      "accountNumber": "XXXX-9156",
+      "estimatedValue": "$1,200,000",
+      "primaryBeneficiaryName": "Chen Family Revocable Living Trust",
+      "primaryBeneficiaryRelationship": "Trust",
+      "primaryBeneficiaryPercentage": 100,
+      "contingentBeneficiaryName": null,
+      "contingentBeneficiaryRelationship": null,
+      "contingentBeneficiaryPercentage": null,
+      "lastReviewedDate": "2016-03-15",
+      "notes": "TOD (Transfer on Death) registration to the trust. Ensures account bypasses probate and passes directly to trust."
+    }
+  ]
+}

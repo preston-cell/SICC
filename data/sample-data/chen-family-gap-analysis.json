@@ -1,0 +1,426 @@
+{
+  "meta": {
+    "description": "Expected gap analysis results for the Chen family demo. Use this to validate AI-generated analysis.",
+    "persona": "Robert Chen",
+    "expectedRiskScore": 68,
+    "fictional": true
+  },
+  "overallScore": {
+    "score": 68,
+    "grade": "C+",
+    "summary": "The Chen family estate plan has a solid foundation with a revocable living trust, pour-over wills, and a durable power of attorney. However, several significant gaps have emerged since the plan was created in 2016, including a deceased successor trustee, missing healthcare directives, and no digital asset provisions. Immediate attention is required to address these issues."
+  },
+  "executiveSummary": {
+    "oneLineInsight": "A well-structured 2016 estate plan with critical gaps created by life changes and missing healthcare directives.",
+    "criticalIssues": [
+      "Successor trustee (David Chen) is deceased — no valid backup trustee if both grantors are incapacitated"
+    ],
+    "immediateActions": [
+      "Amend trust to name new successor trustee",
+      "Execute a healthcare proxy and advance directive",
+      "Update all documents to replace deceased David Chen"
+    ],
+    "opportunities": [
+      "Add digital asset provisions to the trust for cryptocurrency and online accounts",
+      "Transfer vacation property into the trust to avoid probate",
+      "Review and update asset schedule to reflect current holdings"
+    ]
+  },
+  "scoreBreakdown": {
+    "documentCompleteness": {
+      "score": 55,
+      "weight": 0.25,
+      "details": "Missing healthcare proxy, advance directive, and HIPAA authorization. Core documents (trust, will, POA) are present but outdated."
+    },
+    "namedFiduciaries": {
+      "score": 45,
+      "weight": 0.20,
+      "details": "Primary fiduciaries (Susan Chen) are valid. Successor trustee, alternate executor, and successor POA agent (David Chen) are all deceased."
+    },
+    "assetCoverage": {
+      "score": 65,
+      "weight": 0.20,
+      "details": "Primary residence and financial accounts are in the trust. Vacation property (2019) and cryptocurrency holdings are not covered."
+    },
+    "stateCompliance": {
+      "score": 85,
+      "weight": 0.15,
+      "details": "Documents generally comply with Massachusetts requirements. Will is self-proving with proper witnesses and notarization."
+    },
+    "recencyAndMaintenance": {
+      "score": 60,
+      "weight": 0.10,
+      "details": "Trust created in 2016, now 8+ years old. Multiple life events (death, property acquisition, crypto) have not been reflected."
+    },
+    "taxOptimization": {
+      "score": 80,
+      "weight": 0.10,
+      "details": "Marital trust provisions are adequate. Massachusetts estate tax threshold ($2M) is a concern with $8.2M estate. Basic planning is in place but could be optimized."
+    }
+  },
+  "findings": {
+    "critical": [
+      {
+        "id": "GAP-001",
+        "title": "Deceased Successor Trustee",
+        "severity": "critical",
+        "category": "named_fiduciaries",
+        "document": "Chen Family Revocable Living Trust",
+        "description": "David William Chen, named as successor trustee in Section 3.2 of the trust, is deceased (died April 2022). If both Robert and Susan Chen become incapacitated or die, there is no valid successor trustee to manage the trust for the benefit of their minor children.",
+        "impact": "Without a valid successor trustee, the court would need to appoint a trustee, causing delays, legal costs, and potential selection of someone the grantors would not have chosen.",
+        "recommendation": "Execute a trust amendment naming a new successor trustee. Consider naming Jennifer Chen (sister) or another trusted individual. Consider naming a professional or corporate trustee as a backup.",
+        "estimatedCost": { "low": 500, "high": 1500 },
+        "urgency": "immediate"
+      }
+    ],
+    "high": [
+      {
+        "id": "GAP-002",
+        "title": "Missing Healthcare Proxy / Advance Directive",
+        "severity": "high",
+        "category": "missing_documents",
+        "document": null,
+        "description": "Robert Chen has no healthcare proxy or advance directive on file. If he becomes incapacitated, there is no legal document authorizing anyone — including Susan — to make medical decisions on his behalf.",
+        "impact": "In Massachusetts, without a healthcare proxy, the family would need to petition the court for guardianship to make medical decisions. This causes delays during medical emergencies and significant emotional and financial stress.",
+        "recommendation": "Execute a Massachusetts healthcare proxy designating Susan Chen as healthcare agent, with a successor agent. Also consider an advance directive specifying end-of-life care preferences.",
+        "estimatedCost": { "low": 200, "high": 500 },
+        "urgency": "immediate"
+      },
+      {
+        "id": "GAP-003",
+        "title": "No Digital Asset Provisions",
+        "severity": "high",
+        "category": "missing_provisions",
+        "document": "Chen Family Revocable Living Trust",
+        "description": "The trust, created in 2016, contains no provisions for digital assets. Robert Chen holds cryptocurrency (Bitcoin, Ethereum) on Coinbase, online brokerage accounts, and tech company stock options. Massachusetts has adopted the Revised Uniform Fiduciary Access to Digital Assets Act (RUFADAA), which governs fiduciary access to digital assets.",
+        "impact": "Without explicit digital asset provisions, the trustee may face legal barriers accessing cryptocurrency wallets, online investment accounts, and other digital property. Cryptocurrency could be permanently lost if access credentials are not properly managed.",
+        "recommendation": "Amend the trust to include a comprehensive digital asset clause granting the trustee authority to access, manage, and distribute digital assets. Include a digital asset inventory and credential management plan.",
+        "estimatedCost": { "low": 500, "high": 1500 },
+        "urgency": "30-days"
+      }
+    ],
+    "medium": [
+      {
+        "id": "GAP-004",
+        "title": "Vacation Property Not in Trust",
+        "severity": "medium",
+        "category": "asset_coverage",
+        "document": "Chen Family Revocable Living Trust",
+        "description": "A vacation property in Vermont acquired in 2019 is not titled in the name of the trust and does not appear on the trust's asset schedule (Schedule A). This property would pass through probate rather than through the trust.",
+        "impact": "The Vermont property would require ancillary probate in Vermont (a separate probate proceeding in addition to Massachusetts), increasing costs and complexity. The property would not benefit from the trust's distribution provisions.",
+        "recommendation": "Execute a deed transferring the Vermont property into the trust. Update Schedule A to include the property with current valuation. Note: Vermont may have specific requirements for trust-held real property.",
+        "estimatedCost": { "low": 300, "high": 800 },
+        "urgency": "30-days"
+      },
+      {
+        "id": "GAP-005",
+        "title": "Deceased Alternate Executor (Pour-Over Will)",
+        "severity": "medium",
+        "category": "named_fiduciaries",
+        "document": "Robert Chen Pour-Over Will",
+        "description": "David William Chen, named as successor executor in Section 4.2 of Robert's pour-over will, is deceased. While Susan Chen is the primary executor and is expected to survive, if she is unable to serve, there is no valid alternate.",
+        "impact": "If Susan predeceases Robert or is unable to serve as executor, the court would need to appoint an executor, potentially causing delays and selecting someone not aligned with Robert's wishes.",
+        "recommendation": "Execute a codicil or new will naming a replacement successor executor.",
+        "estimatedCost": { "low": 300, "high": 800 },
+        "urgency": "30-days"
+      },
+      {
+        "id": "GAP-006",
+        "title": "Deceased Successor POA Agent",
+        "severity": "medium",
+        "category": "named_fiduciaries",
+        "document": "Robert Chen Durable Power of Attorney",
+        "description": "David William Chen, named as successor agent in Section 1.2 of the durable power of attorney, is deceased. If Susan Chen is unable to act as agent, there is no valid successor.",
+        "impact": "If Susan is unable to serve as agent (e.g., both spouses in an accident), no one has legal authority to manage Robert's financial affairs without court intervention.",
+        "recommendation": "Execute a new durable power of attorney naming a valid successor agent.",
+        "estimatedCost": { "low": 200, "high": 500 },
+        "urgency": "30-days"
+      },
+      {
+        "id": "GAP-007",
+        "title": "Outdated Asset Schedule",
+        "severity": "medium",
+        "category": "asset_coverage",
+        "document": "Chen Family Revocable Living Trust",
+        "description": "The trust's Schedule A lists assets valued as of March 2016 with a total estimated value of $3,142,000. The current estate is estimated at $8.2 million — a significant increase not reflected in the trust records.",
+        "impact": "While the trust's general terms still apply to assets properly titled in the trust, an outdated schedule can create confusion during administration and may lead to assets being overlooked.",
+        "recommendation": "Update Schedule A with current asset inventory and valuations. This is a good opportunity to ensure all appropriate assets are properly titled in the trust.",
+        "estimatedCost": { "low": 200, "high": 500 },
+        "urgency": "90-days"
+      }
+    ],
+    "advisory": [
+      {
+        "id": "GAP-008",
+        "title": "Estate Plan Age — General Review Recommended",
+        "severity": "advisory",
+        "category": "recency",
+        "document": "All documents",
+        "description": "The entire estate plan was created in March 2016, now over 8 years ago. Estate planning best practices recommend a comprehensive review every 3-5 years, or sooner when significant life events occur.",
+        "impact": "Older estate plans may not reflect current tax laws, family circumstances, or estate planning best practices. Massachusetts estate tax thresholds and federal exemption amounts may have changed.",
+        "recommendation": "Schedule a comprehensive review with an estate planning attorney. Consider whether the current trust structure optimally addresses Massachusetts estate tax (threshold: $2 million with cliff effect) given the $8.2M estate.",
+        "estimatedCost": { "low": 2000, "high": 5000 },
+        "urgency": "90-days"
+      },
+      {
+        "id": "GAP-009",
+        "title": "No HIPAA Authorization",
+        "severity": "advisory",
+        "category": "missing_documents",
+        "document": null,
+        "description": "No HIPAA authorization is on file. While a healthcare proxy may implicitly grant some access, a standalone HIPAA authorization ensures that designated individuals can access medical records and communicate with healthcare providers.",
+        "impact": "Without a HIPAA authorization, family members may face delays in obtaining medical information, which can be critical during emergencies.",
+        "recommendation": "Execute a HIPAA authorization form designating Susan Chen and at least one other family member to access medical records.",
+        "estimatedCost": { "low": 0, "high": 100 },
+        "urgency": "90-days"
+      }
+    ]
+  },
+  "missingDocuments": [
+    {
+      "document": "Healthcare Proxy",
+      "priority": "high",
+      "reason": "No healthcare proxy on file. Massachusetts law (M.G.L. c. 201D) allows individuals to appoint a healthcare agent. Without one, medical decisions may require court intervention.",
+      "consequences": [
+        "No one legally authorized to make medical decisions if Robert is incapacitated",
+        "Family would need to petition court for guardianship",
+        "Delays in critical medical care decisions"
+      ],
+      "stateRequirements": "Massachusetts requires a healthcare proxy to be signed by the principal, two witnesses (not the agent), and is recommended to be notarized."
+    },
+    {
+      "document": "Advance Directive / Living Will",
+      "priority": "high",
+      "reason": "No advance directive specifying end-of-life care preferences. While not legally required, it provides critical guidance for the healthcare agent and family.",
+      "consequences": [
+        "Healthcare agent has no documented guidance on end-of-life wishes",
+        "Family conflict possible over care decisions",
+        "Medical providers may default to aggressive treatment"
+      ]
+    },
+    {
+      "document": "HIPAA Authorization",
+      "priority": "medium",
+      "reason": "No HIPAA authorization allowing designated individuals to access medical information.",
+      "consequences": [
+        "Potential delays in family accessing medical records",
+        "Healthcare providers may refuse to share information"
+      ]
+    }
+  ],
+  "outdatedDocuments": [
+    {
+      "document": "Chen Family Revocable Living Trust",
+      "issue": "Created March 2016 — 8+ years old. Successor trustee is deceased. No digital asset provisions. Asset schedule does not reflect properties and investments acquired since 2016.",
+      "risk": "Gaps in fiduciary succession, asset coverage, and modern provisions.",
+      "recommendation": "Comprehensive trust amendment addressing successor trustee, digital assets, and updated asset schedule."
+    },
+    {
+      "document": "Robert Chen Pour-Over Will",
+      "issue": "Created March 2016. Alternate executor (David Chen) is deceased.",
+      "risk": "No valid alternate executor if Susan Chen is unable to serve.",
+      "recommendation": "Execute new will or codicil naming replacement successor executor."
+    },
+    {
+      "document": "Robert Chen Durable Power of Attorney",
+      "issue": "Created March 2016. Successor agent (David Chen) is deceased.",
+      "risk": "No valid successor agent if Susan Chen is unable to act.",
+      "recommendation": "Execute new POA naming replacement successor agent."
+    }
+  ],
+  "inconsistencies": [
+    {
+      "type": "cross_document",
+      "severity": "medium",
+      "issue": "All three documents name David William Chen as a successor/alternate fiduciary, and all three are affected by his death in 2022. This creates a coordinated failure across the entire estate plan.",
+      "resolution": "Update all three documents simultaneously to name consistent replacement fiduciaries."
+    },
+    {
+      "type": "asset_mismatch",
+      "severity": "medium",
+      "issue": "Trust Schedule A lists total assets of $3.14M (2016 values) while current estate is estimated at $8.2M. Multiple assets not reflected including vacation property and cryptocurrency.",
+      "resolution": "Update Schedule A to reflect all current assets with current valuations. Transfer vacation property deed into trust."
+    }
+  ],
+  "stateSpecificNotes": [
+    {
+      "topic": "Massachusetts Estate Tax",
+      "rule": "Massachusetts imposes its own estate tax with a $2 million threshold and a cliff effect — if the estate exceeds $2M, the ENTIRE estate is taxed, not just the amount over $2M.",
+      "impact": "With an $8.2M estate, the Chen family faces significant Massachusetts estate tax exposure. Proper planning (e.g., credit shelter trust, QTIP trust) can minimize this burden.",
+      "action": "Review trust structure to ensure optimal use of both spouses' Massachusetts estate tax exemptions. Consider whether current marital trust provisions adequately address the cliff effect.",
+      "citation": "M.G.L. c. 65C"
+    },
+    {
+      "topic": "Healthcare Proxy Law",
+      "rule": "Massachusetts Healthcare Proxy Law (M.G.L. c. 201D) allows appointment of a healthcare agent. A healthcare proxy supersedes a living will in Massachusetts.",
+      "impact": "Robert Chen currently has no healthcare proxy. This is one of the most important documents for Massachusetts residents.",
+      "action": "Execute a Massachusetts-compliant healthcare proxy as a top priority.",
+      "citation": "M.G.L. c. 201D"
+    },
+    {
+      "topic": "Digital Assets — RUFADAA",
+      "rule": "Massachusetts adopted the Revised Uniform Fiduciary Access to Digital Assets Act, giving fiduciaries the ability to manage digital assets if properly authorized in estate planning documents.",
+      "impact": "The trust currently has no digital asset provisions. Under RUFADAA, without explicit authorization, the trustee may be unable to access digital accounts.",
+      "action": "Add digital asset provisions to the trust agreement referencing RUFADAA authorization.",
+      "citation": "M.G.L. c. 190B, Art. V, Part 7"
+    },
+    {
+      "topic": "Ancillary Probate — Vermont Property",
+      "rule": "Real property located outside Massachusetts may require ancillary probate in the state where it is located, unless held in a trust.",
+      "impact": "The Vermont vacation property, if not transferred into the trust, would require a separate probate proceeding in Vermont.",
+      "action": "Transfer Vermont property into the trust via a proper deed to avoid ancillary probate.",
+      "citation": "Vermont Probate Code, Title 14"
+    }
+  ],
+  "recommendations": [
+    {
+      "rank": 1,
+      "action": "Amend trust to name new successor trustee",
+      "category": "named_fiduciaries",
+      "timeline": "immediate",
+      "cost": { "low": 500, "high": 1500 },
+      "steps": [
+        "Identify and discuss potential successor trustees with your spouse",
+        "Consider both individual (e.g., Jennifer Chen) and institutional (corporate trustee) options",
+        "Have attorney draft trust amendment",
+        "Execute amendment with proper witnesses and notarization"
+      ]
+    },
+    {
+      "rank": 2,
+      "action": "Execute healthcare proxy and advance directive",
+      "category": "missing_documents",
+      "timeline": "immediate",
+      "cost": { "low": 200, "high": 500 },
+      "steps": [
+        "Discuss healthcare preferences with your spouse",
+        "Choose a successor healthcare agent (in case Susan is unable to serve)",
+        "Have attorney draft Massachusetts-compliant healthcare proxy",
+        "Consider adding an advance directive for end-of-life preferences",
+        "Execute with two witnesses (not the healthcare agent)"
+      ]
+    },
+    {
+      "rank": 3,
+      "action": "Update pour-over will with new alternate executor",
+      "category": "named_fiduciaries",
+      "timeline": "30-days",
+      "cost": { "low": 300, "high": 800 },
+      "steps": [
+        "Choose replacement alternate executor",
+        "Execute a codicil or new will",
+        "Ensure consistency with trust successor trustee selections"
+      ]
+    },
+    {
+      "rank": 4,
+      "action": "Execute new durable POA with valid successor agent",
+      "category": "named_fiduciaries",
+      "timeline": "30-days",
+      "cost": { "low": 200, "high": 500 },
+      "steps": [
+        "Choose replacement successor agent",
+        "Have attorney draft new durable power of attorney",
+        "Execute with proper witnesses and notarization",
+        "Destroy or revoke the old POA"
+      ]
+    },
+    {
+      "rank": 5,
+      "action": "Add digital asset provisions to trust",
+      "category": "missing_provisions",
+      "timeline": "30-days",
+      "cost": { "low": 500, "high": 1500 },
+      "steps": [
+        "Create inventory of all digital assets (crypto, online accounts, stock options)",
+        "Document access credentials and store securely (not in the trust itself)",
+        "Have attorney draft digital asset amendment referencing RUFADAA",
+        "Include specific authorization for trustee to access and manage digital accounts"
+      ]
+    },
+    {
+      "rank": 6,
+      "action": "Transfer Vermont vacation property into trust",
+      "category": "asset_coverage",
+      "timeline": "30-days",
+      "cost": { "low": 300, "high": 800 },
+      "steps": [
+        "Obtain current deed for Vermont property",
+        "Have attorney draft new deed transferring property to trust",
+        "Record deed in appropriate Vermont county",
+        "Notify mortgage lender if applicable",
+        "Update Schedule A"
+      ]
+    },
+    {
+      "rank": 7,
+      "action": "Update trust Schedule A with current assets",
+      "category": "asset_coverage",
+      "timeline": "90-days",
+      "cost": { "low": 200, "high": 500 },
+      "steps": [
+        "Gather current statements for all financial accounts",
+        "Obtain current property appraisals or estimates",
+        "Have attorney update Schedule A",
+        "Verify all accounts are properly titled in the trust name"
+      ]
+    },
+    {
+      "rank": 8,
+      "action": "Comprehensive estate plan review for tax optimization",
+      "category": "tax_optimization",
+      "timeline": "90-days",
+      "cost": { "low": 2000, "high": 5000 },
+      "steps": [
+        "Review Massachusetts estate tax exposure ($8.2M estate with $2M threshold)",
+        "Evaluate credit shelter trust provisions",
+        "Consider QTIP or disclaimer trust strategies",
+        "Review beneficiary designations on retirement accounts and life insurance",
+        "Assess whether current trust structure optimally uses both spouses' exemptions"
+      ]
+    }
+  ],
+  "financialExposure": {
+    "probate": {
+      "amount": 15000,
+      "description": "Vermont vacation property would require ancillary probate if not transferred to trust. Estimated Massachusetts probate costs minimal due to existing trust."
+    },
+    "estateTax": {
+      "amount": 400000,
+      "description": "Estimated Massachusetts estate tax on $8.2M estate. Federal estate tax not applicable under current exemption ($13.61M in 2024). Massachusetts cliff effect applies — entire estate taxed once threshold exceeded."
+    },
+    "total": 415000
+  },
+  "scenarioAnalysis": [
+    {
+      "name": "Both spouses incapacitated simultaneously",
+      "description": "Car accident or other event incapacitates both Robert and Susan",
+      "currentOutcome": "No valid successor trustee to manage trust. No healthcare proxy to make medical decisions. Court intervention required for both financial and medical decisions.",
+      "desiredOutcome": "Successor trustee manages trust assets. Healthcare agent makes medical decisions. Children's care handled by named guardian.",
+      "gaps": ["Deceased successor trustee", "Missing healthcare proxy"],
+      "financialImpact": 50000,
+      "likelihood": "low",
+      "fixes": ["Name new successor trustee", "Execute healthcare proxy"]
+    },
+    {
+      "name": "Robert dies unexpectedly",
+      "description": "Robert dies without updating the estate plan",
+      "currentOutcome": "Susan becomes sole trustee and executor. Vermont property goes through probate (including Vermont ancillary probate). Cryptocurrency access uncertain. No successor trustee if Susan later becomes incapacitated.",
+      "desiredOutcome": "All assets pass smoothly through trust. Susan has clear authority. Successor trustee named for future contingency.",
+      "gaps": ["Vermont property not in trust", "No digital asset provisions", "Deceased successor trustee"],
+      "financialImpact": 25000,
+      "likelihood": "medium",
+      "fixes": ["Transfer Vermont property to trust", "Add digital asset provisions", "Name new successor trustee"]
+    },
+    {
+      "name": "Robert becomes incapacitated",
+      "description": "Stroke or illness leaves Robert unable to manage affairs",
+      "currentOutcome": "Susan can act as trustee and POA agent for finances. No one authorized for healthcare decisions without court intervention. If Susan later cannot serve, no valid successor for any role.",
+      "desiredOutcome": "Susan manages finances via POA and trust. Healthcare agent makes medical decisions. Successor agents named for all contingencies.",
+      "gaps": ["Missing healthcare proxy", "Deceased successor POA agent"],
+      "financialImpact": 30000,
+      "likelihood": "medium",
+      "fixes": ["Execute healthcare proxy", "Name new successor POA agent"]
+    }
+  ]
+}

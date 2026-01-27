@@ -1,0 +1,163 @@
+{
+  "meta": {
+    "persona": "Robert Chen",
+    "description": "Primary demo persona for investor/partner presentations",
+    "createdFor": "EstateAI sample data",
+    "fictional": true
+  },
+  "intake": {
+    "personal": {
+      "firstName": "Robert",
+      "middleName": "James",
+      "lastName": "Chen",
+      "dateOfBirth": "1973-06-15",
+      "stateOfResidence": "MA",
+      "maritalStatus": "married"
+    },
+    "family": {
+      "spouseFirstName": "Susan",
+      "spouseLastName": "Chen",
+      "spouseDateOfBirth": "1975-03-22",
+      "hasChildren": true,
+      "children": [
+        {
+          "firstName": "Emily",
+          "lastName": "Chen",
+          "dateOfBirth": "2006-09-10",
+          "relationship": "biological"
+        },
+        {
+          "firstName": "Michael",
+          "lastName": "Chen",
+          "dateOfBirth": "2009-11-28",
+          "relationship": "biological"
+        }
+      ],
+      "hasMinorChildren": true,
+      "hasDependents": false,
+      "dependents": []
+    },
+    "assets": {
+      "assetTypes": [
+        "home",
+        "savings",
+        "retirement",
+        "investments",
+        "insurance"
+      ],
+      "homeValue": "over_2m",
+      "hasMortgage": true,
+      "retirementValue": "over_1m",
+      "liquidAssetsValue": "over_1m",
+      "lifeInsuranceValue": "500k_1m",
+      "totalEstateEstimate": "5m_10m"
+    },
+    "existing_documents": {
+      "hasWill": true,
+      "willYear": "2016",
+      "willConcerns": "Brother named as alternate executor has passed away. Need to update.",
+      "hasTrust": true,
+      "trustType": "revocable_living",
+      "trustYear": "2016",
+      "hasFinancialPOA": true,
+      "hasHealthcarePOA": false,
+      "hasHIPAA": false
+    },
+    "goals": {
+      "topPriorities": [
+        "protect_family",
+        "minimize_taxes",
+        "avoid_probate"
+      ],
+      "distributionPreference": "spouse_first",
+      "executorName": "Susan Chen",
+      "executorRelationship": "Spouse",
+      "backupExecutorName": "David Chen",
+      "healthcareProxyName": "",
+      "healthcareProxyRelationship": "",
+      "financialPOAName": "Susan Chen",
+      "guardianName": "Jennifer Chen",
+      "guardianRelationship": "Paternal aunt",
+      "backupGuardianName": "Margaret Liu",
+      "lifeSupportPreference": "undecided",
+      "organDonation": "undecided",
+      "funeralPreference": "undecided",
+      "wantsCharitableGiving": false,
+      "hasDigitalAssets": true,
+      "digitalAssetsNotes": "Cryptocurrency holdings (Bitcoin, Ethereum) on Coinbase. Online brokerage accounts at Fidelity and Schwab. Various tech company stock options."
+    }
+  },
+  "knownLifeEvents": [
+    {
+      "eventType": "death",
+      "title": "Brother David Chen passed away",
+      "description": "David Chen, named as successor trustee, alternate executor, and successor POA agent, died in 2022. This creates gaps in all three documents.",
+      "eventDate": "2022-04-15",
+      "requiresDocumentUpdate": true,
+      "documentsAffected": ["trust", "will", "poa_financial"],
+      "planUpdated": false
+    },
+    {
+      "eventType": "major_asset_change",
+      "title": "Acquired vacation property in Vermont",
+      "description": "Purchased lake house in Vermont in 2019. Property is not titled in the trust and not reflected in the asset schedule.",
+      "eventDate": "2019-07-01",
+      "requiresDocumentUpdate": true,
+      "documentsAffected": ["trust"],
+      "planUpdated": false
+    },
+    {
+      "eventType": "major_asset_change",
+      "title": "Began investing in cryptocurrency",
+      "description": "Started purchasing Bitcoin and Ethereum in 2020. Trust has no digital asset provisions.",
+      "eventDate": "2020-03-01",
+      "requiresDocumentUpdate": true,
+      "documentsAffected": ["trust"],
+      "planUpdated": false
+    }
+  ],
+  "documents": [
+    {
+      "type": "trust",
+      "fileName": "chen-family-trust-2016.md",
+      "documentType": "trust",
+      "description": "Chen Family Revocable Living Trust, established March 2016",
+      "pages": 28
+    },
+    {
+      "type": "will",
+      "fileName": "chen-robert-pour-over-will.md",
+      "documentType": "will",
+      "description": "Robert Chen Pour-Over Will, executed March 2016",
+      "pages": 6
+    },
+    {
+      "type": "poa_financial",
+      "fileName": "chen-robert-poa.md",
+      "documentType": "poa_financial",
+      "description": "Robert Chen Durable Power of Attorney, executed March 2016",
+      "pages": 5
+    },
+    {
+      "type": "will",
+      "fileName": "chen-susan-pour-over-will.md",
+      "documentType": "will",
+      "description": "Susan Chen Pour-Over Will, executed March 2016",
+      "pages": 6
+    }
+  ],
+  "intentionallyMissing": [
+    {
+      "type": "healthcare_directive",
+      "reason": "Demonstrates missing document gap detection"
+    },
+    {
+      "type": "poa_healthcare",
+      "reason": "Demonstrates missing healthcare proxy detection"
+    },
+    {
+      "type": "hipaa",
+      "reason": "Demonstrates missing HIPAA authorization detection"
+    }
+  ]
+}

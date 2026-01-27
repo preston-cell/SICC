@@ -1,0 +1,72 @@
+{
+  "meta": {
+    "description": "Key people in the Chen family estate plan with their roles",
+    "persona": "Robert Chen",
+    "fictional": true
+  },
+  "contacts": [
+    {
+      "name": "Susan Marie Chen",
+      "relationship": "Spouse",
+      "roles": ["trustee", "executor", "financial_poa", "beneficiary"],
+      "phone": "(617) 555-0142",
+      "email": "susan.chen@example.com",
+      "address": "847 Maple Ridge Drive, Lexington, MA 02421",
+      "notes": "Primary fiduciary across all documents. Co-grantor and co-trustee of the Chen Family Trust."
+    },
+    {
+      "name": "David William Chen",
+      "relationship": "Brother",
+      "roles": ["trustee", "executor", "financial_poa"],
+      "phone": null,
+      "email": null,
+      "address": "Formerly: 512 Oak Street, Newton, MA 02460",
+      "notes": "DECEASED — April 2022. Named as successor trustee, alternate executor, and successor POA agent across all documents. All references to David as a fiduciary must be updated."
+    },
+    {
+      "name": "Jennifer Chen",
+      "relationship": "Sister (Robert's sister)",
+      "roles": ["guardian"],
+      "phone": "(617) 555-0198",
+      "email": "jennifer.chen@example.com",
+      "address": "215 Brattle Street, Cambridge, MA 02138",
+      "notes": "Named guardian of minor children in both wills. Potential candidate for successor trustee, alternate executor, and successor POA agent (to replace David)."
+    },
+    {
+      "name": "Margaret Liu",
+      "relationship": "Family friend",
+      "roles": ["guardian"],
+      "phone": "(617) 555-0234",
+      "email": "margaret.liu@example.com",
+      "address": "78 Harvard Street, Brookline, MA 02446",
+      "notes": "Named as successor guardian of minor children in both wills."
+    },
+    {
+      "name": "Emily Chen",
+      "relationship": "Daughter",
+      "roles": ["beneficiary"],
+      "phone": null,
+      "email": null,
+      "address": "847 Maple Ridge Drive, Lexington, MA 02421",
+      "notes": "Age 19. Beneficiary of equal share under the trust. Subject to minor beneficiary provisions (staggered distribution at ages 25, 30, 35)."
+    },
+    {
+      "name": "Michael Chen",
+      "relationship": "Son",
+      "roles": ["beneficiary"],
+      "phone": null,
+      "email": null,
+      "address": "847 Maple Ridge Drive, Lexington, MA 02421",
+      "notes": "Age 16. Minor child. Beneficiary of equal share under the trust. Subject to minor beneficiary provisions (staggered distribution at ages 25, 30, 35)."
+    },
+    {
+      "name": "Margaret A. Harrison, Esq.",
+      "relationship": "Estate planning attorney",
+      "roles": ["attorney"],
+      "phone": "(617) 555-0300",
+      "email": "mharrison@harrisonlaw.example.com",
+      "address": "128 Federal Street, Suite 400, Boston, MA 02110",
+      "notes": "Harrison & Associates, LLP. Prepared all original estate planning documents in March 2016."
+    }
+  ]
+}
