@@ -697,13 +697,11 @@ function buildAnalysisPrompt(intakeData: {
   goals?: { data: string };
   beneficiaryDesignations?: BeneficiaryDesignation[];
 }): string {
-  const state = intakeData.estatePlan?.stateOfResidence || "Unknown";
-
-  let personalData = {};
-  let familyData = {};
-  let assetsData = {};
-  let existingDocsData = {};
-  let goalsData = {};
+  let personalData: Record<string, unknown> = {};
+  let familyData: Record<string, unknown> = {};
+  let assetsData: Record<string, unknown> = {};
+  let existingDocsData: Record<string, unknown> = {};
+  let goalsData: Record<string, unknown> = {};
 
   try {
     if (intakeData.personal?.data) personalData = JSON.parse(intakeData.personal.data);
@@ -714,6 +712,13 @@ function buildAnalysisPrompt(intakeData: {
   } catch (e) {
     console.error("Error parsing intake data:", e);
   }
+
+  // Get state from estatePlan first, then fall back to personal data
+  // Note: The personal intake form stores state as "state" field, not "stateOfResidence"
+  const state = intakeData.estatePlan?.stateOfResidence
+    || (personalData.state as string)
+    || (personalData.stateOfResidence as string)
+    || "Unknown";
 
   const beneficiaryData = intakeData.beneficiaryDesignations || [];
 

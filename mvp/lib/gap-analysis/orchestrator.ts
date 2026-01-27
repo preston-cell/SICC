@@ -41,12 +41,11 @@ export function parseIntakeData(intakeData: {
   goals?: { data: string };
   beneficiaryDesignations?: BeneficiaryDesignation[];
 }): ParsedIntake {
-  const state = intakeData.estatePlan?.stateOfResidence || "Unknown";
-  let personal = {};
-  let family = {};
-  let assets = {};
-  let existingDocs = {};
-  let goals = {};
+  let personal: Record<string, unknown> = {};
+  let family: Record<string, unknown> = {};
+  let assets: Record<string, unknown> = {};
+  let existingDocs: Record<string, unknown> = {};
+  let goals: Record<string, unknown> = {};
 
   try {
     if (intakeData.personal?.data) personal = JSON.parse(intakeData.personal.data);
@@ -57,6 +56,13 @@ export function parseIntakeData(intakeData: {
   } catch (e) {
     console.error("Error parsing intake data:", e);
   }
+
+  // Get state from estatePlan first, then fall back to personal data
+  // Note: The personal intake form stores state as "state" field, not "stateOfResidence"
+  const state = intakeData.estatePlan?.stateOfResidence
+    || (personal.state as string)
+    || (personal.stateOfResidence as string)
+    || "Unknown";
 
   return {
     state,

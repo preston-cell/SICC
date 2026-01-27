@@ -46,7 +46,7 @@ export default function SaveProgressPrompt({
   }
 
   return (
-    <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg p-4 mb-6 shadow-lg">
+    <div className="rounded-lg p-4 mb-6 shadow-lg" style={{ background: 'linear-gradient(to right, var(--coral), var(--coral-dark))' }}>
       <div className="flex items-start gap-4">
         <div className="flex-shrink-0">
           <svg
@@ -70,7 +70,7 @@ export default function SaveProgressPrompt({
           </p>
           <div className="flex items-center gap-3 mt-3">
             <SignUpButton mode="modal">
-              <button className="px-4 py-2 bg-white text-blue-600 rounded-lg text-sm font-medium hover:bg-blue-50 transition-colors">
+              <button className="px-4 py-2 bg-white rounded-lg text-sm font-medium hover:bg-gray-100 transition-colors" style={{ color: 'var(--coral-dark)' }}>
                 Create Free Account
               </button>
             </SignUpButton>

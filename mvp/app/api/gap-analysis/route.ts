@@ -40,12 +40,11 @@ interface ParsedIntake {
 }
 
 function parseIntakeData(intakeData: IntakeData): ParsedIntake {
-  const state = intakeData.estatePlan?.stateOfResidence || "Unknown";
-  let personal = {};
-  let family = {};
-  let assets = {};
-  let existingDocs = {};
-  let goals = {};
+  let personal: Record<string, unknown> = {};
+  let family: Record<string, unknown> = {};
+  let assets: Record<string, unknown> = {};
+  let existingDocs: Record<string, unknown> = {};
+  let goals: Record<string, unknown> = {};
 
   try {
     if (intakeData.personal?.data) personal = JSON.parse(intakeData.personal.data);
@@ -56,6 +55,19 @@ function parseIntakeData(intakeData: IntakeData): ParsedIntake {
   } catch (e) {
     console.error("Error parsing intake data:", e);
   }
+
+  // Get state from estatePlan first, then fall back to personal data
+  // Note: The personal intake form stores state as "state" field, not "stateOfResidence"
+  const state = intakeData.estatePlan?.stateOfResidence
+    || (personal.state as string)
+    || (personal.stateOfResidence as string)
+    || "Unknown";
+
+  console.log("parseIntakeData - state:", state, "from estatePlan:", intakeData.estatePlan?.stateOfResidence, "from personal.state:", personal.state, "from personal.stateOfResidence:", personal.stateOfResidence);
+  console.log("parseIntakeData - personal keys:", Object.keys(personal));
+  console.log("parseIntakeData - family keys:", Object.keys(family));
+  console.log("parseIntakeData - assets keys:", Object.keys(assets));
+  console.log("parseIntakeData - existingDocs keys:", Object.keys(existingDocs));
 
   return {
     state,
@@ -929,6 +941,34 @@ function calculateScore(parsed: ParsedIntake, analysisResult: Record<string, unk
   return Math.max(0, Math.min(100, Math.round(score)));
 }
 
+// Debug endpoint to test intake data parsing without running full analysis
+export async function GET(req: Request) {
+  const url = new URL(req.url);
+  const testMode = url.searchParams.get("test");
+
+  if (testMode === "parse") {
+    // Return info about what the parser would extract
+    return NextResponse.json({
+      message: "Use POST with intakeData and mode=debug to test parsing",
+      example: {
+        intakeData: {
+          estatePlan: { stateOfResidence: "California" },
+          personal: { data: '{"state": "California", "firstName": "John"}' }
+        },
+        mode: "debug"
+      }
+    });
+  }
+
+  return NextResponse.json({
+    status: "ok",
+    endpoints: {
+      "POST /api/gap-analysis": "Run gap analysis (mode: quick, comprehensive, or debug)",
+      "GET /api/gap-analysis?test=parse": "Get parsing info"
+    }
+  });
+}
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -936,6 +976,27 @@ export async function POST(req: Request) {
 
     if (!intakeData) {
       return NextResponse.json({ error: "Intake data is required" }, { status: 400 });
+    }
+
+    // Debug mode - just parse and return without running analysis
+    if (mode === "debug") {
+      const parsed = parseIntakeData(intakeData);
+      const ctx = getClientContext(parsed);
+      return NextResponse.json({
+        success: true,
+        mode: "debug",
+        parsed: {
+          state: parsed.state,
+          personalKeys: Object.keys(parsed.personal),
+          familyKeys: Object.keys(parsed.family),
+          assetsKeys: Object.keys(parsed.assets),
+          existingDocsKeys: Object.keys(parsed.existingDocs),
+          goalsKeys: Object.keys(parsed.goals),
+          beneficiariesCount: parsed.beneficiaries.length,
+        },
+        clientContext: ctx,
+        rawPersonalData: parsed.personal,
+      });
     }
 
     // If comprehensive mode, redirect to orchestration endpoint

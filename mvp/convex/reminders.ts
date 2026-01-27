@@ -581,11 +581,13 @@ export const generateActionItemsFromAnalysis = mutation({
     let createdCount = 0;
 
     // Parse missing documents
-    const missingDocs: Array<{ type: string; priority: string; reason: string }> =
+    // Note: gap analysis API returns "document" field, but handle "type" for backwards compatibility
+    const missingDocs: Array<{ document?: string; type?: string; priority: string; reason: string }> =
       JSON.parse(analysis.missingDocuments || "[]");
 
     for (const doc of missingDocs) {
-      const sourceId = `missing_doc_${doc.type}`;
+      const docName = doc.document || doc.type || "Document";
+      const sourceId = `missing_doc_${docName}`;
       if (existingSourceIds.has(sourceId)) continue;
 
       const priority = (doc.priority as "urgent" | "high" | "medium" | "low") || "medium";
@@ -595,7 +597,7 @@ export const generateActionItemsFromAnalysis = mutation({
       const parentId = await ctx.db.insert("reminders", {
         estatePlanId: args.estatePlanId,
         type: "document_update",
-        title: `Create ${doc.type.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase())}`,
+        title: `Create ${docName.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase())}`,
         description: doc.reason,
         dueDate,
         status: "pending",
@@ -610,8 +612,8 @@ export const generateActionItemsFromAnalysis = mutation({
       createdCount++;
 
       // Create sub-tasks if template exists
-      if (includeSubTasks && TASK_BREAKDOWNS[doc.type]) {
-        const subTasks = TASK_BREAKDOWNS[doc.type];
+      if (includeSubTasks && docName && TASK_BREAKDOWNS[docName]) {
+        const subTasks = TASK_BREAKDOWNS[docName];
         for (let i = 0; i < subTasks.length; i++) {
           await ctx.db.insert("reminders", {
             estatePlanId: args.estatePlanId,
@@ -763,11 +765,13 @@ export const internalGenerateActionItems = internalMutation({
     let createdCount = 0;
 
     // Parse missing documents
-    const missingDocs: Array<{ type: string; priority: string; reason: string }> =
+    // Note: gap analysis API returns "document" field, but handle "type" for backwards compatibility
+    const missingDocs: Array<{ document?: string; type?: string; priority: string; reason: string }> =
       JSON.parse(analysis.missingDocuments || "[]");
 
     for (const doc of missingDocs) {
-      const sourceId = `missing_doc_${doc.type}`;
+      const docName = doc.document || doc.type || "Document";
+      const sourceId = `missing_doc_${docName}`;
       if (existingSourceIds.has(sourceId)) continue;
 
       const priority = (doc.priority as "urgent" | "high" | "medium" | "low") || "medium";
@@ -777,7 +781,7 @@ export const internalGenerateActionItems = internalMutation({
       const parentId = await ctx.db.insert("reminders", {
         estatePlanId: args.estatePlanId,
         type: "document_update",
-        title: `Create ${doc.type.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase())}`,
+        title: `Create ${docName.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase())}`,
         description: doc.reason,
         dueDate,
         status: "pending",
@@ -792,8 +796,8 @@ export const internalGenerateActionItems = internalMutation({
       createdCount++;
 
       // Create sub-tasks if template exists
-      if (includeSubTasks && TASK_BREAKDOWNS[doc.type]) {
-        const subTasks = TASK_BREAKDOWNS[doc.type];
+      if (includeSubTasks && docName && TASK_BREAKDOWNS[docName]) {
+        const subTasks = TASK_BREAKDOWNS[docName];
         for (let i = 0; i < subTasks.length; i++) {
           await ctx.db.insert("reminders", {
             estatePlanId: args.estatePlanId,

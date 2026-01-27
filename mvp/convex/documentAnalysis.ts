@@ -231,10 +231,10 @@ async function runDocumentAnalysis(
   const anthropic = new Anthropic();
 
   // Parse intake data for cross-reference
-  let personalData = {};
-  let familyData = {};
-  let assetsData = {};
-  let goalsData = {};
+  let personalData: Record<string, unknown> = {};
+  let familyData: Record<string, unknown> = {};
+  let assetsData: Record<string, unknown> = {};
+  let goalsData: Record<string, unknown> = {};
 
   intakeData.intakeData.forEach((section: IntakeSection) => {
     try {
@@ -257,6 +257,13 @@ async function runDocumentAnalysis(
       // Ignore parse errors
     }
   });
+
+  // Get state from estatePlan first, then fall back to personal data
+  // Note: The personal intake form stores state as "state" field, not "stateOfResidence"
+  const stateOfResidence = intakeData.estatePlan?.stateOfResidence
+    || (personalData.state as string)
+    || (personalData.stateOfResidence as string)
+    || "Unknown";
 
   const prompt = `You are an expert estate planning attorney. Analyze the following legal document and provide a comprehensive analysis.
 
@@ -283,7 +290,7 @@ ${JSON.stringify(goalsData, null, 2)}
 Beneficiary Designations on Accounts:
 ${JSON.stringify(intakeData.beneficiaryDesignations, null, 2)}
 
-State of Residence: ${intakeData.estatePlan?.stateOfResidence || "Unknown"}
+State of Residence: ${stateOfResidence}
 
 ---
 
