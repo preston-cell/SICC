@@ -61,9 +61,9 @@
 
 **Technology Stack:**
 - Next.js 16 + React 19 frontend
-- Convex real-time backend
+- PostgreSQL via Prisma ORM
 - E2B sandboxed execution
-- Claude Code CLI for AI analysis
+- Claude API (Anthropic) for AI analysis
 
 **Process:**
 - Extract key elements (beneficiaries, executors, assets)
@@ -172,17 +172,17 @@
 ### Slide 12: Traction / Roadmap
 
 **Current Status:**
-- [x] Architecture designed (Next.js + Convex + E2B + Claude Code)
+- [x] Architecture designed (Next.js + Prisma/PostgreSQL + E2B + Claude API)
 - [x] Initial documentation complete
 - [x] Technical spike framework ready
-- [ ] Feasibility spikes in progress
+- [x] MVP built and deployed
 - [ ] Massachusetts rules research
 
 **Tech Stack Validated:**
 - Next.js 16 + React 19 (App Router)
-- Convex (real-time database + serverless)
+- PostgreSQL via Prisma ORM (19 models, REST API)
 - E2B SDK (sandboxed code execution)
-- Claude Code CLI (AI analysis engine)
+- Claude API / Anthropic SDK (AI analysis engine)
 
 **Milestones:**
 - Month 1–2: MVP development
@@ -228,7 +228,7 @@
 
 **Why Now:**
 - AI/LLM capabilities finally enable sophisticated document analysis
-- Claude Code CLI provides agentic AI for complex legal analysis
+- Claude API provides agentic AI for complex legal analysis
 - E2B sandboxing enables secure, isolated document processing
 - HNW demographic entering peak estate planning years
 - Digital adoption accelerating across all segments
@@ -236,7 +236,7 @@
 **Why Us:**
 - Deep understanding of HNW segment needs
 - Analysis-first approach is defensible differentiation
-- Modern tech stack (Next.js + Convex + E2B + Claude Code)
+- Modern tech stack (Next.js + Prisma/PostgreSQL + E2B + Claude API)
 - Technical capability to execute
 
 ---

@@ -2,98 +2,108 @@
 
 ## System Overview
 
-EstateAI is built on a modern serverless architecture using **Next.js** for the frontend, **Convex** for the backend (real-time database + serverless functions), and **E2B** for isolated AI execution. Claude Code runs inside E2B sandboxes to analyze estate planning documents and generate draft legal documents.
+EstateAI is built on a modern full-stack architecture using **Next.js 16** for the frontend and API layer, **PostgreSQL** via **Prisma ORM** for the database, **SWR** for client-side data fetching, and **E2B** for isolated AI execution. Claude API and Claude Code CLI run inside E2B sandboxes to analyze estate planning documents and generate draft legal documents.
 
 ---
 
 ## Architecture Diagram
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                              CLIENT LAYER                                    │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                              │
-│  ┌─────────────────────────────────────────────────────────────────────┐    │
-│  │                     Next.js 16 (App Router)                          │    │
-│  │                                                                      │    │
-│  │  ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐   │    │
-│  │  │  Estate Input    │  │  Analysis View   │  │  Documents       │   │    │
-│  │  │  • Situation     │  │  • Gap report    │  │  • Preview       │   │    │
-│  │  │  • Goals         │  │  • Suggestions   │  │  • Download      │   │    │
-│  │  │  • Assets        │  │  • Risk scores   │  │  • History       │   │    │
-│  │  └────────┬─────────┘  └────────┬─────────┘  └────────┬─────────┘   │    │
-│  │           │                     │                     │              │    │
-│  │           │    useAction(api.runAgent.runAgent)       │              │    │
-│  │           │    useQuery(api.queries.getRun)           │              │    │
-│  │           │    useQuery(api.queries.getFilesForRun)   │              │    │
-│  │           └─────────────────────┼─────────────────────┘              │    │
-│  │                                 │                                    │    │
-│  └─────────────────────────────────┼────────────────────────────────────┘    │
-│                                    │                                         │
-└────────────────────────────────────┼────────────────────────────────────────┘
-                                     │
-                                     ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                           CONVEX BACKEND                                     │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                              │
-│  ┌──────────────────────────────────────────────────────────────────────┐   │
-│  │                        Convex Functions                               │   │
-│  │                                                                       │   │
-│  │  ┌────────────────┐  ┌────────────────┐  ┌────────────────┐          │   │
-│  │  │   Actions      │  │   Mutations    │  │   Queries      │          │   │
-│  │  │                │  │                │  │                │          │   │
-│  │  │  runAgent.ts   │  │  createRun     │  │  getRun        │          │   │
-│  │  │  • Start E2B   │  │  updateRun     │  │  listRuns      │          │   │
-│  │  │  • Run Claude  │  │  saveFile      │  │  getFilesForRun│          │   │
-│  │  │  • Save output │  │                │  │                │          │   │
-│  │  └────────┬───────┘  └────────────────┘  └────────────────┘          │   │
-│  │           │                                                           │   │
-│  └───────────┼───────────────────────────────────────────────────────────┘   │
-│              │                                                               │
-│  ┌───────────┼───────────────────────────────────────────────────────────┐   │
-│  │           │           Convex Database                                 │   │
-│  │           │                                                           │   │
-│  │  ┌────────┴───────────────────┐  ┌──────────────────────────────┐    │   │
-│  │  │       agentRuns            │  │       generatedFiles          │    │   │
-│  │  │                            │  │                               │    │   │
-│  │  │  • prompt: string          │  │  • runId: Id<agentRuns>      │    │   │
-│  │  │  • status: enum            │  │  • path: string               │    │   │
-│  │  │  • output: string?         │  │  • content: string            │    │   │
-│  │  │  • error: string?          │  │  • isBinary: boolean          │    │   │
-│  │  │  • createdAt: number       │  │  • size: number               │    │   │
-│  │  │  • completedAt: number?    │  │                               │    │   │
-│  │  └────────────────────────────┘  └──────────────────────────────┘    │   │
-│  │                                                                       │   │
-│  └───────────────────────────────────────────────────────────────────────┘   │
-│                                                                              │
-└──────────────────────────────────────┬──────────────────────────────────────┘
-                                       │
-                                       ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                           E2B SANDBOX                                        │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                              │
-│  ┌──────────────────────────────────────────────────────────────────────┐   │
-│  │                    Isolated Execution Environment                     │   │
-│  │                                                                       │   │
-│  │  ┌────────────────────────────────────────────────────────────────┐  │   │
-│  │  │                  Claude Code CLI                                │  │   │
-│  │  │                  (@anthropic-ai/claude-code)                    │  │   │
-│  │  │                                                                 │  │   │
-│  │  │  Analyzes estate planning situations and generates:             │  │   │
-│  │  │  • Gap analysis reports (markdown)                              │  │   │
-│  │  │  • Draft legal documents (docx, md, txt)                        │  │   │
-│  │  │  • Checklists and recommendations                               │  │   │
-│  │  │  • Risk assessments                                             │  │   │
-│  │  │                                                                 │  │   │
-│  │  └────────────────────────────────────────────────────────────────┘  │   │
-│  │                                                                       │   │
-│  │  Security: Isolated filesystem, network restrictions, time limits     │   │
-│  │                                                                       │   │
-│  └──────────────────────────────────────────────────────────────────────┘   │
-│                                                                              │
-└─────────────────────────────────────────────────────────────────────────────┘
++-------------------------------------------------------------------------+
+|                            CLIENT LAYER                                  |
+|-------------------------------------------------------------------------|
+|                                                                          |
+|  +-------------------------------------------------------------------+  |
+|  |                    Next.js 16 (App Router)                         |  |
+|  |                                                                    |  |
+|  |  +------------------+  +------------------+  +------------------+  |  |
+|  |  |  Intake Wizard   |  |  Analysis View   |  |  Documents       |  |  |
+|  |  |  * Guided (8     |  |  * Gap report    |  |  * Generation    |  |  |
+|  |  |    steps)        |  |  * Score/risks   |  |  * Upload/       |  |  |
+|  |  |  * Comprehensive |  |  * Visualization |  |    analysis      |  |  |
+|  |  |  * Upload        |  |  * Reminders     |  |  * Preview       |  |  |
+|  |  +--------+---------+  +--------+---------+  +--------+---------+  |  |
+|  |           |                     |                     |             |  |
+|  |           |    SWR hooks (usePrismaQueries.ts)        |             |  |
+|  |           |    fetch('/api/...') + sessionId/auth     |             |  |
+|  |           +---------------------+---------------------+             |  |
+|  |                                 |                                   |  |
+|  +---------------------------------+-----------------------------------+  |
+|                                    |                                     |
++------------------------------------+-------------------------------------+
+                                     |
+                                     v
++-------------------------------------------------------------------------+
+|                        NEXT.JS API LAYER                                 |
+|-------------------------------------------------------------------------|
+|                                                                          |
+|  +-------------------------------------------------------------------+  |
+|  |                  27 REST API Routes (app/api/)                     |  |
+|  |                                                                    |  |
+|  |  +----------------+  +----------------+  +----------------+        |  |
+|  |  |  Estate Plans  |  |  Gap Analysis  |  |  Documents     |        |  |
+|  |  |  CRUD + nested |  |  Quick + Orch. |  |  Gen + Upload  |        |  |
+|  |  +----------------+  +----------------+  +----------------+        |  |
+|  |  +----------------+  +----------------+  +----------------+        |  |
+|  |  |  Intake Data   |  |  Reminders     |  |  Users + Auth  |        |  |
+|  |  |  5 sections    |  |  Life events   |  |  Clerk/session |        |  |
+|  |  +----------------+  +----------------+  +----------------+        |  |
+|  |                                                                    |  |
+|  +-------------------------------------------------------------------+  |
+|                                    |                                     |
+|  +-------------------------------------------------------------------+  |
+|  |              Prisma ORM (lib/db.ts)                                |  |
+|  |                                                                    |  |
+|  |  +----------------------------+  +-----------------------------+   |  |
+|  |  |     19 Database Models     |  |      Indexes & Relations    |   |  |
+|  |  |                            |  |                             |   |  |
+|  |  |  User, EstatePlan,        |  |  Cascade deletes            |   |  |
+|  |  |  IntakeData, Document,    |  |  Composite indexes          |   |  |
+|  |  |  GapAnalysis, Reminder,   |  |  Full-text search           |   |  |
+|  |  |  BeneficiaryDesignation,  |  |  Session + User ownership   |   |  |
+|  |  |  GapAnalysisRun/Phase,    |  |                             |   |  |
+|  |  |  UploadedDocument, etc.   |  |                             |   |  |
+|  |  +----------------------------+  +-----------------------------+   |  |
+|  +-------------------------------------------------------------------+  |
+|                                                                          |
++----------------------------------+--------------------------------------+
+                                   |
+                                   v
++-------------------------------------------------------------------------+
+|                         POSTGRESQL DATABASE                              |
+|-------------------------------------------------------------------------|
+|  Local development or AWS RDS (production)                               |
+|  SSL/TLS required for RDS connections                                    |
+|  Prisma Accelerate supported for connection pooling                      |
++-------------------------------------------------------------------------+
+
+                                   |
+                                   v (for AI analysis)
++-------------------------------------------------------------------------+
+|                           E2B SANDBOX                                    |
+|-------------------------------------------------------------------------|
+|                                                                          |
+|  +-------------------------------------------------------------------+  |
+|  |                 Isolated Execution Environment                     |  |
+|  |                                                                    |  |
+|  |  +--------------------------------------------------------------+ |  |
+|  |  |               Claude Code CLI + Claude API                    | |  |
+|  |  |                                                               | |  |
+|  |  |  3-Phase Comprehensive Analysis:                              | |  |
+|  |  |  Phase 1: Research (state law, client context, doc inventory) | |  |
+|  |  |  Phase 2: Analysis (7 parallel runs - tax, medicaid, etc.)   | |  |
+|  |  |  Phase 3: Synthesis (scenarios, priority matrix, report)      | |  |
+|  |  |                                                               | |  |
+|  |  |  Document Generation:                                         | |  |
+|  |  |  Wills, trusts, POAs, healthcare directives, HIPAA            | |  |
+|  |  |                                                               | |  |
+|  |  +--------------------------------------------------------------+ |  |
+|  |                                                                    |  |
+|  |  Security: Isolated filesystem, network restrictions, time limits  |  |
+|  |                                                                    |  |
+|  +-------------------------------------------------------------------+  |
+|                                                                          |
++-------------------------------------------------------------------------+
 ```
 
 ---
@@ -102,11 +112,16 @@ EstateAI is built on a modern serverless architecture using **Next.js** for the 
 
 | Layer | Technology | Purpose |
 |-------|------------|---------|
-| **Frontend** | Next.js 16 (App Router), React 19, Tailwind CSS 4 | User interface, real-time updates |
-| **Backend** | Convex | Real-time database, serverless functions, subscriptions |
-| **Sandboxing** | E2B SDK | Isolated code execution for Claude Code |
-| **AI** | Claude Code CLI (@anthropic-ai/claude-code) | Document analysis and generation |
-| **Styling** | Tailwind CSS 4 | Responsive, accessible design |
+| **Frontend** | Next.js 16 (App Router), React 19, TypeScript | User interface, server-side rendering |
+| **Styling** | Tailwind CSS 4, Framer Motion | Responsive design, animations |
+| **Data Fetching** | SWR | Client-side caching, revalidation |
+| **API** | Next.js Route Handlers | 27 REST API endpoints |
+| **Database** | PostgreSQL via Prisma ORM 7.3 | Relational data, 19 models |
+| **Auth** | Clerk (optional) + session-based | Authentication with anonymous fallback |
+| **AI** | Claude API (Anthropic SDK) + Claude Code CLI | Document analysis and generation |
+| **Sandboxing** | E2B SDK | Isolated code execution for AI |
+| **Validation** | Zod | Request/response schema validation |
+| **Hosting** | Vercel (frontend) + AWS RDS (database) | Production deployment |
 
 ---
 
@@ -114,249 +129,225 @@ EstateAI is built on a modern serverless architecture using **Next.js** for the 
 
 ### 1. Frontend (Next.js App Router)
 
-**Location:** `app/`
+**Location:** `mvp/app/`
 
 ```
 app/
-├── components/
-│   └── FilePreviewModal.tsx    # Document preview modal
-├── ConvexClientProvider.tsx    # Convex React client wrapper
-├── layout.tsx                  # Root layout with metadata
-├── page.tsx                    # Main UI component
-└── globals.css                 # Tailwind CSS styles
+├── page.tsx                    # Landing page / dashboard
+├── layout.tsx                  # Root layout (Clerk + auth providers)
+├── intake/                     # Intake wizard (3 modes)
+│   ├── guided/[step]/          # 8-step conversational flow
+│   ├── personal/               # Comprehensive form sections
+│   ├── family/, assets/, goals/
+│   └── upload/                 # Document upload for AI extraction
+├── analysis/[estatePlanId]/    # Gap analysis results
+│   ├── visualization/          # Charts and what-if scenarios
+│   ├── prepare/                # Preparation tasks during analysis
+│   └── reminders/              # Reminder management
+├── documents/                  # Document generation & upload
+├── hooks/                      # SWR data fetching hooks
+│   └── usePrismaQueries.ts    # All API query hooks
+└── components/                 # UI components
 ```
 
 **Key Features:**
-- Real-time status updates via Convex subscriptions
-- Document upload and preview
-- Download individual files or all at once
-- Session history browsing
+- SWR-based data fetching with automatic caching and revalidation
+- Session-based anonymous auth (localStorage sessionId)
+- Optional Clerk integration for registered users
+- Auto-save with 2-second debounce on intake forms
 
-**React Hooks Used:**
+**Data Fetching Pattern:**
 ```typescript
-// Start analysis
-const runAgent = useAction(api.runAgent.runAgent);
+// SWR hooks for data fetching
+const { data: plan } = useEstatePlan(estatePlanId);
+const { data: analysis } = useLatestGapAnalysis(estatePlanId);
 
-// Subscribe to run status (real-time)
-const run = useQuery(api.queries.getRun, { runId });
-
-// Subscribe to generated files (real-time)
-const files = useQuery(api.queries.getFilesForRun, { runId });
-
-// List all runs
-const runs = useQuery(api.queries.listRuns);
-```
-
-### 2. Convex Backend
-
-**Location:** `convex/`
-
-```
-convex/
-├── schema.ts         # Database schema definition
-├── mutations.ts      # Internal mutations (createRun, updateRun, saveFile)
-├── queries.ts        # Queries (getRun, listRuns, getFilesForRun)
-└── runAgent.ts       # Main action: orchestrates E2B + Claude Code
-```
-
-#### Database Schema (`schema.ts`)
-
-```typescript
-import { defineSchema, defineTable } from "convex/server";
-import { v } from "convex/values";
-
-export default defineSchema({
-  agentRuns: defineTable({
-    prompt: v.string(),
-    status: v.union(
-      v.literal("pending"),
-      v.literal("running"),
-      v.literal("completed"),
-      v.literal("failed")
-    ),
-    output: v.optional(v.string()),
-    error: v.optional(v.string()),
-    createdAt: v.number(),
-    completedAt: v.optional(v.number()),
-  }),
-
-  generatedFiles: defineTable({
-    runId: v.id("agentRuns"),
-    path: v.string(),
-    content: v.string(),  // base64 for binary, plain text otherwise
-    isBinary: v.boolean(),
-    size: v.number(),
-  }).index("by_run", ["runId"]),
+// Mutations via fetch to API routes
+await authFetch(`/api/estate-plans/${id}/intake/personal`, {
+  method: 'PUT',
+  body: JSON.stringify({ data, isComplete: true }),
 });
 ```
 
-#### Main Action (`runAgent.ts`)
+### 2. API Layer (Next.js Route Handlers)
 
-```typescript
-import { action } from "./_generated/server";
-import { v } from "convex/values";
-import { Sandbox } from "@e2b/code-interpreter";
+**Location:** `mvp/app/api/`
 
-export const runAgent = action({
-  args: {
-    prompt: v.string(),
-  },
-  handler: async (ctx, args) => {
-    // 1. Create run record
-    const runId = await ctx.runMutation(internal.mutations.createRun, {
-      prompt: args.prompt,
-    });
+27 REST endpoints organized by resource:
 
-    // 2. Update status to running
-    await ctx.runMutation(internal.mutations.updateRun, {
-      runId,
-      status: "running",
-    });
-
-    try {
-      // 3. Create E2B sandbox
-      const sandbox = await Sandbox.create({
-        apiKey: process.env.E2B_API_KEY,
-      });
-
-      // 4. Install Claude Code in sandbox
-      await sandbox.process.startAndWait("npm install -g @anthropic-ai/claude-code");
-
-      // 5. Run Claude Code with the estate planning prompt
-      const result = await sandbox.process.startAndWait(
-        `ANTHROPIC_API_KEY=${process.env.ANTHROPIC_API_KEY} claude-code "${args.prompt}"`,
-        { timeout: 300000 }
-      );
-
-      // 6. Collect generated files
-      const files = await sandbox.filesystem.list("/home/user");
-      for (const file of files) {
-        const content = await sandbox.filesystem.read(file.path);
-        await ctx.runMutation(internal.mutations.saveFile, {
-          runId,
-          path: file.name,
-          content: content,
-          isBinary: isBinaryFile(file.name),
-          size: file.size,
-        });
-      }
-
-      // 7. Update status to completed
-      await ctx.runMutation(internal.mutations.updateRun, {
-        runId,
-        status: "completed",
-        output: result.stdout,
-        completedAt: Date.now(),
-      });
-
-      await sandbox.close();
-    } catch (error) {
-      // Handle errors
-      await ctx.runMutation(internal.mutations.updateRun, {
-        runId,
-        status: "failed",
-        error: error.message,
-      });
-    }
-
-    return runId;
-  },
-});
+```
+api/
+├── estate-plans/               # GET, POST
+│   └── [id]/                   # GET, PATCH, DELETE
+│       ├── intake/             # GET, PUT (by section)
+│       ├── guided-intake/      # GET, POST, PUT
+│       ├── gap-analysis/       # GET, POST
+│       ├── gap-analysis-runs/  # GET, POST, PUT
+│       ├── documents/          # GET, POST
+│       ├── uploaded-documents/ # GET, POST, DELETE, PATCH
+│       ├── beneficiaries/      # GET, POST, PUT
+│       ├── reminders/          # GET, POST
+│       ├── life-events/        # GET, POST, PATCH
+│       ├── family-contacts/    # GET, POST, PUT, DELETE
+│       ├── attorney-questions/ # GET, POST, PUT, DELETE
+│       └── document-checklist/ # GET, POST, PUT, DELETE
+├── gap-analysis/               # POST (quick mode)
+│   └── orchestrate/            # POST (comprehensive 3-phase)
+├── document-generation/        # POST
+├── upload/                     # POST (PDF upload)
+├── users/                      # GET, POST, PATCH
+└── reminders/[id]/             # PATCH, DELETE
 ```
 
-### 3. E2B Sandbox
+**Auth Pattern:**
+```typescript
+// All routes use ownership verification
+const { authContext, error } = await requireAuthOrSessionAndOwnership(id, request);
+if (error) return error;
+```
 
-**Purpose:** Provides an isolated environment for running Claude Code safely.
+### 3. Database (Prisma + PostgreSQL)
 
-**Security Features:**
-- Isolated filesystem (no access to host)
-- Network restrictions
-- Time limits (configurable timeout)
-- Resource limits (CPU, memory)
+**Location:** `mvp/prisma/schema.prisma`
 
-**Claude Code Integration:**
-- Claude Code CLI is installed in the sandbox
-- ANTHROPIC_API_KEY is passed securely
-- Generated files are collected and stored in Convex
+19 models with comprehensive relationships:
+
+| Model | Purpose |
+|-------|---------|
+| User | Authenticated user accounts (Clerk integration) |
+| EstatePlan | Core entity — links all resources |
+| IntakeData | 5-section intake data (personal, family, assets, existing docs, goals) |
+| GuidedIntakeProgress | Step-by-step guided flow tracking |
+| Document | Generated legal documents (7 types) |
+| GapAnalysis | Analysis results with scoring |
+| GapAnalysisRun | Multi-phase orchestration tracking |
+| GapAnalysisPhase | Individual phase status |
+| GapAnalysisRunResult | Per-run results within phases |
+| UploadedDocument | User-uploaded PDFs for AI analysis |
+| ExtractedIntakeData | AI-extracted data from uploads |
+| Reminder | Automated & manual reminders |
+| LifeEvent | Life event tracking (marriage, birth, etc.) |
+| BeneficiaryDesignation | Retirement, insurance, TOD/POD tracking |
+| FamilyContact | Family members & advisor contacts |
+| AttorneyQuestion | Questions to discuss with attorney |
+| DocumentChecklistItem | Document preparation checklist |
+| AgentRun | AI execution run tracking |
+| GeneratedFile | Files produced by AI runs |
+
+### 4. E2B Sandbox + AI
+
+**Location:** `mvp/lib/e2b-executor.ts`, `mvp/lib/gap-analysis/`
+
+**Two AI integration modes:**
+
+1. **Direct Claude API** — Used for uploaded document analysis (PDF extraction + cross-referencing)
+2. **E2B Sandbox + Claude Code CLI** — Used for comprehensive gap analysis and document generation
+
+**3-Phase Comprehensive Analysis:**
+
+| Phase | Runs | Execution | Duration |
+|-------|------|-----------|----------|
+| 1: Research | State law, client context, document inventory | Sequential | ~15 min |
+| 2: Analysis | 7 specialized runs (tax, medicaid, beneficiary, etc.) | Parallel | ~7 min |
+| 3: Synthesis | Scenario modeling, priority matrix, final report | Sequential | ~18 min |
 
 ---
 
 ## Data Flow
 
-### Flow 1: Starting an Analysis
+### Flow 1: Estate Plan Creation & Intake
 
 ```
-User                    Next.js              Convex                E2B
-  │                        │                   │                    │
-  │  Enter situation/      │                   │                    │
-  │  request               │                   │                    │
-  │───────────────────────>│                   │                    │
-  │                        │  useAction(       │                    │
-  │                        │   runAgent)       │                    │
-  │                        │──────────────────>│                    │
-  │                        │                   │  createRun()       │
-  │                        │                   │  (pending)         │
-  │                        │                   │                    │
-  │                        │                   │  updateRun()       │
-  │                        │                   │  (running)         │
-  │                        │                   │                    │
-  │                        │                   │  Sandbox.create()  │
-  │                        │                   │───────────────────>│
-  │                        │                   │                    │
-  │                        │                   │  Install Claude    │
-  │                        │                   │  Code CLI          │
-  │                        │                   │                    │
-  │                        │                   │  Execute prompt    │
-  │                        │                   │                    │
+User                    Next.js              API Routes           PostgreSQL
+  |                        |                     |                    |
+  |  Start guided intake   |                     |                    |
+  |----------------------->|                     |                    |
+  |                        |  POST /api/estate-  |                    |
+  |                        |  plans              |                    |
+  |                        |-------------------->|                    |
+  |                        |                     |  prisma.estate     |
+  |                        |                     |  Plan.create()     |
+  |                        |                     |------------------->|
+  |                        |                     |                    |
+  |  Answer questions      |                     |                    |
+  |  (auto-save 2s)        |                     |                    |
+  |----------------------->|                     |                    |
+  |                        |  PUT /api/estate-   |                    |
+  |                        |  plans/[id]/guided  |                    |
+  |                        |  -intake            |                    |
+  |                        |-------------------->|                    |
+  |                        |                     |  prisma.guided     |
+  |                        |                     |  IntakeProgress    |
+  |                        |                     |  .upsert()         |
+  |                        |                     |------------------->|
 ```
 
-### Flow 2: Real-Time Status Updates
+### Flow 2: Gap Analysis (Comprehensive)
 
 ```
-Next.js                 Convex
-  │                        │
-  │  useQuery(getRun)      │
-  │───────────────────────>│
-  │                        │
-  │  Real-time subscription│
-  │<───────────────────────│
-  │                        │
-  │  Status: pending       │
-  │<───────────────────────│
-  │                        │
-  │  Status: running       │
-  │<───────────────────────│
-  │                        │
-  │  Status: completed     │
-  │  + output              │
-  │<───────────────────────│
-  │                        │
+User                    Next.js              API Routes           E2B Sandbox
+  |                        |                     |                    |
+  |  Run analysis          |                     |                    |
+  |----------------------->|                     |                    |
+  |                        |  POST /api/gap-     |                    |
+  |                        |  analysis/          |                    |
+  |                        |  orchestrate        |                    |
+  |                        |-------------------->|                    |
+  |                        |                     |  Create            |
+  |                        |                     |  GapAnalysisRun    |
+  |                        |                     |                    |
+  |                        |                     |  Phase 1: Research |
+  |                        |                     |------------------->|
+  |                        |                     |  (sequential)      |
+  |                        |                     |                    |
+  |  Poll for progress     |                     |  Phase 2: Analysis |
+  |  (SWR revalidation)    |                     |------------------->|
+  |<---------------------->|                     |  (7 parallel runs) |
+  |                        |                     |                    |
+  |                        |                     |  Phase 3: Synthesis|
+  |                        |                     |------------------->|
+  |                        |                     |  (sequential)      |
+  |                        |                     |                    |
+  |  View results          |                     |  Save GapAnalysis  |
+  |<-----------------------|                     |  to PostgreSQL     |
 ```
 
-### Flow 3: Retrieving Generated Files
+### Flow 3: Document Upload & AI Analysis
 
 ```
-Next.js                 Convex              Storage
-  │                        │                   │
-  │  useQuery(             │                   │
-  │   getFilesForRun)      │                   │
-  │───────────────────────>│                   │
-  │                        │  Query            │
-  │                        │  generatedFiles   │
-  │                        │  by runId         │
-  │                        │                   │
-  │  File list + content   │                   │
-  │<───────────────────────│                   │
-  │                        │                   │
-  │  Preview / Download    │                   │
-  │                        │                   │
+User                    Next.js              API Routes           Claude API
+  |                        |                     |                    |
+  |  Upload PDF            |                     |                    |
+  |----------------------->|                     |                    |
+  |                        |  POST /api/upload   |                    |
+  |                        |  (FormData)         |                    |
+  |                        |-------------------->|                    |
+  |                        |                     |  Validate PDF      |
+  |                        |                     |  (magic bytes)     |
+  |                        |                     |  Save to disk      |
+  |                        |                     |                    |
+  |  Trigger analysis      |                     |                    |
+  |----------------------->|                     |                    |
+  |                        |  POST /api/.../     |                    |
+  |                        |  analyze            |                    |
+  |                        |-------------------->|                    |
+  |                        |                     |  Extract text      |
+  |                        |                     |------------------->|
+  |                        |                     |  (Claude Sonnet 4) |
+  |                        |                     |                    |
+  |                        |                     |  Cross-reference   |
+  |                        |                     |  with intake data  |
+  |                        |                     |------------------->|
+  |                        |                     |                    |
+  |  View analysis         |                     |  Save results      |
+  |<-----------------------|                     |  to PostgreSQL     |
 ```
 
 ---
 
 ## Estate Planning Domain Logic
 
-While the infrastructure uses Convex + E2B, the estate planning domain logic runs inside Claude Code. The AI is prompted with context about:
+The estate planning domain logic runs inside Claude Code (E2B sandbox) and Claude API. The AI is prompted with context about:
 
 ### Document Types Supported
 
@@ -416,13 +407,13 @@ Claude Code uses wealth tier logic to recommend appropriate documents:
 
 | Net Worth | Core Recommendations |
 |-----------|---------------------|
-| $0–$25K | Healthcare POA, Living Will, HIPAA |
-| $25K–$100K | + Simple Will, Durable POA |
-| $100K–$250K | + Revocable Trust, Pour-over Will |
-| $250K–$1M | + Funded trust, digital assets |
-| $1M–$5M | + Irrevocable trusts, SLAT |
-| $5M–$25M | + GRATs, IDGTs, ILIT |
-| $25M–$50M | + Dynasty trusts, family governance |
+| $0-$25K | Healthcare POA, Living Will, HIPAA |
+| $25K-$100K | + Simple Will, Durable POA |
+| $100K-$250K | + Revocable Trust, Pour-over Will |
+| $250K-$1M | + Funded trust, digital assets |
+| $1M-$5M | + Irrevocable trusts, SLAT |
+| $5M-$25M | + GRATs, IDGTs, ILIT |
+| $25M-$50M | + Dynasty trusts, family governance |
 
 ### Non-Asset Override Conditions
 
@@ -442,23 +433,28 @@ Certain situations require specific documents regardless of asset level:
 
 ### Transport Security
 - All connections use HTTPS/TLS
-- Convex provides built-in transport encryption
-- E2B connections are encrypted
+- PostgreSQL connections use SSL (required for AWS RDS)
+- Prisma Accelerate supported for connection pooling
 
 ### Application Security
-- Convex handles authentication (can integrate Clerk/NextAuth)
-- API keys stored as environment variables
-- No API keys exposed to client
+- Clerk handles authentication (optional, with session-based fallback)
+- Ownership verification on all API routes (user or session)
+- Rate limiting: 100 requests/minute per IP (middleware)
+- Security headers: CSP, HSTS, X-Frame-Options, X-Content-Type-Options
+- API keys stored as environment variables, never exposed to client
+- Zod schema validation on all API inputs
 
 ### Data Security
-- Documents stored in Convex (encrypted at rest)
+- PostgreSQL with encryption at rest (AWS RDS)
+- File uploads validated via magic bytes (PDF verification)
+- Upload size limit: 20MB
 - Sensitive content never logged
 - E2B sandboxes are isolated and ephemeral
 
 ### Sandbox Security
 - E2B sandboxes are fully isolated
 - No network access to internal services
-- Time limits prevent runaway processes
+- Time limits prevent runaway processes (configurable, up to 60 min)
 - Sandboxes are destroyed after use
 
 ---
@@ -467,12 +463,13 @@ Certain situations require specific documents regardless of asset level:
 
 ```env
 # Required
-ANTHROPIC_API_KEY=sk-ant-...          # For Claude Code
+DATABASE_URL=postgresql://...          # PostgreSQL connection
+ANTHROPIC_API_KEY=sk-ant-...           # For Claude API + Claude Code
 E2B_API_KEY=e2b_...                    # For E2B sandboxes
-NEXT_PUBLIC_CONVEX_URL=https://...    # Convex deployment
 
 # Optional
-CONVEX_DEPLOY_KEY=...                  # For CI/CD deployments
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_...  # Clerk auth (public)
+CLERK_SECRET_KEY=sk_...                    # Clerk auth (server)
 ```
 
 ---
@@ -483,19 +480,21 @@ CONVEX_DEPLOY_KEY=...                  # For CI/CD deployments
 ```
 Local Machine
 ├── Next.js dev server (localhost:3000)
-├── Convex dev backend (npx convex dev)
+├── PostgreSQL (localhost:5432)
+├── Prisma Studio (localhost:5555)
 └── E2B sandboxes (cloud)
 ```
 
 ### Production
 ```
-┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│     Vercel      │     │     Convex      │     │      E2B        │
-│   (Frontend)    │────>│   (Backend)     │────>│   (Sandboxes)   │
-│                 │     │                 │     │                 │
-│  Next.js SSR    │     │  Functions      │     │  Claude Code    │
-│  Static assets  │     │  Database       │     │  Isolated exec  │
-└─────────────────┘     └─────────────────┘     └─────────────────┘
++-------------------+     +-------------------+     +-------------------+
+|      Vercel       |     |    AWS RDS        |     |       E2B         |
+|   (Frontend +     |---->|   (PostgreSQL)    |     |   (Sandboxes)     |
+|    API Routes)    |     |                   |     |                   |
+|                   |     |  19 tables        |     |  Claude Code CLI  |
+|  Next.js SSR      |     |  SSL encrypted    |     |  Isolated exec    |
+|  Edge middleware   |     |  Auto backups     |     |  Up to 60 min     |
++-------------------+     +-------------------+     +-------------------+
 ```
 
 ---
@@ -503,40 +502,13 @@ Local Machine
 ## Scalability
 
 ### Current Architecture Supports
-- Automatic scaling via Convex and E2B
-- No server management required
-- Real-time updates to any number of clients
-- Concurrent sandbox executions
+- Vercel edge functions for API routes
+- PostgreSQL connection pooling via Prisma Accelerate
+- Concurrent E2B sandbox executions
+- SWR client-side caching reduces API load
 
 ### Limits
-- E2B sandbox timeout: configurable (default 5 min)
-- Convex storage: pay-as-you-go
-- Claude Code: subject to Anthropic rate limits
-
----
-
-## Future Architecture Considerations
-
-### Planned Enhancements
-1. **User Authentication**: Integrate Clerk or NextAuth for user accounts
-2. **File Storage**: Use Convex file storage for uploaded documents
-3. **Background Jobs**: Convex scheduled functions for periodic tasks
-4. **Caching**: Cache frequently used prompts/templates
-5. **Analytics**: PostHog or similar for usage analytics
-
-### Potential Additions
-- PDF generation service for formatted reports
-- Document template storage
-- State rules database (Massachusetts first)
-- Attorney referral system integration
-
----
-
-## Next Steps
-
-- [ ] Implement user authentication (Clerk/NextAuth)
-- [ ] Add file upload for existing estate documents
-- [ ] Build estate planning intake wizard
-- [ ] Add Massachusetts-specific rules prompts
-- [ ] Create document template library
-- [ ] Implement PDF report generation
+- E2B sandbox timeout: configurable (up to 60 min for comprehensive analysis)
+- PostgreSQL: standard RDS scaling (read replicas, instance sizing)
+- Claude API: subject to Anthropic rate limits
+- Vercel: 15-minute function timeout (extended for analysis routes)
