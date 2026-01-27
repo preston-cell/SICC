@@ -2,7 +2,6 @@
 
 import { useSearchParams } from "next/navigation";
 import { use, Suspense } from "react";
-import { Id } from "../../../../convex/_generated/dataModel";
 import { AnalysisFloatingWidget } from "../../../../components/AnalysisFloatingWidget";
 
 interface LayoutProps {
@@ -25,7 +24,7 @@ function PrepareLayoutContent({
       {children}
       {runIdParam && (
         <AnalysisFloatingWidget
-          runId={runIdParam as Id<"gapAnalysisRuns">}
+          runId={runIdParam}
           estatePlanId={estatePlanId}
         />
       )}

@@ -1,0 +1,608 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================================
+// CORE AGENT TABLES
+// ============================================
+
+model AgentRun {
+  id           String    @id @default(cuid())
+  prompt       String
+  status       RunStatus @default(pending)
+  output       String?   @db.Text
+  error        String?   @db.Text
+  createdAt    DateTime  @default(now())
+  completedAt  DateTime?
+  estatePlanId String?
+  estatePlan   EstatePlan? @relation(fields: [estatePlanId], references: [id])
+  runType      String?
+
+  files        GeneratedFile[]
+  documents    Document[]
+  gapAnalyses  GapAnalysis[]
+
+  @@index([createdAt])
+  @@index([estatePlanId])
+}
+
+model GeneratedFile {
+  id       String   @id @default(cuid())
+  runId    String
+  run      AgentRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+  path     String
+  content  String   @db.Text
+  isBinary Boolean  @default(false)
+  size     Int
+
+  @@index([runId])
+}
+
+enum RunStatus {
+  pending
+  running
+  completed
+  failed
+}
+
+// ============================================
+// USER & ESTATE PLAN TABLES
+// ============================================
+
+model User {
+  id          String    @id @default(cuid())
+  email       String    @unique
+  name        String
+  clerkId     String?   @unique
+  createdAt   DateTime  @default(now())
+  lastLoginAt DateTime?
+
+  estatePlans EstatePlan[]
+  reminders   Reminder[]
+
+  @@index([email])
+  @@index([clerkId])
+}
+
+model EstatePlan {
+  id               String           @id @default(cuid())
+  userId           String?
+  user             User?            @relation(fields: [userId], references: [id])
+  sessionId        String?
+  name             String           @default("My Estate Plan")
+  status           EstatePlanStatus @default(draft)
+  stateOfResidence String?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  intakeData              IntakeData[]
+  documents               Document[]
+  gapAnalyses             GapAnalysis[]
+  uploadedDocuments       UploadedDocument[]
+  extractedIntakeData     ExtractedIntakeData[]
+  reminders               Reminder[]
+  lifeEvents              LifeEvent[]
+  beneficiaryDesignations BeneficiaryDesignation[]
+  agentRuns               AgentRun[]
+  guidedIntakeProgress    GuidedIntakeProgress?
+  familyContacts          FamilyContact[]
+  attorneyQuestions       AttorneyQuestion[]
+  documentChecklistItems  DocumentChecklistItem[]
+  gapAnalysisRuns         GapAnalysisRun[]
+
+  @@index([userId])
+  @@index([sessionId])
+  @@index([createdAt])
+}
+
+enum EstatePlanStatus {
+  draft
+  intake_in_progress
+  intake_complete
+  analysis_complete
+  documents_generated
+  complete
+}
+
+// ============================================
+// INTAKE DATA
+// ============================================
+
+model IntakeData {
+  id           String        @id @default(cuid())
+  estatePlanId String
+  estatePlan   EstatePlan    @relation(fields: [estatePlanId], references: [id], onDelete: Cascade)
+  section      IntakeSection
+  data         String        @db.Text
+  isComplete   Boolean       @default(false)
+  completedAt  DateTime?
+  updatedAt    DateTime      @updatedAt
+
+  @@unique([estatePlanId, section])
+  @@index([estatePlanId])
+}
+
+enum IntakeSection {
+  personal
+  family
+  assets
+  existing_documents
+  goals
+}
+
+// ============================================
+// DOCUMENTS
+// ============================================
+
+model Document {
+  id           String         @id @default(cuid())
+  estatePlanId String
+  estatePlan   EstatePlan     @relation(fields: [estatePlanId], references: [id], onDelete: Cascade)
+  runId        String?
+  run          AgentRun?      @relation(fields: [runId], references: [id])
+  type         DocumentType
+  title        String
+  content      String         @db.Text
+  format       DocumentFormat @default(markdown)
+  version      Int            @default(1)
+  status       DocumentStatus @default(draft)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  @@index([estatePlanId])
+  @@index([estatePlanId, type])
+}
+
+enum DocumentType {
+  will
+  trust
+  poa_financial
+  poa_healthcare
+  healthcare_directive
+  hipaa
+  other
+}
+
+enum DocumentFormat {
+  markdown
+  html
+  pdf
+}
+
+enum DocumentStatus {
+  draft
+  reviewed
+  final
+}
+
+// ============================================
+// GAP ANALYSIS
+// ============================================
+
+model GapAnalysis {
+  id                 String     @id @default(cuid())
+  estatePlanId       String
+  estatePlan         EstatePlan @relation(fields: [estatePlanId], references: [id], onDelete: Cascade)
+  runId              String?
+  run                AgentRun?  @relation(fields: [runId], references: [id])
+  score              Int?
+  estateComplexity   String?
+  estimatedEstateTax String?    @db.Text
+  missingDocuments   String     @db.Text
+  outdatedDocuments  String     @db.Text
+  inconsistencies    String     @db.Text
+  taxOptimization    String?    @db.Text
+  medicaidPlanning   String?    @db.Text
+  recommendations    String     @db.Text
+  stateSpecificNotes String     @db.Text
+  rawAnalysis        String?    @db.Text
+  createdAt          DateTime   @default(now())
+
+  @@index([estatePlanId])
+  @@index([estatePlanId, createdAt])
+}
+
+// ============================================
+// UPLOADED DOCUMENTS
+// ============================================
+
+model UploadedDocument {
+  id             String               @id @default(cuid())
+  estatePlanId   String
+  estatePlan     EstatePlan           @relation(fields: [estatePlanId], references: [id], onDelete: Cascade)
+  storageId      String
+  fileName       String
+  fileSize       Int
+  mimeType       String
+  documentType   UploadedDocumentType
+  description    String?
+  extractedText  String?              @db.Text
+  analysisStatus AnalysisStatus       @default(pending)
+  analysisResult String?              @db.Text
+  analysisError  String?
+  uploadedAt     DateTime             @default(now())
+  extractedAt    DateTime?
+  analyzedAt     DateTime?
+
+  extractedIntakeData ExtractedIntakeData[]
+
+  @@index([estatePlanId])
+  @@index([estatePlanId, documentType])
+  @@index([estatePlanId, analysisStatus])
+}
+
+enum UploadedDocumentType {
+  will
+  trust
+  poa_financial
+  poa_healthcare
+  healthcare_directive
+  deed
+  insurance_policy
+  beneficiary_form
+  other
+}
+
+enum AnalysisStatus {
+  pending
+  extracting
+  analyzing
+  completed
+  failed
+}
+
+// ============================================
+// EXTRACTED INTAKE DATA
+// ============================================
+
+model ExtractedIntakeData {
+  id                String              @id @default(cuid())
+  estatePlanId      String
+  estatePlan        EstatePlan          @relation(fields: [estatePlanId], references: [id], onDelete: Cascade)
+  section           IntakeSection
+  extractedData     String              @db.Text
+  sourceDocumentIds String[]
+  sourceDocuments   UploadedDocument[]
+  confidence        Int
+  status            ExtractedDataStatus @default(extracted)
+  createdAt         DateTime            @default(now())
+
+  @@index([estatePlanId])
+  @@index([estatePlanId, section])
+}
+
+enum ExtractedDataStatus {
+  extracted
+  reviewed
+  applied
+  rejected
+}
+
+// ============================================
+// REMINDERS
+// ============================================
+
+model Reminder {
+  id                 String             @id @default(cuid())
+  estatePlanId       String
+  estatePlan         EstatePlan         @relation(fields: [estatePlanId], references: [id], onDelete: Cascade)
+  userId             String?
+  user               User?              @relation(fields: [userId], references: [id])
+  type               ReminderType
+  title              String
+  description        String?
+  lifeEvent          LifeEventType?
+  dueDate            DateTime
+  status             ReminderStatus     @default(pending)
+  snoozedUntil       DateTime?
+  priority           Priority           @default(medium)
+  isRecurring        Boolean            @default(false)
+  recurrencePattern  RecurrencePattern?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  completedAt        DateTime?
+  // Fields for auto-generated action items from gap analysis
+  sourceType         String?            // 'gap_analysis', 'life_event', etc.
+  sourceId           String?            // Unique identifier to prevent duplicates
+  isAutoGenerated    Boolean            @default(false)
+  parentReminderId   String?            // For sub-tasks
+  parentReminder     Reminder?          @relation("ReminderSubtasks", fields: [parentReminderId], references: [id])
+  subTasks           Reminder[]         @relation("ReminderSubtasks")
+
+  @@index([estatePlanId])
+  @@index([userId])
+  @@index([estatePlanId, status])
+  @@index([estatePlanId, dueDate])
+  @@index([sourceId])
+  @@index([parentReminderId])
+}
+
+enum ReminderType {
+  annual_review
+  life_event
+  document_update
+  beneficiary_review
+  custom
+}
+
+enum ReminderStatus {
+  pending
+  completed
+  snoozed
+  dismissed
+}
+
+enum Priority {
+  low
+  medium
+  high
+  urgent
+}
+
+enum RecurrencePattern {
+  monthly
+  quarterly
+  annually
+  biannually
+}
+
+// ============================================
+// LIFE EVENTS
+// ============================================
+
+model LifeEvent {
+  id                     String        @id @default(cuid())
+  estatePlanId           String
+  estatePlan             EstatePlan    @relation(fields: [estatePlanId], references: [id], onDelete: Cascade)
+  eventType              LifeEventType
+  title                  String
+  description            String?
+  eventDate              DateTime
+  requiresDocumentUpdate Boolean       @default(false)
+  documentsAffected      String?       @db.Text
+  planUpdated            Boolean       @default(false)
+  planUpdatedAt          DateTime?
+  createdAt              DateTime      @default(now())
+
+  @@index([estatePlanId])
+  @@index([estatePlanId, eventType])
+}
+
+enum LifeEventType {
+  marriage
+  divorce
+  birth
+  death
+  major_asset_change
+  relocation
+  retirement
+  business_change
+  health_change
+  other
+}
+
+// ============================================
+// BENEFICIARY DESIGNATIONS
+// ============================================
+
+model BeneficiaryDesignation {
+  id                                String               @id @default(cuid())
+  estatePlanId                      String
+  estatePlan                        EstatePlan           @relation(fields: [estatePlanId], references: [id], onDelete: Cascade)
+  assetType                         BeneficiaryAssetType
+  assetName                         String
+  institution                       String?
+  accountNumber                     String?
+  estimatedValue                    String?
+  primaryBeneficiaryName            String
+  primaryBeneficiaryRelationship    String?
+  primaryBeneficiaryPercentage      Int?
+  contingentBeneficiaryName         String?
+  contingentBeneficiaryRelationship String?
+  contingentBeneficiaryPercentage   Int?
+  lastReviewedDate                  String?
+  notes                             String?              @db.Text
+  createdAt                         DateTime             @default(now())
+  updatedAt                         DateTime             @updatedAt
+
+  @@index([estatePlanId])
+  @@index([estatePlanId, assetType])
+}
+
+enum BeneficiaryAssetType {
+  retirement_401k
+  retirement_ira
+  retirement_roth
+  retirement_pension
+  retirement_other
+  life_insurance
+  annuity
+  bank_pod
+  brokerage_tod
+  real_estate_tod
+  other
+}
+
+// ============================================
+// GUIDED INTAKE (New Feature)
+// ============================================
+
+model GuidedIntakeProgress {
+  id             String     @id @default(cuid())
+  estatePlanId   String     @unique
+  estatePlan     EstatePlan @relation(fields: [estatePlanId], references: [id], onDelete: Cascade)
+  currentStep    Int        @default(1)
+  completedSteps Int[]      @default([])
+  stepData       Json       @default("{}")
+  flowMode       String     @default("guided")
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+}
+
+// ============================================
+// FAMILY CONTACTS (Preparation Phase)
+// ============================================
+
+model FamilyContact {
+  id           String      @id @default(cuid())
+  estatePlanId String
+  estatePlan   EstatePlan  @relation(fields: [estatePlanId], references: [id], onDelete: Cascade)
+  name         String
+  relationship String?
+  role         ContactRole
+  phone        String?
+  email        String?
+  address      String?
+  notes        String?     @db.Text
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  @@index([estatePlanId])
+  @@index([estatePlanId, role])
+}
+
+enum ContactRole {
+  executor
+  trustee
+  healthcare_proxy
+  financial_poa
+  guardian
+  beneficiary
+  advisor
+  attorney
+  other
+}
+
+// ============================================
+// ATTORNEY QUESTIONS (Preparation Phase)
+// ============================================
+
+model AttorneyQuestion {
+  id           String           @id @default(cuid())
+  estatePlanId String
+  estatePlan   EstatePlan       @relation(fields: [estatePlanId], references: [id], onDelete: Cascade)
+  question     String           @db.Text
+  category     QuestionCategory
+  isAnswered   Boolean          @default(false)
+  answer       String?          @db.Text
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  @@index([estatePlanId])
+  @@index([estatePlanId, category])
+}
+
+enum QuestionCategory {
+  documents
+  assets
+  beneficiaries
+  tax
+  general
+}
+
+// ============================================
+// DOCUMENT CHECKLIST (Preparation Phase)
+// ============================================
+
+model DocumentChecklistItem {
+  id           String            @id @default(cuid())
+  estatePlanId String
+  estatePlan   EstatePlan        @relation(fields: [estatePlanId], references: [id], onDelete: Cascade)
+  title        String
+  description  String?
+  category     ChecklistCategory
+  status       ChecklistStatus   @default(not_gathered)
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  @@index([estatePlanId])
+  @@index([estatePlanId, category])
+}
+
+enum ChecklistCategory {
+  real_estate
+  financial
+  retirement
+  insurance
+  business
+  personal
+  existing_documents
+}
+
+enum ChecklistStatus {
+  not_gathered
+  in_progress
+  gathered
+}
+
+// ============================================
+// GAP ANALYSIS ORCHESTRATION (Multi-Phase)
+// ============================================
+
+model GapAnalysisRun {
+  id              String             @id @default(cuid())
+  estatePlanId    String
+  estatePlan      EstatePlan         @relation(fields: [estatePlanId], references: [id], onDelete: Cascade)
+  status          GapRunStatus       @default(pending)
+  analysisType    String             @default("comprehensive")
+  currentPhase    Int                @default(1)
+  totalPhases     Int                @default(3)
+  progressPercent Int                @default(0)
+  startedAt       DateTime?
+  completedAt     DateTime?
+  error           String?            @db.Text
+  phases          GapAnalysisPhase[]
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  @@index([estatePlanId])
+  @@index([estatePlanId, status])
+}
+
+enum GapRunStatus {
+  pending
+  running
+  completed
+  failed
+}
+
+model GapAnalysisPhase {
+  id            String                 @id @default(cuid())
+  runId         String
+  run           GapAnalysisRun         @relation(fields: [runId], references: [id], onDelete: Cascade)
+  phaseNumber   Int
+  name          String
+  status        GapRunStatus           @default(pending)
+  totalRuns     Int                    @default(0)
+  completedRuns Int                    @default(0)
+  failedRuns    Int                    @default(0)
+  startedAt     DateTime?
+  completedAt   DateTime?
+  runResults    GapAnalysisRunResult[]
+  createdAt     DateTime               @default(now())
+  updatedAt     DateTime               @updatedAt
+
+  @@index([runId])
+}
+
+model GapAnalysisRunResult {
+  id          String           @id @default(cuid())
+  phaseId     String
+  phase       GapAnalysisPhase @relation(fields: [phaseId], references: [id], onDelete: Cascade)
+  runType     String
+  status      GapRunStatus     @default(pending)
+  result      Json?
+  rawOutput   String?          @db.Text
+  error       String?          @db.Text
+  startedAt   DateTime?
+  completedAt DateTime?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@index([phaseId])
+}

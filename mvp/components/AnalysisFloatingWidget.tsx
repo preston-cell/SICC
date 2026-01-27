@@ -1,13 +1,20 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useQuery, useMutation } from "convex/react";
-import { api } from "../convex/_generated/api";
-import { Id } from "../convex/_generated/dataModel";
+import { useGapAnalysisRunProgress, cancelGapAnalysisRun } from "@/app/hooks/usePrismaQueries";
 import Link from "next/link";
 
+interface Phase {
+  id: string;
+  phaseNumber: number;
+  phaseType: string;
+  status: string;
+  completedRuns: number;
+  totalRuns: number;
+}
+
 interface AnalysisFloatingWidgetProps {
-  runId: Id<"gapAnalysisRuns">;
+  runId: string;
   estatePlanId: string;
   onComplete?: () => void;
 }
@@ -21,9 +28,43 @@ export function AnalysisFloatingWidget({
   const [hasNotified, setHasNotified] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
 
-  const runProgress = useQuery(api.gapAnalysisProgress.getRunProgress, { runId });
-  const phases = useQuery(api.gapAnalysisProgress.getPhaseProgress, { runId });
-  const cancelRun = useMutation(api.gapAnalysisOrchestration.cancelRun);
+  const { data: run, mutate } = useGapAnalysisRunProgress(estatePlanId, runId);
+
+  const handleCancel = async () => {
+    if (isCancelling) return;
+    setIsCancelling(true);
+    try {
+      await cancelGapAnalysisRun(estatePlanId, runId);
+      mutate();
+    } catch (error) {
+      console.error("Failed to cancel analysis:", error);
+    } finally {
+      setIsCancelling(false);
+    }
+  };
+
+  // Transform run data to match expected format
+  const runProgress = run ? {
+    status: run.status,
+    overallProgress: run.progressPercent ?? 0,
+    currentPhase: run.currentPhase,
+  } : null;
+
+  // Transform phases data to match expected format
+  const phases = run?.phases?.map((phase: {
+    id: string;
+    phaseNumber: number;
+    name: string;
+    status: string;
+    runResults?: Array<{ status: string }>;
+  }) => ({
+    id: phase.id,
+    phaseNumber: phase.phaseNumber,
+    phaseType: phase.name,
+    status: phase.status,
+    completedRuns: phase.runResults?.filter((r) => r.status === 'completed').length ?? 0,
+    totalRuns: phase.runResults?.length ?? 0,
+  })) ?? null;
 
   const isComplete = runProgress?.status === "completed" || runProgress?.status === "partial";
   const isFailed = runProgress?.status === "failed";
@@ -183,8 +224,8 @@ export function AnalysisFloatingWidget({
             {/* Phase status */}
             {phases && (
               <div className="space-y-2 mb-4">
-                {phases.map((phase) => (
-                  <div key={phase._id} className="flex items-center gap-2">
+                {phases.map((phase: Phase) => (
+                  <div key={phase.id} className="flex items-center gap-2">
                     {getPhaseIcon(phase.status)}
                     <span className="text-sm text-[var(--text-body)]">
                       Phase {phase.phaseNumber}:{" "}
@@ -226,26 +267,18 @@ export function AnalysisFloatingWidget({
             ) : (
               <div className="space-y-2">
                 <Link
-                  href={`/analysis/${estatePlanId}/prepare?runId=${runId}`}
-                  className="block w-full py-2 px-4 bg-[var(--accent-purple)] text-white text-center font-medium rounded-lg hover:bg-[var(--accent-hover)] transition-all text-sm"
+                  href={`/analysis/${estatePlanId}`}
+                  className="block text-center text-sm text-[var(--accent-purple)] hover:underline"
                 >
-                  Preparation Tasks
+                  View Full Progress
                 </Link>
-                <div className="flex items-center justify-between">
-                  <Link
-                    href={`/analysis/${estatePlanId}`}
-                    className="text-sm text-[var(--accent-purple)] hover:underline"
-                  >
-                    View Progress
-                  </Link>
-                  <button
-                    onClick={handleCancel}
-                    disabled={isCancelling}
-                    className="text-sm text-red-500 hover:text-red-600 hover:underline disabled:opacity-50"
-                  >
-                    {isCancelling ? "Cancelling..." : "Cancel"}
-                  </button>
-                </div>
+                <button
+                  onClick={handleCancel}
+                  disabled={isCancelling}
+                  className="block w-full text-center text-sm text-red-500 hover:text-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isCancelling ? "Cancelling..." : "Cancel Analysis"}
+                </button>
               </div>
             )}
           </div>

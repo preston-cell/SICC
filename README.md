@@ -1,286 +1,252 @@
-# EstateAI: AI-Powered Estate Planning Assistant
-<!-- Last updated: 2026-01-09 -->
+# Estate Planning Assistant
 
-> **Draft Documents Only** - This tool generates draft legal documents for informational purposes only. All generated documents should be reviewed by a licensed attorney before use. This is not a substitute for professional legal advice.
+An AI-powered estate planning platform that helps users create legally-compliant documents, analyze their estate plans, and receive personalized recommendations.
 
----
+## Features
 
-## Overview
-
-EstateAI is an AI-powered estate planning tool that provides **gap analysis** of existing estate plans and generates **draft legal documents**. Built with Next.js, Convex, and E2B, using Claude Code to intelligently analyze user situations and generate customized legal documents.
-
-### What It Does
-
-1. **Gap Analysis**: Upload or describe your current estate planning situation, and receive AI-powered analysis identifying missing documents, outdated provisions, or potential issues
-2. **Document Generation**: Generate draft legal documents (wills, trusts, powers of attorney, healthcare directives, etc.) tailored to your specific situation
-3. **Guided Experience**: Walk through estate planning step-by-step with AI assistance
-
----
+- **Guided Intake Wizard** - Conversational step-by-step questionnaire covering personal info, family, assets, existing documents, and goals
+- **Comprehensive Form** - Traditional form-based intake for detailed input
+- **AI Gap Analysis** - Multi-phase analysis identifying missing documents, inconsistencies, and state-specific recommendations
+- **Document Generation** - Creates 7 types of legal documents (wills, trusts, POAs, healthcare directives)
+- **Document Upload & Analysis** - Upload existing documents for AI extraction and cross-referencing
+- **Beneficiary Tracking** - Tracks retirement accounts, life insurance, and TOD/POD designations
+- **Estate Visualization** - Visual family tree and asset distribution charts
+- **Reminder System** - Automated notifications for document reviews and life events
+- **50-State Compliance** - State-specific legal requirements for all US states
 
 ## Tech Stack
 
-| Layer | Technology | Purpose |
-|-------|------------|---------|
-| **Frontend** | Next.js 16 (App Router), React 19, Tailwind CSS 4 | User interface |
-| **Backend** | Convex | Real-time database + serverless functions |
-| **Sandboxing** | E2B SDK | Isolated code execution for document generation |
-| **AI** | Claude Code CLI (@anthropic-ai/claude-code) | Document analysis and generation |
-
----
-
-## Project Structure
-
-```
-├── app/
-│   ├── components/
-│   │   └── FilePreviewModal.tsx    # Modal for previewing generated documents
-│   ├── ConvexClientProvider.tsx    # Convex React client setup
-│   ├── layout.tsx                  # Root layout with metadata
-│   ├── page.tsx                    # Main UI: prompt input, status, document list
-│   └── globals.css                 # Tailwind CSS
-├── convex/
-│   ├── schema.ts                   # Database schema (agentRuns, generatedFiles)
-│   ├── mutations.ts                # Internal mutations (createRun, updateRun, saveFile)
-│   ├── queries.ts                  # Queries (getRun, listRuns, getFilesForRun)
-│   └── runAgent.ts                 # Main action: runs Claude Code in E2B sandbox
-├── docs/                           # Business documentation
-│   ├── business-plan.md            # Opportunity refinement brief
-│   ├── tam-analysis.md             # Market sizing analysis
-│   ├── research-notes.md           # Research and insights
-│   └── architecture.md             # Technical architecture details
-├── mvp/                            # MVP implementation
-│   └── feasibility-spike.md        # Technical validation spikes
-├── slides/                         # Pitch materials
-│   └── final-deck.md               # Pitch deck outline
-├── demo/                           # Demo resources
-│   ├── demo-script.md              # Demo walkthrough script
-│   └── setup-instructions.md       # Demo setup guide
-└── package.json
-```
-
----
-
-## System Architecture
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                     Frontend (Next.js)                      │
-│  ┌───────────────┐  ┌───────────────┐  ┌────────────────┐   │
-│  │ Estate Input  │→ │ Analysis View │  │   Documents    │   │
-│  │ (situation,   │  │ (gap report,  │  │   (download,   │   │
-│  │  goals, assets│  │  suggestions) │  │    preview)    │   │
-│  └───────────────┘  └───────────────┘  └────────────────┘   │
-│           │                ↑                   ↑            │
-│           ↓                │                   │            │
-│    useAction(runAgent)   useQuery(getRun, getFilesForRun)   │
-└───────────────┬─────────────────────────────────┬───────────┘
-                │                                 │
-                ↓                                 ↓
-┌─────────────────────────────────────────────────────────────┐
-│                      Convex Backend                         │
-│  ┌──────────────────┐       ┌─────────────────────────────┐ │
-│  │  runAgent Action │       │         Queries             │ │
-│  │                  │       └─────────────────────────────┘ │
-│  │  1. Create run   │                    ↑                  │
-│  │  2. Start E2B    │       ┌────────────┴────────────────┐ │
-│  │  3. Run Claude   │──────→│        Database             │ │
-│  │  4. Save docs    │       │    (runs, documents)        │ │
-│  └──────────────────┘       └─────────────────────────────┘ │
-│           │                                                 │
-└───────────┼─────────────────────────────────────────────────┘
-            ↓
-┌─────────────────────────────────────────────────────────────┐
-│                   E2B Sandbox (isolated)                    │
-│  ┌────────────────────────────────────────────────────────┐ │
-│  │  Claude Code analyzes estate planning situation        │ │
-│  │  and generates:                                        │ │
-│  │  - Gap analysis reports                                │ │
-│  │  - Draft legal documents                               │ │
-│  │  - Checklists and recommendations                      │ │
-│  └────────────────────────────────────────────────────────┘ │
-└─────────────────────────────────────────────────────────────┘
-```
-
----
-
-## Database Schema (Convex)
-
-### `agentRuns` Table
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `prompt` | string | User's estate planning request/situation |
-| `status` | enum | `"pending"` \| `"running"` \| `"completed"` \| `"failed"` |
-| `output` | string? | Agent analysis and reasoning |
-| `error` | string? | Error message if failed |
-| `createdAt` | number | Timestamp of creation |
-| `completedAt` | number? | Timestamp of completion |
-
-### `generatedFiles` Table
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `runId` | Id<"agentRuns"> | Reference to parent run |
-| `path` | string | Document filename (e.g., `"last_will.docx"`, `"gap_analysis.md"`) |
-| `content` | string | Base64 for binary files, plain text otherwise |
-| `isBinary` | boolean | Whether content is base64 encoded |
-| `size` | number | File size in bytes |
-
----
-
-## Current Features (MVP)
-
-- [x] Enter estate planning situation or request
-- [x] Real-time processing status (pending → running → completed/failed)
-- [x] Preview generated documents in modal
-- [x] Download individual documents or all at once
-- [x] View AI reasoning and analysis
-- [x] Browse session history
-
----
-
-## Planned Features
-
-### Estate Planning Intake
-- [ ] Guided questionnaire for family situation, assets, goals
-- [ ] State selection (Massachusetts first, then expansion)
-- [ ] Net worth tier assessment for document recommendations
-
-### Document Types
-- [ ] Last Will and Testament
-- [ ] Revocable Living Trust
-- [ ] Pour-Over Will
-- [ ] Durable Power of Attorney (Financial)
-- [ ] Healthcare Power of Attorney
-- [ ] Advance Healthcare Directive / Living Will
-- [ ] HIPAA Authorization
-- [ ] Beneficiary Designations Review
-- [ ] Digital Asset Authorization
-
-### Gap Analysis Engine
-- [ ] Identify missing documents based on situation
-- [ ] Flag outdated provisions
-- [ ] Beneficiary consistency check across documents
-- [ ] State-specific compliance review
-- [ ] Risk scoring and prioritization
-
-### User Experience
-- [ ] User authentication and saved plans
-- [ ] Document versioning and change tracking
-- [ ] PDF and DOCX export
-- [ ] Attorney review workflow integration
-- [ ] Multi-language support
-
----
-
-## Key Insights Embedded
-
-The system is built on these estate planning principles:
-
-1. **"There is no single estate plan — there is a document ecosystem"**
-2. **Outcome priority order:** Asset title → Beneficiary forms → Trust instruments → Contracts → Wills → State default law
-3. **"Most estate failures occur not because documents are missing, but because they conflict"**
-4. **Risk progression:** Incapacity risk → Probate inefficiency → Behavioral risk → Tax risk → Governance risk
-5. **"If the state default result is unacceptable, a document is required"**
-
----
-
-## Target Market
-
-**Primary:** Individuals with net worth between $2M and $50M
-
-| Segment | Fit |
-|---------|-----|
-| **<$2M** | Basic needs — DIY tools often suffice |
-| **$2M–$50M** | Complex enough for professional analysis, underserved by traditional services |
-| **>$50M** | Requires white-glove human services |
-
-**Initial Geographic Focus:** Massachusetts (with planned expansion to NY, CA, FL)
-
----
-
-## Team
-
-| Name | Role | Responsibilities |
-|------|------|------------------|
-| Preston Dinh | [Role] | [Key responsibilities] |
-| Ezekiel Dube-Garrett | [Role] | [Key responsibilities] |
-| Keegan Harrison | [Role] | [Key responsibilities] |
-| Colton Pozniak | [Role] | [Key responsibilities] |
-
----
+| Layer | Technology |
+|-------|------------|
+| Frontend | Next.js 16, React 19, TypeScript |
+| Styling | Tailwind CSS 4 |
+| Database | PostgreSQL (AWS RDS) via Prisma ORM |
+| Data Fetching | SWR (React hooks) |
+| Auth | Clerk (optional, supports anonymous sessions) |
+| AI | Claude API (Anthropic) |
+| Sandbox | E2B for secure code execution |
+| Hosting | Vercel |
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js 18+
-- npm or yarn
-- Convex account
-- E2B account
+- Node.js 20+
+- npm
+- PostgreSQL database (local or AWS RDS)
 - Anthropic API key
-
-### Environment Variables
-
-Create a `.env.local` file with:
-
-```env
-ANTHROPIC_API_KEY=your_anthropic_api_key
-E2B_API_KEY=your_e2b_api_key
-NEXT_PUBLIC_CONVEX_URL=your_convex_deployment_url
-```
+- E2B API key (for AI document generation)
 
 ### Installation
 
 ```bash
 # Clone the repository
 git clone https://github.com/preston-cell/SICC.git
-cd SICC
+cd SICC/mvp
 
 # Install dependencies
 npm install
 
-# Start Convex development server
-npx convex dev
+# Set up environment variables
+cp .env.example .env
+# Edit .env with your credentials (see Environment Variables below)
 
-# In a separate terminal, start Next.js
+# Run database migrations
+npx prisma migrate deploy
+
+# Start the dev server
 npm run dev
-
-# Open http://localhost:3000
 ```
 
----
+Open [http://localhost:3000](http://localhost:3000) to view the app.
 
-## Documentation
+### Environment Variables
 
-| Document | Description |
-|----------|-------------|
-| [Business Plan](docs/business-plan.md) | Opportunity refinement, personas, pricing |
-| [TAM Analysis](docs/tam-analysis.md) | Market sizing and geographic prioritization |
-| [Research Notes](docs/research-notes.md) | User research, competitive analysis, legal considerations |
-| [Architecture](docs/architecture.md) | Technical architecture and data flows |
-| [Feasibility Spike](mvp/feasibility-spike.md) | Technical validation approach |
+Create a `.env` file with the following variables:
 
----
+```bash
+# Database (required)
+DATABASE_URL="postgresql://user:password@localhost:5432/estate_planning"
 
-## Legal Disclaimer
+# AI Services (required)
+ANTHROPIC_API_KEY="sk-ant-..."
+E2B_API_KEY="e2b_..."
 
-**IMPORTANT: This tool is for informational and educational purposes only.**
+# Authentication (optional - app works without for anonymous users)
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="pk_..."
+CLERK_SECRET_KEY="sk_..."
+```
 
-- Generated documents are **drafts** that require review by a licensed attorney
-- This tool does **not** provide legal advice
-- No attorney-client relationship is formed by using this tool
-- Laws vary by state; documents should be reviewed for state-specific compliance
-- Users should consult with a qualified estate planning attorney before executing any legal documents
+**For AWS RDS:**
+```bash
+DATABASE_URL="postgresql://user:password@your-instance.region.rds.amazonaws.com:5432/estate_planning?sslmode=require"
+```
 
----
+## Deployment
+
+### Deploy to Vercel
+
+1. Push your code to GitHub
+2. Import the repository in Vercel
+3. Add environment variables in Vercel dashboard
+4. Deploy
+
+```bash
+# Or deploy via CLI
+npx vercel --prod
+```
+
+### Database Setup (AWS RDS)
+
+1. Create a PostgreSQL RDS instance
+2. Configure security groups to allow Vercel IP ranges
+3. Run migrations: `npx prisma migrate deploy`
+
+### Production Checklist
+
+- [ ] Set `DATABASE_URL` with SSL enabled
+- [ ] Configure `ANTHROPIC_API_KEY` and `E2B_API_KEY`
+- [ ] (Optional) Configure Clerk for authentication
+- [ ] Verify database migrations are applied
+
+## Project Structure
+
+```
+mvp/
+├── app/                    # Next.js app router
+│   ├── api/               # REST API routes (27 endpoints)
+│   │   ├── estate-plans/  # Estate plan CRUD + nested resources
+│   │   ├── gap-analysis/  # AI analysis orchestration
+│   │   ├── upload/        # File upload handling
+│   │   └── users/         # User management
+│   ├── analysis/          # Gap analysis UI
+│   ├── documents/         # Document upload & generation
+│   ├── intake/            # Intake wizard (guided + comprehensive)
+│   ├── hooks/             # SWR data fetching hooks (usePrismaQueries.ts)
+│   └── components/        # Page-specific components
+├── components/            # Shared React components
+├── lib/                   # Utilities
+│   ├── auth-helper.ts     # Authentication & ownership verification
+│   ├── db.ts              # Prisma client configuration
+│   ├── gap-analysis/      # AI analysis orchestrator
+│   ├── documentTemplates/ # Legal document templates
+│   └── intake/            # Guided intake flow configuration
+├── prisma/
+│   ├── schema.prisma      # Database schema (19 models)
+│   └── migrations/        # Database migrations
+├── skills/                # AI skill definitions
+└── middleware.ts          # Security headers, rate limiting
+```
+
+## API Routes
+
+All API routes include authentication (Clerk or session-based) and ownership verification.
+
+| Route | Methods | Description |
+|-------|---------|-------------|
+| `/api/estate-plans` | GET, POST | List & create estate plans |
+| `/api/estate-plans/[id]` | GET, PATCH, DELETE | Get, update & delete estate plan |
+| `/api/estate-plans/[id]/intake` | GET | Get all intake data |
+| `/api/estate-plans/[id]/intake/[section]` | GET, PUT | Section-specific intake |
+| `/api/estate-plans/[id]/guided-intake` | GET, POST, PUT | Guided flow progress |
+| `/api/estate-plans/[id]/gap-analysis` | GET, POST | Gap analysis results |
+| `/api/estate-plans/[id]/gap-analysis-runs` | GET, POST, PUT | Analysis run orchestration |
+| `/api/estate-plans/[id]/documents` | GET, POST | Generated documents |
+| `/api/estate-plans/[id]/uploaded-documents` | GET, POST, DELETE, PATCH | Uploaded documents |
+| `/api/estate-plans/[id]/beneficiaries` | GET, POST, PUT | Beneficiary designations |
+| `/api/estate-plans/[id]/reminders` | GET, POST | Reminder management |
+| `/api/estate-plans/[id]/life-events` | GET, POST, PATCH | Life event tracking |
+| `/api/estate-plans/[id]/family-contacts` | GET, POST, PUT, DELETE | Family & advisor contacts |
+| `/api/estate-plans/[id]/attorney-questions` | GET, POST, PUT, DELETE | Attorney questions |
+| `/api/estate-plans/[id]/document-checklist` | GET, POST, PUT, DELETE | Document checklist |
+| `/api/gap-analysis/orchestrate` | POST | Multi-phase AI analysis |
+| `/api/document-generation` | POST | AI document generation |
+| `/api/upload` | POST | File upload (PDF) |
+| `/api/users` | GET, POST, PATCH | User management |
+| `/api/reminders/[id]` | PATCH, DELETE | Individual reminder actions |
+
+## Security Features
+
+- **Authentication**: Clerk integration with anonymous session fallback
+- **Ownership Verification**: All resources verified against user/session
+- **Rate Limiting**: 100 requests/minute per IP
+- **Security Headers**: CSP, HSTS, X-Frame-Options, etc.
+- **SSL/TLS**: Required for database connections
+- **Input Validation**: Zod schema validation on all endpoints
+- **File Validation**: Magic bytes check for uploads
+
+## Database Schema
+
+19 Prisma models covering:
+- Users & authentication
+- Estate plans & intake data
+- Document storage & generation
+- Gap analysis runs & results
+- Reminders & life events
+- Beneficiary designations
+- Family contacts & attorney questions
+
+Run `npx prisma studio` to explore the database visually.
+
+## Development
+
+```bash
+# Run development server
+npm run dev
+
+# Run Prisma Studio (database GUI)
+npx prisma studio
+
+# Generate Prisma client after schema changes
+npx prisma generate
+
+# Create a new migration
+npx prisma migrate dev --name description
+
+# Lint code
+npm run lint
+```
+
+## Troubleshooting
+
+### Common Issues
+
+**Port 3000 already in use:**
+```bash
+# Find and kill zombie Node processes (Windows)
+tasklist | findstr node
+taskkill /F /PID <pid>
+
+# Or kill all Node processes
+taskkill /F /IM node.exe
+```
+
+**401 Unauthorized errors:**
+- The app uses sessionId for anonymous authentication
+- SessionId is stored in localStorage as `estatePlanSessionId`
+- All API calls automatically include sessionId via the `authFetch` helper
+
+**Blank screen on intake pages:**
+- Check browser console (F12) for JavaScript errors
+- Verify API endpoints return 200 (not 404)
+- Clear `.next` folder and restart: `rm -rf .next && npm run dev`
+
+**Database connection errors:**
+- Verify `DATABASE_URL` in `.env` file
+- For AWS RDS, ensure `?sslmode=require` is appended
+- Check security group allows your IP
+
+**Build errors (EPERM on Windows):**
+```bash
+# Clear build cache
+rm -rf .next
+npm run build
+```
 
 ## License
 
-[To be determined]
+Proprietary - Link Studio
 
----
+## Acknowledgments
 
-## Contact
-
-[Contact information]
+Built during an internship at Link Studio.

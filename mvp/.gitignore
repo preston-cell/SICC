@@ -2,6 +2,23 @@
 # clerk configuration (can include secrets)
 /.clerk/
 
+# environment files with secrets
+.env
 .env.local
+.env.production
+.env*.local
+
+# dependencies
+node_modules/
+
+# build output
 .vercel
 .next
+
+# misc
+.DS_Store
+*.log
+
+# typescript build cache
+tsconfig.tsbuildinfo
+next-env.d.ts

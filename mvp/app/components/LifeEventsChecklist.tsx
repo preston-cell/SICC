@@ -1,12 +1,22 @@
 "use client";
 
 import { useState, ReactNode } from "react";
-import { useMutation, useQuery } from "convex/react";
-import { api } from "../../convex/_generated/api";
-import { Id } from "../../convex/_generated/dataModel";
+import { useLifeEvents, logLifeEvent, markLifeEventAddressed } from "../hooks/usePrismaQueries";
 
 interface LifeEventsChecklistProps {
-  estatePlanId: Id<"estatePlans">;
+  estatePlanId: string;
+}
+// Type for life events from the API
+interface LifeEvent {
+  id: string;
+  eventType: string;
+  title: string;
+  description?: string | null;
+  eventDate: string;
+  requiresDocumentUpdate: boolean;
+  documentsAffected?: string | null;
+  planUpdated: boolean;
+  planUpdatedAt?: string | null;
 }
 
 type LifeEventType =
@@ -196,9 +206,8 @@ export function LifeEventsChecklist({ estatePlanId }: LifeEventsChecklistProps) 
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const lifeEvents = useQuery(api.reminders.getLifeEvents, { estatePlanId });
-  const logLifeEvent = useMutation(api.reminders.logLifeEvent);
-  const markEventAddressed = useMutation(api.reminders.markEventAddressed);
+  const { data: lifeEvents, error, isLoading } = useLifeEvents(estatePlanId);
+    
 
   const handleSelectEvent = (event: LifeEventOption) => {
     setSelectedEvent(event);
@@ -214,8 +223,7 @@ export function LifeEventsChecklist({ estatePlanId }: LifeEventsChecklistProps) 
 
     setIsSubmitting(true);
     try {
-      await logLifeEvent({
-        estatePlanId,
+      await logLifeEvent(estatePlanId, {
         eventType: selectedEvent.type,
         title: eventDetails.title,
         description: eventDetails.description || undefined,
@@ -238,8 +246,8 @@ export function LifeEventsChecklist({ estatePlanId }: LifeEventsChecklistProps) 
     }
   };
 
-  const handleMarkAddressed = async (eventId: Id<"lifeEvents">) => {
-    await markEventAddressed({ eventId });
+  const handleMarkAddressed = async (eventId: string) => {
+    await markLifeEventAddressed(estatePlanId, eventId);
   };
 
   return (
@@ -260,11 +268,11 @@ export function LifeEventsChecklist({ estatePlanId }: LifeEventsChecklistProps) 
           <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">
             Recent Events
           </h4>
-          {lifeEvents.slice(0, 5).map((event) => {
+          {lifeEvents.slice(0, 5).map((event: { eventType: string; id: string; createdAt: Date; isAddressed: boolean; planUpdated?: boolean; title?: string; eventDate: string; requiresDocumentUpdate?: boolean }) => {
             const eventOption = LIFE_EVENT_OPTIONS.find(e => e.type === event.eventType);
             return (
               <div
-                key={event._id}
+                key={event.id}
                 className={`flex items-center gap-3 p-3 rounded-lg border ${
                   event.planUpdated
                     ? "bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700"
@@ -289,8 +297,8 @@ export function LifeEventsChecklist({ estatePlanId }: LifeEventsChecklistProps) 
                 </div>
                 {event.requiresDocumentUpdate && !event.planUpdated && (
                   <button
-                    onClick={() => handleMarkAddressed(event._id)}
-                    className="px-3 py-1.5 text-xs font-medium bg-[var(--success-muted)] text-[var(--success)] rounded-lg hover:opacity-80 transition-colors"
+                    onClick={() => handleMarkAddressed(event.id || '')}
+                    className="px-3 py-1.5 text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-lg hover:bg-green-200 dark:hover:bg-green-900/50 transition-colors"
                   >
                     Mark Updated
                   </button>

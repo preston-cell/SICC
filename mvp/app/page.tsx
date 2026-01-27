@@ -2,8 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { useQuery } from "convex/react";
-import { api } from "../convex/_generated/api";
+import { useRecentEstatePlans } from "./hooks/usePrismaQueries";
 import { SignInButton, SignUpButton, UserButton, useUser } from "./components/ClerkComponents";
 import { motion, useInView, useScroll, useTransform, useMotionValue, useSpring } from "framer-motion";
 import {
@@ -189,14 +188,23 @@ function AnimatedCounter({ end, suffix = "" }: { end: number; suffix?: string })
   useEffect(() => {
     if (!isInView) return;
     let startTime: number;
+    let animationFrameId: number;
     const duration = 2000;
     const animate = (currentTime: number) => {
       if (!startTime) startTime = currentTime;
       const progress = Math.min((currentTime - startTime) / duration, 1);
       setCount(Math.floor(progress * end));
-      if (progress < 1) requestAnimationFrame(animate);
+      if (progress < 1) {
+        animationFrameId = requestAnimationFrame(animate);
+      }
     };
-    requestAnimationFrame(animate);
+    animationFrameId = requestAnimationFrame(animate);
+
+    return () => {
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
+    };
   }, [end, isInView]);
 
   return <span ref={ref}>{count.toLocaleString()}{suffix}</span>;
@@ -325,10 +333,10 @@ function EstatePlanCard({
   plan,
 }: {
   plan: {
-    _id: string;
+    id: string;
     name?: string;
     status: string;
-    updatedAt: number;
+    updatedAt: string | number;
     stateOfResidence?: string;
   };
 }) {
@@ -347,8 +355,8 @@ function EstatePlanCard({
     <Link
       href={
         plan.status === "draft" || plan.status === "intake_in_progress"
-          ? `/intake?planId=${plan._id}`
-          : `/analysis/${plan._id}`
+          ? `/intake?planId=${plan.id}`
+          : `/analysis/${plan.id}`
       }
     >
       <div className="group p-5 rounded-xl bg-white border border-[rgba(29,29,27,0.08)] hover:border-[#FF7759] hover:shadow-lg transition-all duration-[400ms] ease-[cubic-bezier(0.16,1,0.3,1)]">
@@ -404,28 +412,8 @@ export default function Home() {
     if (storedSessionId) setSessionId(storedSessionId);
   }, []);
 
-  // Scroll handler for sticky navigation shrink
-  useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 50);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  const convexUser = useQuery(
-    api.queries.getUserByEmail,
-    isSignedIn && user?.primaryEmailAddress?.emailAddress
-      ? { email: user.primaryEmailAddress.emailAddress }
-      : "skip"
-  );
-
-  const recentPlans = useQuery(
-    api.queries.listRecentEstatePlans,
-    convexUser?._id
-      ? { limit: 5, userId: convexUser._id }
-      : sessionId
-        ? { limit: 5, sessionId }
-        : "skip"
-  );
+  // Use SWR hook for recent plans - handles both authenticated and session-based users
+  const { data: recentPlans } = useRecentEstatePlans(sessionId || undefined, 5);
 
   return (
     <div className="min-h-screen bg-white overflow-x-hidden" style={{ color: COLORS.volcanicBlack }}>
@@ -588,8 +576,8 @@ export default function Home() {
               </Link>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {recentPlans.map((plan) => (
-                <EstatePlanCard key={plan._id} plan={plan} />
+              {recentPlans.map((plan: { id: string; name?: string; status: string; updatedAt: string | number; stateOfResidence?: string }) => (
+                <EstatePlanCard key={plan.id} plan={plan} />
               ))}
             </div>
           </div>

@@ -2,9 +2,10 @@
 
 import { Suspense, useCallback, useEffect, useState, useRef, useMemo } from "react";
 import { useRouter, useSearchParams, useParams } from "next/navigation";
-import { useMutation, useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import { Id } from "@/convex/_generated/dataModel";
+import {
+  useGuidedIntakeProgress,
+  saveGuidedStepData,
+} from "@/app/hooks/usePrismaQueries";
 import {
   Loader2,
   ArrowRight,
@@ -66,22 +67,18 @@ function GuidedStepContent() {
   // Get step configuration
   const step = getStepBySlug(stepSlug);
 
-  // Convex queries and mutations
-  const estatePlanId = planId as Id<"estatePlans"> | null;
+  // SWR query for guided intake progress (includes step data)
+  const estatePlanId = planId;
 
-  const guidedProgress = useQuery(
-    api.guidedIntake.getGuidedProgress,
-    estatePlanId ? { estatePlanId } : "skip"
-  );
+  const { data: guidedProgress, isLoading: isLoadingProgress } = useGuidedIntakeProgress(estatePlanId);
 
-  // Load ALL step data to support cross-step conditionals
-  const allStepDataQuery = useQuery(
-    api.guidedIntake.getAllStepData,
-    estatePlanId ? { estatePlanId } : "skip"
-  );
-
-  const saveStepData = useMutation(api.guidedIntake.saveStepData);
-  const completeStep = useMutation(api.guidedIntake.completeStep);
+  // Extract existing step data from the progress object (memoized to prevent infinite loops)
+  const existingDataString = useMemo(() => {
+    if (step && guidedProgress?.stepData && guidedProgress.stepData[step.id]) {
+      return JSON.stringify(guidedProgress.stepData[step.id]);
+    }
+    return null;
+  }, [step, guidedProgress?.stepData]);
 
   // Parse all step data into a single object for conditionals
   useEffect(() => {
@@ -106,25 +103,16 @@ function GuidedStepContent() {
 
   // Initialize form data from all steps data (for current step's fields)
   useEffect(() => {
-    if (allStepDataQuery && step) {
-      // Find current step's data
-      const currentStepData = allStepDataQuery.find(d => d.stepId === step.id);
-      if (currentStepData?.data) {
-        try {
-          const parsed = JSON.parse(currentStepData.data);
-          setFormData(parsed);
-          formDataRef.current = parsed;
-        } catch (e) {
-          console.error("Failed to parse existing data:", e);
-        }
+    if (existingDataString) {
+      try {
+        const parsed = JSON.parse(existingDataString);
+        setFormData(parsed);
+        formDataRef.current = parsed;
+      } catch (e) {
+        console.error("Failed to parse existing data:", e);
       }
     }
-  }, [allStepDataQuery, step]);
-
-  // Merged data for conditionals: all previous steps + current form data
-  const mergedDataForConditionals = useMemo(() => {
-    return { ...allStepsData, ...formData };
-  }, [allStepsData, formData]);
+  }, [existingDataString]);
 
   // Auto-save logic
   const doSave = useCallback(
@@ -133,11 +121,7 @@ function GuidedStepContent() {
 
       setSaveStatus("saving");
       try {
-        await saveStepData({
-          estatePlanId,
-          stepId: step.id,
-          data: JSON.stringify(data),
-        });
+        await saveGuidedStepData(estatePlanId, step.id, data, false);
         setSaveStatus("saved");
         setLastSaved(new Date());
       } catch (error) {
@@ -145,7 +129,7 @@ function GuidedStepContent() {
         setSaveStatus("error");
       }
     },
-    [estatePlanId, step, saveStepData]
+    [estatePlanId, step]
   );
 
   const triggerAutoSave = useCallback(() => {
@@ -192,11 +176,7 @@ function GuidedStepContent() {
 
     try {
       // Save and mark step complete
-      await completeStep({
-        estatePlanId,
-        stepId: step.id,
-        data: JSON.stringify(formData),
-      });
+      await saveGuidedStepData(estatePlanId, step.id, formData, true);
 
       // Navigate to next step
       const nextStep = getNextStep(step.id);
@@ -266,7 +246,7 @@ function GuidedStepContent() {
     );
   }
 
-  if (allStepDataQuery === undefined) {
+  if (isLoadingProgress) {
     return (
       <div className="flex items-center justify-center py-12">
         <Loader2 className="w-6 h-6 animate-spin text-[var(--accent-purple)]" />
@@ -274,8 +254,21 @@ function GuidedStepContent() {
     );
   }
 
-  // Get visible questions based on merged data (current step + all previous steps)
-  const visibleQuestions = getVisibleQuestions(step, mergedDataForConditionals);
+  // Combine all step data for cross-step conditionals
+  const allStepData: Record<string, unknown> = {};
+  if (guidedProgress?.stepData) {
+    Object.values(guidedProgress.stepData).forEach((stepData) => {
+      if (stepData && typeof stepData === 'object') {
+        Object.assign(allStepData, stepData);
+      }
+    });
+  }
+
+  // Merge with current form data (current step takes precedence)
+  const mergedData = { ...allStepData, ...formData };
+
+  // Get visible questions based on merged data (includes cross-step conditionals)
+  const visibleQuestions = getVisibleQuestions(step, mergedData);
   const completedSteps = guidedProgress?.completedSteps || [];
 
   return (
@@ -579,7 +572,7 @@ interface ChildListFieldProps {
 function ChildListField({ label, value, onChange }: ChildListFieldProps) {
   const addChild = () => {
     onChange([...value, {
-      id: `child-${Date.now()}`,
+      id: `child-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       name: "",
       dateOfBirth: "",
       relationship: "child"
@@ -619,7 +612,7 @@ function ChildListField({ label, value, onChange }: ChildListFieldProps) {
 
       {value.map((child, index) => (
         <div
-          key={child.id || `child-${index}`}
+          key={child.id || `child-fallback-${index}`}
           className="bg-[var(--off-white)] rounded-xl p-4 space-y-3"
         >
           <div className="flex items-center justify-between">
@@ -665,9 +658,27 @@ function ChildListField({ label, value, onChange }: ChildListFieldProps) {
 // Review summary component
 function ReviewSummary({ planId, allStepsData }: { planId: string | null; allStepsData: Record<string, unknown> }) {
   const router = useRouter();
+  const estatePlanId = planId;
 
-  // Use passed allStepsData instead of querying again
-  const combinedData = allStepsData;
+  const { data: guidedProgress, isLoading } = useGuidedIntakeProgress(estatePlanId);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <Loader2 className="w-6 h-6 animate-spin text-[var(--accent-purple)]" />
+      </div>
+    );
+  }
+
+  // Combine all step data from the progress object
+  const combinedData: Record<string, unknown> = {};
+  if (guidedProgress?.stepData) {
+    Object.values(guidedProgress.stepData).forEach((stepData) => {
+      if (stepData && typeof stepData === 'object') {
+        Object.assign(combinedData, stepData);
+      }
+    });
+  }
 
   const sections = [
     {

@@ -1,7 +1,7 @@
 import "./globals.css";
 import { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
-import ConvexClientProvider from "./ConvexClientProvider";
+import AuthSyncProvider from "./AuthSyncProvider";
 import { DM_Sans, JetBrains_Mono } from "next/font/google";
 import { ToastProvider } from "./components/ui/Toast";
 
@@ -37,11 +37,9 @@ export default function RootLayout({
   const content = (
     <html lang="en" className={`${dmSans.variable} ${jetbrainsMono.variable}`}>
       <body className={dmSans.className}>
-        <ConvexClientProvider>
-          <ToastProvider>
-            {children}
-          </ToastProvider>
-        </ConvexClientProvider>
+        <AuthSyncProvider>
+          {children}
+        </AuthSyncProvider>
       </body>
     </html>
   );

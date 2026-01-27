@@ -2,10 +2,28 @@
 
 import { useState, useMemo, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useQuery, useMutation } from "convex/react";
-import { api } from "../../../convex/_generated/api";
-import { Id } from "../../../convex/_generated/dataModel";
 import Link from "next/link";
+import {
+  useEstatePlan,
+  useEstatePlanFull,
+  useIntakeProgress,
+  useLatestGapAnalysis,
+  saveGapAnalysis,
+} from "../../hooks/usePrismaQueries";
+
+// Helper to get sessionId from localStorage
+function getSessionId(): string | null {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem("estatePlanSessionId");
+}
+
+// Helper to append sessionId to URL for auth
+function appendSessionId(url: string): string {
+  const sessionId = getSessionId();
+  if (!sessionId) return url;
+  const separator = url.includes("?") ? "&" : "?";
+  return `${url}${separator}sessionId=${sessionId}`;
+}
 import { Tabs, TabPanel } from "../../components/ui/Tabs";
 import Badge from "../../components/ui/Badge";
 import Button from "../../components/ui/Button";
@@ -123,7 +141,7 @@ interface ScoreBreakdown {
 export default function AnalysisPage() {
   const params = useParams();
   const router = useRouter();
-  const estatePlanId = params.estatePlanId as Id<"estatePlans">;
+  const estatePlanId = params.estatePlanId as string;
 
   const [isRunning, setIsRunning] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -131,21 +149,19 @@ export default function AnalysisPage() {
   const [analysisMode, setAnalysisMode] = useState<"quick" | "comprehensive">("quick");
   const [progressStep, setProgressStep] = useState<string>("");
   const [progressLog, setProgressLog] = useState<string[]>([]);
-  const [comprehensiveRunId, setComprehensiveRunId] = useState<Id<"gapAnalysisRuns"> | null>(null);
+  const [comprehensiveRunId, setComprehensiveRunId] = useState<string | null>(null);
 
   // Fetch estate plan and analysis
-  const estatePlan = useQuery(api.queries.getEstatePlan, { estatePlanId });
-  const latestAnalysis = useQuery(api.queries.getLatestGapAnalysis, { estatePlanId });
-  const intakeProgress = useQuery(api.queries.getIntakeProgress, { estatePlanId });
+  const { data: estatePlan, isLoading: estatePlanLoading } = useEstatePlan(estatePlanId);
+  const { data: latestAnalysis } = useLatestGapAnalysis(estatePlanId);
+  const { data: intakeProgress } = useIntakeProgress(estatePlanId);
 
   // Check for active comprehensive analysis run
   const activeRun = useQuery(api.gapAnalysisProgress.getActiveRun, { estatePlanId });
 
   // Get full intake data for analysis
-  const intakeData = useQuery(api.queries.getEstatePlanFull, { estatePlanId });
+  const { data: intakeData } = useEstatePlanFull(estatePlanId);
 
-  // Mutation to save gap analysis results
-  const saveGapAnalysis = useMutation(api.estatePlanning.saveGapAnalysisPublic);
 
   const handleRunAnalysis = useCallback(async (mode: "quick" | "comprehensive" = "quick") => {
     setIsRunning(true);
@@ -184,11 +200,7 @@ export default function AnalysisPage() {
       // Build intake data object for the API
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const rawIntakeData = intakeData as any;
-      console.log("Raw intakeData from Convex:", rawIntakeData);
-
       const intakeArray = rawIntakeData?.intakeData || rawIntakeData?.intake || [];
-      console.log("Intake array:", intakeArray);
-      console.log("Available sections:", intakeArray.map?.((i: { section: string }) => i.section) || "none");
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const beneficiaries = rawIntakeData?.beneficiaryDesignations || [];
@@ -215,15 +227,13 @@ export default function AnalysisPage() {
         beneficiaryDesignations: beneficiaries,
       };
 
-      console.log("Built apiIntakeData:", JSON.stringify(apiIntakeData, null, 2));
-
       // Call different endpoints based on mode
       // Comprehensive mode calls orchestrate directly to avoid nested fetch timeout
       const endpoint = mode === "comprehensive"
         ? "/api/gap-analysis/orchestrate"
         : "/api/gap-analysis";
 
-      const response = await fetch(endpoint, {
+      const response = await fetch(appendSessionId(endpoint), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ intakeData: apiIntakeData, mode, estatePlanId }),
@@ -235,8 +245,7 @@ export default function AnalysisPage() {
       if (mode === "comprehensive") {
         if (result.runId) {
           // Orchestration started - redirect to preparation tasks page
-          console.log("Comprehensive analysis started, runId:", result.runId);
-          setComprehensiveRunId(result.runId as Id<"gapAnalysisRuns">);
+          setComprehensiveRunId(result.runId as string);
           clearInterval(progressInterval);
           // Redirect to preparation tasks page where user can work while analysis runs
           router.push(`/analysis/${estatePlanId}/prepare?runId=${result.runId}`);
@@ -255,17 +264,6 @@ export default function AnalysisPage() {
         return;
       }
 
-      // Debug: Log what we received from the API
-      console.log("Gap analysis API response:", {
-        success: result.success,
-        hasAnalysisResult: !!result.analysisResult,
-        score: result.analysisResult?.score,
-        overallScore: result.analysisResult?.overallScore,
-        missingDocsCount: result.analysisResult?.missingDocuments?.length || 0,
-        recommendationsCount: (result.analysisResult?.recommendations || result.analysisResult?.prioritizedRecommendations)?.length || 0,
-        stateNotesCount: (result.analysisResult?.stateSpecificNotes || result.analysisResult?.stateSpecificConsiderations)?.length || 0,
-      });
-
       // Clear progress interval
       clearInterval(progressInterval);
       setProgressStep("Analysis complete!");
@@ -275,22 +273,8 @@ export default function AnalysisPage() {
       const recommendations = result.analysisResult?.recommendations || result.analysisResult?.prioritizedRecommendations || [];
       const stateNotes = result.analysisResult?.stateSpecificNotes || result.analysisResult?.stateSpecificConsiderations || [];
 
-      if (missingDocs.length === 0 && recommendations.length === 0) {
-        console.warn("WARNING: API returned empty analysis data - possible parsing issue");
-        console.warn("Full result structure:", JSON.stringify(result.analysisResult, null, 2).slice(0, 1000));
-      }
-
-      // Log what we're about to save
-      console.log("Saving to Convex:", {
-        score: result.analysisResult?.score || 50,
-        missingDocsCount: missingDocs.length,
-        recommendationsCount: recommendations.length,
-        stateNotesCount: stateNotes.length,
-      });
-
-      // Save results to Convex
-      await saveGapAnalysis({
-        estatePlanId,
+      // Save results to Prisma via API
+      await saveGapAnalysis(estatePlanId, {
         score: result.analysisResult.score || 50,
         scoreBreakdown: result.analysisResult.scoreBreakdown
           ? JSON.stringify(result.analysisResult.scoreBreakdown)
@@ -323,7 +307,7 @@ export default function AnalysisPage() {
       setIsRunning(false);
       setProgressStep("");
     }
-  }, [estatePlanId, estatePlan, intakeData, saveGapAnalysis]);
+  }, [estatePlanId, estatePlan, intakeData]);
 
   // Parse analysis data
   const parseJsonArray = <T,>(jsonString: string | undefined): T[] => {
@@ -423,7 +407,7 @@ export default function AnalysisPage() {
     window.print();
   };
 
-  if (!estatePlan) {
+  if (estatePlanLoading || !estatePlan) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
@@ -613,7 +597,7 @@ export default function AnalysisPage() {
             <div className="bg-gray-900 rounded-lg p-4 max-h-64 overflow-y-auto font-mono text-sm">
               <div className="text-gray-400 mb-2">$ claude-code --analyze estate-plan</div>
               {progressLog.map((log, idx) => (
-                <div key={idx} className="text-green-400 flex items-center gap-2">
+                <div key={`log-${idx}-${log.slice(0, 20)}`} className="text-green-400 flex items-center gap-2">
                   <span className="text-gray-500">[{String(idx + 1).padStart(2, "0")}]</span>
                   <span>✓ {log}</span>
                 </div>
@@ -635,9 +619,10 @@ export default function AnalysisPage() {
         )}
 
         {/* Comprehensive Analysis Progress */}
-        {comprehensiveRunId && (
+        {comprehensiveRunId && estatePlanId && (
           <div className="mb-8">
             <GapAnalysisProgress
+              estatePlanId={estatePlanId}
               runId={comprehensiveRunId}
               onComplete={() => {
                 setComprehensiveRunId(null);
@@ -793,38 +778,35 @@ export default function AnalysisPage() {
                   </Link>
                 </div>
 
-                {/* Preparation Tasks Links */}
-                <div className="mt-6 pt-6 border-t border-[var(--border)]">
-                  <p className="text-sm text-[var(--text-muted)] text-center mb-3">Prepare for Your Attorney Consultation</p>
-                  <div className="flex flex-wrap justify-center gap-3">
-                    <Link
-                      href={`/analysis/${estatePlanId}/prepare/documents`}
-                      className="inline-flex items-center gap-1.5 px-4 py-2 text-sm text-[var(--text-body)] hover:text-[var(--accent-purple)] border border-[var(--border)] rounded-lg hover:border-[var(--accent-purple)] transition-colors"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
-                      Gather Documents
-                    </Link>
-                    <Link
-                      href={`/analysis/${estatePlanId}/prepare/contacts`}
-                      className="inline-flex items-center gap-1.5 px-4 py-2 text-sm text-[var(--text-body)] hover:text-[var(--accent-purple)] border border-[var(--border)] rounded-lg hover:border-[var(--accent-purple)] transition-colors"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-                      </svg>
-                      Add Contacts
-                    </Link>
-                    <Link
-                      href={`/analysis/${estatePlanId}/prepare/questions`}
-                      className="inline-flex items-center gap-1.5 px-4 py-2 text-sm text-[var(--text-body)] hover:text-[var(--accent-purple)] border border-[var(--border)] rounded-lg hover:border-[var(--accent-purple)] transition-colors"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      Attorney Questions
-                    </Link>
-                  </div>
+                {/* Preparation Task Links */}
+                <div className="mt-4 flex flex-wrap justify-center gap-3">
+                  <Link
+                    href={`/analysis/${estatePlanId}/prepare/documents`}
+                    className="inline-flex items-center gap-2 px-4 py-2.5 text-sm border border-[var(--border)] rounded-lg text-[var(--text-body)] hover:border-[var(--accent-purple)] hover:text-[var(--accent-purple)] transition-colors"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Gather Documents
+                  </Link>
+                  <Link
+                    href={`/analysis/${estatePlanId}/prepare/contacts`}
+                    className="inline-flex items-center gap-2 px-4 py-2.5 text-sm border border-[var(--border)] rounded-lg text-[var(--text-body)] hover:border-[var(--accent-purple)] hover:text-[var(--accent-purple)] transition-colors"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                    Add Contacts
+                  </Link>
+                  <Link
+                    href={`/analysis/${estatePlanId}/prepare/questions`}
+                    className="inline-flex items-center gap-2 px-4 py-2.5 text-sm border border-[var(--border)] rounded-lg text-[var(--text-body)] hover:border-[var(--accent-purple)] hover:text-[var(--accent-purple)] transition-colors"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Attorney Questions
+                  </Link>
                 </div>
               </div>
 

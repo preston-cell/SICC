@@ -1,12 +1,16 @@
 "use client";
 
 import { use, useEffect } from "react";
-import { useQuery, useMutation } from "convex/react";
-import { api } from "../../../../convex/_generated/api";
-import { Id } from "../../../../convex/_generated/dataModel";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { PreparationTaskCard } from "../../../../components/PreparationTaskCard";
+import {
+  useEstatePlan,
+  usePreparationProgress,
+  useFamilyContactCount,
+  useAttorneyQuestionCount,
+  generateDocumentChecklist,
+} from "@/app/hooks/usePrismaQueries";
 
 interface PageProps {
   params: Promise<{ estatePlanId: string }>;
@@ -14,29 +18,20 @@ interface PageProps {
 
 export default function PreparePage({ params }: PageProps) {
   const { estatePlanId } = use(params);
-  const estatePlanIdTyped = estatePlanId as Id<"estatePlans">;
   const searchParams = useSearchParams();
   const runId = searchParams.get("runId");
 
-  const estatePlan = useQuery(api.queries.getEstatePlan, { estatePlanId: estatePlanIdTyped });
-  const preparationProgress = useQuery(api.preparationTasks.getPreparationProgress, {
-    estatePlanId: estatePlanIdTyped,
-  });
-  const contactCount = useQuery(api.familyContacts.getContactCount, {
-    estatePlanId: estatePlanIdTyped,
-  });
-  const questionCount = useQuery(api.attorneyQuestions.getQuestionCount, {
-    estatePlanId: estatePlanIdTyped,
-  });
-
-  const generateChecklist = useMutation(api.preparationTasks.generateChecklist);
+  const { data: estatePlan } = useEstatePlan(estatePlanId);
+  const { data: preparationProgress } = usePreparationProgress(estatePlanId);
+  const { data: contactCount } = useFamilyContactCount(estatePlanId);
+  const { data: questionCount } = useAttorneyQuestionCount(estatePlanId);
 
   // Auto-generate checklist if not exists
   useEffect(() => {
     if (preparationProgress && preparationProgress.documents.total === 0) {
-      generateChecklist({ estatePlanId: estatePlanIdTyped });
+      generateDocumentChecklist(estatePlanId);
     }
-  }, [preparationProgress, estatePlanIdTyped, generateChecklist]);
+  }, [preparationProgress, estatePlanId]);
 
   if (!estatePlan) {
     return (
@@ -49,7 +44,9 @@ export default function PreparePage({ params }: PageProps) {
   const documentsComplete =
     preparationProgress &&
     preparationProgress.documents.total > 0 &&
-    preparationProgress.documents.completed === preparationProgress.documents.total;
+    preparationProgress.documents.completed === preparationProgress.documents.total
+      ? true
+      : false;
 
   const contactsComplete = contactCount !== undefined && contactCount >= 2;
   const questionsAdded = questionCount !== undefined && questionCount.total > 0;

@@ -1,5 +1,3 @@
-import { Id } from "../../convex/_generated/dataModel";
-
 // Run type identifiers
 export type Phase1RunType =
   | "state_law_research"
@@ -442,7 +440,7 @@ export interface Phase3Results {
 
 // Orchestration types
 export interface OrchestrationRequest {
-  estatePlanId: Id<"estatePlans">;
+  estatePlanId: string;
   intakeData: {
     estatePlan: { stateOfResidence?: string };
     personal?: { data: string };
@@ -455,13 +453,13 @@ export interface OrchestrationRequest {
 }
 
 export interface OrchestrationResponse {
-  runId: Id<"gapAnalysisRuns">;
+  runId: string;
   status: OverallStatus;
 }
 
 export interface SingleRunRequest {
-  runId: Id<"gapAnalysisRuns">;
-  phaseId: Id<"gapAnalysisPhases">;
+  runId: string;
+  phaseId: string;
   runType: RunType;
   prompt: string;
   maxTurns: number;
@@ -512,7 +510,7 @@ export interface AggregatedPhase2Results {
 
 // Progress tracking
 export interface RunProgress {
-  runId: Id<"gapAnalysisRuns">;
+  runId: string;
   status: OverallStatus;
   overallProgress: number;
   currentPhase?: number;

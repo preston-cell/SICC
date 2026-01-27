@@ -2,9 +2,7 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useMutation, useQuery } from "convex/react";
-import { api } from "../../convex/_generated/api";
-import { Id } from "../../convex/_generated/dataModel";
+import { useEstatePlan, useIntakeProgress, createEstatePlan, useUploadedDocuments, useExtractedData, useGuidedIntakeProgress } from "../hooks/usePrismaQueries";
 import Link from "next/link";
 import SaveProgressPrompt from "../components/SaveProgressPrompt";
 import {
@@ -37,36 +35,12 @@ function IntakeLandingContent() {
 
   const [isCreating, setIsCreating] = useState(false);
 
-  // Auth state (only relevant when Clerk is configured)
-  const { user, isSignedIn, isLoaded } = useUser();
-  useAuthSync(); // Sync user to Convex when signed in
-
-  const createEstatePlan = useMutation(api.estatePlanning.createEstatePlan);
-
-  // Get user ID from Convex (stored after auth sync) - only used when auth is enabled
-  const storedUserId = typeof window !== "undefined" ? localStorage.getItem("estatePlanUserId") : null;
-  // Validate that storedUserId looks like a valid users table ID (not from another table)
-  const userId = isAuthEnabled && isSignedIn && storedUserId ? storedUserId : null;
-
-  const existingPlan = useQuery(
-    api.queries.getEstatePlan,
-    planId ? { estatePlanId: planId as Id<"estatePlans"> } : "skip"
-  );
-
-  const intakeProgress = useQuery(
-    api.queries.getIntakeProgress,
-    planId ? { estatePlanId: planId as Id<"estatePlans"> } : "skip"
-  );
-
-  const extractedData = useQuery(
-    api.extractedData.getExtractedData,
-    planId ? { estatePlanId: planId as Id<"estatePlans"> } : "skip"
-  );
-
-  const uploadedDocs = useQuery(
-    api.uploadedDocuments.getUploadedDocuments,
-    planId ? { estatePlanId: planId as Id<"estatePlans"> } : "skip"
-  );
+// createEstatePlan is imported from usePrismaQueries
+  const { data: existingPlan } = useEstatePlan(planId);
+  const { data: intakeProgress } = useIntakeProgress(planId);
+  const { data: extractedData } = useExtractedData(planId);
+  const { data: uploadedDocs } = useUploadedDocuments(planId);
+  const { data: guidedProgress } = useGuidedIntakeProgress(planId);
 
   // Check for guided intake progress
   const guidedProgress = useQuery(
@@ -81,35 +55,53 @@ function IntakeLandingContent() {
   const createPlanAndNavigate = async (destination: string) => {
     setIsCreating(true);
     try {
-      let newPlanId: string;
-
-      if (isAuthEnabled && userId) {
-        // Authenticated flow - associate with user
-        newPlanId = await createEstatePlan({
-          userId: userId as Id<"users">,
-          name: "My Estate Plan",
-        });
-      } else {
-        // Anonymous flow - use session ID (can be linked to user later)
-        const sessionId = `session_${Date.now()}_${Math.random().toString(36).substring(7)}`;
-        newPlanId = await createEstatePlan({
-          sessionId,
-          name: "My Estate Plan",
-        });
-        localStorage.setItem("estatePlanSessionId", sessionId);
-      }
-
-      localStorage.setItem("estatePlanId", newPlanId);
-      router.push(`${destination}?planId=${newPlanId}`);
+      const sessionId = `session_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+      const newPlan = await createEstatePlan({
+        sessionId,
+        name: "My Estate Plan",
+      });
+      localStorage.setItem("estatePlanSessionId", sessionId);
+      localStorage.setItem("estatePlanId", newPlan.id);
+      router.push(`/intake/upload?planId=${newPlan.id}`);
     } catch (error) {
       console.error("Failed to create estate plan:", error);
       setIsCreating(false);
     }
   };
 
-  const handleStartWithDocuments = () => createPlanAndNavigate("/intake/upload");
-  const handleStartNew = () => createPlanAndNavigate("/intake/personal");
-  const handleStartGuided = () => createPlanAndNavigate("/intake/guided");
+  const handleStartNew = async () => {
+    setIsCreating(true);
+    try {
+      const sessionId = `session_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+      const newPlan = await createEstatePlan({
+        sessionId,
+        name: "My Estate Plan",
+      });
+      localStorage.setItem("estatePlanSessionId", sessionId);
+      localStorage.setItem("estatePlanId", newPlan.id);
+      router.push(`/intake/personal?planId=${newPlan.id}`);
+    } catch (error) {
+      console.error("Failed to create estate plan:", error);
+      setIsCreating(false);
+    }
+  };
+
+  const handleStartGuided = async () => {
+    setIsCreating(true);
+    try {
+      const sessionId = `session_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+      const newPlan = await createEstatePlan({
+        sessionId,
+        name: "My Estate Plan",
+      });
+      localStorage.setItem("estatePlanSessionId", sessionId);
+      localStorage.setItem("estatePlanId", newPlan.id);
+      router.push(`/intake/guided?planId=${newPlan.id}`);
+    } catch (error) {
+      console.error("Failed to create estate plan:", error);
+      setIsCreating(false);
+    }
+  };
 
   useEffect(() => {
     // Auto-redirect to saved plan
@@ -154,7 +146,7 @@ function IntakeLandingContent() {
   }
 
   // Guided flow in progress - show continuation option
-  if (existingPlan && guidedProgress && guidedProgress.completedSteps.length > 0) {
+  if (existingPlan && guidedProgress && guidedProgress.completedSteps && guidedProgress.completedSteps.length > 0) {
     const completedStepIds = guidedProgress.completedSteps;
     const isAllGuidedStepsComplete = completedStepIds.length >= 8;
 
@@ -239,7 +231,7 @@ function IntakeLandingContent() {
 
   // Existing plan progress (comprehensive form)
   if (existingPlan && intakeProgress) {
-    const completedSections = Object.values(intakeProgress.sections).filter(s => s.isComplete).length;
+    const completedSections = (Object.values(intakeProgress.sections) as Array<{ isComplete: boolean }>).filter((s: { isComplete: boolean }) => s.isComplete).length;
 
     return (
       <div className="max-w-xl mx-auto space-y-6">
@@ -316,6 +308,7 @@ function IntakeLandingContent() {
 
           <div className="space-y-2">
             {Object.entries(intakeProgress.sections).map(([section, status]) => {
+              const s = status as { isComplete: boolean; exists: boolean };
               const sectionNames: Record<string, string> = {
                 personal: "Personal Information",
                 family: "Family Information",
@@ -338,9 +331,9 @@ function IntakeLandingContent() {
                   href={`/intake/${sectionPaths[section]}?planId=${planId}`}
                   className={`
                     flex items-center justify-between p-3 rounded-lg transition-all
-                    ${status.isComplete
+                    ${s.isComplete
                       ? "bg-[var(--success-muted)] hover:bg-[var(--success)]/15"
-                      : status.exists
+                      : s.exists
                         ? "bg-[var(--warning-muted)] hover:bg-[var(--warning)]/15"
                         : "bg-[var(--off-white)] hover:bg-[var(--light-gray)]"
                     }
@@ -350,17 +343,17 @@ function IntakeLandingContent() {
                     <div
                       className={`
                         w-5 h-5 rounded-full flex items-center justify-center
-                        ${status.isComplete
+                        ${s.isComplete
                           ? "bg-[var(--success)]"
-                          : status.exists
+                          : s.exists
                             ? "bg-[var(--warning)]"
                             : "border-2 border-[var(--border)]"
                         }
                       `}
                     >
-                      {status.isComplete ? (
+                      {s.isComplete ? (
                         <Check className="w-3 h-3 text-white" />
-                      ) : status.exists ? (
+                      ) : s.exists ? (
                         <span className="text-[10px] text-white font-bold">...</span>
                       ) : null}
                     </div>
@@ -371,15 +364,15 @@ function IntakeLandingContent() {
                   <span
                     className={`
                       text-xs font-medium
-                      ${status.isComplete
+                      ${s.isComplete
                         ? "text-[var(--success)]"
-                        : status.exists
+                        : s.exists
                           ? "text-[var(--warning)]"
                           : "text-[var(--text-muted)]"
                       }
                     `}
                   >
-                    {status.isComplete ? "Complete" : status.exists ? "In Progress" : "Not Started"}
+                    {s.isComplete ? "Complete" : s.exists ? "In Progress" : "Not Started"}
                   </span>
                 </Link>
               );
