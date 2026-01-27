@@ -338,6 +338,17 @@ export default function AnalysisPage() {
   // Compute issues count (outdated + inconsistencies)
   const issuesCount = outdatedDocs.length + inconsistencies.length;
 
+  // Detect if deterministic fallback was used (AI analysis unavailable)
+  const isFallbackAnalysis = useMemo(() => {
+    if (!latestAnalysis?.rawAnalysis) return false;
+    try {
+      const raw = JSON.parse(latestAnalysis.rawAnalysis);
+      return raw._fallbackUsed === true;
+    } catch {
+      return false;
+    }
+  }, [latestAnalysis?.rawAnalysis]);
+
   // Check if intake is complete
   const intakeComplete = intakeProgress?.isAllComplete;
 
@@ -656,6 +667,31 @@ export default function AnalysisPage() {
         {/* Analysis Results */}
         {latestAnalysis && !isRunning && (
           <div className="space-y-6">
+            {/* Fallback Analysis Warning */}
+            {isFallbackAnalysis && (
+              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4 print:hidden">
+                <div className="flex gap-3">
+                  <svg className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <div>
+                    <h3 className="font-medium text-blue-800 dark:text-blue-300">Simplified Analysis</h3>
+                    <p className="text-sm text-blue-700 dark:text-blue-400 mt-1">
+                      This analysis was generated from your intake data using standard estate planning rules.
+                      For a more detailed AI-powered analysis, try running the analysis again.
+                    </p>
+                    <button
+                      onClick={() => handleRunAnalysis("quick")}
+                      disabled={isRunning}
+                      className="mt-2 text-sm font-medium text-blue-700 dark:text-blue-300 hover:underline disabled:opacity-50"
+                    >
+                      Re-run AI Analysis
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Hero Section - Score Display */}
             <div className="bg-white rounded-xl shadow-lg overflow-hidden">
               {/* Score Hero */}
