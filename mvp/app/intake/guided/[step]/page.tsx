@@ -82,19 +82,22 @@ function GuidedStepContent() {
 
   // Parse all step data into a single object for conditionals
   useEffect(() => {
-    if (allStepDataQuery) {
+    if (guidedProgress?.stepData) {
       const combined: Record<string, unknown> = {};
-      allStepDataQuery.forEach((stepData) => {
-        try {
-          const parsed = JSON.parse(stepData.data);
-          Object.assign(combined, parsed);
-        } catch (e) {
-          console.error("Failed to parse step data:", e);
+      for (const [, data] of Object.entries(guidedProgress.stepData)) {
+        if (data && typeof data === "object") {
+          Object.assign(combined, data);
         }
-      });
+      }
       setAllStepsData(combined);
     }
-  }, [allStepDataQuery]);
+  }, [guidedProgress?.stepData]);
+
+  // Merge all steps data with current form data for conditional logic
+  const mergedDataForConditionals = useMemo(
+    () => ({ ...allStepsData, ...formData }),
+    [allStepsData, formData]
+  );
 
   // Keep ref in sync
   useEffect(() => {

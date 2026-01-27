@@ -48,6 +48,7 @@ export function AnalysisFloatingWidget({
     status: run.status,
     overallProgress: run.progressPercent ?? 0,
     currentPhase: run.currentPhase,
+    error: (run as Record<string, unknown>).error as string | undefined,
   } : null;
 
   // Transform phases data to match expected format
@@ -69,18 +70,6 @@ export function AnalysisFloatingWidget({
   const isComplete = runProgress?.status === "completed" || runProgress?.status === "partial";
   const isFailed = runProgress?.status === "failed";
   const isCancelled = isFailed && runProgress?.error === "Cancelled by user";
-
-  const handleCancel = async () => {
-    if (isCancelling) return;
-    setIsCancelling(true);
-    try {
-      await cancelRun({ runId });
-    } catch (error) {
-      console.error("Failed to cancel analysis:", error);
-    } finally {
-      setIsCancelling(false);
-    }
-  };
 
   // Notify when complete
   useEffect(() => {

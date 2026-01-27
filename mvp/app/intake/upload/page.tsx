@@ -8,7 +8,7 @@ import {
 } from "../../hooks/usePrismaQueries";
 import Link from "next/link";
 import { useUser } from "@/app/components/ClerkComponents";
-import { useAuthSync } from "@/app/hooks/useAuthSync";
+import { useAuthSyncPrisma } from "@/app/hooks/useAuthSyncPrisma";
 
 // Check if Clerk authentication is configured
 const isAuthEnabled = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
@@ -151,9 +151,9 @@ function UploadStepContent() {
 
   // Auth state (only relevant when Clerk is configured)
   const { isSignedIn, isLoaded } = useUser();
-  useAuthSync();
+  useAuthSyncPrisma();
 
-  // Get user ID from localStorage (set by useAuthSync) - only used when auth is enabled
+  // Get user ID from localStorage (set by useAuthSyncPrisma) - only used when auth is enabled
   const storedUserId = typeof window !== "undefined" ? localStorage.getItem("estatePlanUserId") : null;
   const userId = isAuthEnabled && isSignedIn && storedUserId ? storedUserId : null;
 

@@ -156,8 +156,8 @@ export default function AnalysisPage() {
   const { data: latestAnalysis } = useLatestGapAnalysis(estatePlanId);
   const { data: intakeProgress } = useIntakeProgress(estatePlanId);
 
-  // Check for active comprehensive analysis run
-  const activeRun = useQuery(api.gapAnalysisProgress.getActiveRun, { estatePlanId });
+  // Active comprehensive analysis run (tracked locally via comprehensiveRunId)
+  const activeRun = null as { runId: string; overallProgress: number; currentPhase: number } | null;
 
   // Get full intake data for analysis
   const { data: intakeData } = useEstatePlanFull(estatePlanId);

@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 import { Button } from "../components/ui";
 import { useUser, SignInButton, SignUpButton } from "../components/ClerkComponents";
-import { useAuthSync } from "../hooks/useAuthSync";
+import { useAuthSyncPrisma } from "../hooks/useAuthSyncPrisma";
 
 // Check if Clerk authentication is configured
 const isAuthEnabled = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
@@ -34,6 +34,7 @@ function IntakeLandingContent() {
   const isComplete = searchParams.get("complete") === "true";
 
   const [isCreating, setIsCreating] = useState(false);
+  const { isLoaded, isSignedIn } = useUser();
 
 // createEstatePlan is imported from usePrismaQueries
   const { data: existingPlan } = useEstatePlan(planId);
@@ -41,12 +42,6 @@ function IntakeLandingContent() {
   const { data: extractedData } = useExtractedData(planId);
   const { data: uploadedDocs } = useUploadedDocuments(planId);
   const { data: guidedProgress } = useGuidedIntakeProgress(planId);
-
-  // Check for guided intake progress
-  const guidedProgress = useQuery(
-    api.guidedIntake.getGuidedProgress,
-    planId ? { estatePlanId: planId as Id<"estatePlans"> } : "skip"
-  );
 
   const hasExtractedData = extractedData && extractedData.length > 0;
   const hasUploadedDocs = uploadedDocs && uploadedDocs.length > 0;
@@ -97,6 +92,23 @@ function IntakeLandingContent() {
       localStorage.setItem("estatePlanSessionId", sessionId);
       localStorage.setItem("estatePlanId", newPlan.id);
       router.push(`/intake/guided?planId=${newPlan.id}`);
+    } catch (error) {
+      console.error("Failed to create estate plan:", error);
+      setIsCreating(false);
+    }
+  };
+
+  const handleStartWithDocuments = async () => {
+    setIsCreating(true);
+    try {
+      const sessionId = `session_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+      const newPlan = await createEstatePlan({
+        sessionId,
+        name: "My Estate Plan",
+      });
+      localStorage.setItem("estatePlanSessionId", sessionId);
+      localStorage.setItem("estatePlanId", newPlan.id);
+      router.push(`/intake/upload?planId=${newPlan.id}`);
     } catch (error) {
       console.error("Failed to create estate plan:", error);
       setIsCreating(false);

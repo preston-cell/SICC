@@ -6,6 +6,7 @@ import {
   snoozeReminder,
   dismissReminder,
 } from "../hooks/usePrismaQueries";
+import { useToast } from "./ui/Toast";
 
 interface Reminder {
   id: string;
@@ -82,6 +83,7 @@ const TYPE_COLORS = {
 export function ReminderCard({ reminder, estatePlanId, onComplete }: ReminderCardProps) {
   const [showSnoozeMenu, setShowSnoozeMenu] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  const { addToast } = useToast();
 
   const reminderId = reminder.id;
 

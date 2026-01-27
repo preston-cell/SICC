@@ -11,7 +11,7 @@ import { Button } from "@/app/components/ui";
 import { EmotionalBanner } from "@/components/intake";
 import { GUIDED_STEPS, getTotalSteps } from "@/lib/intake/guided-flow-config";
 import { useUser } from "@/app/components/ClerkComponents";
-import { useAuthSync } from "@/app/hooks/useAuthSync";
+import { useAuthSyncPrisma } from "@/app/hooks/useAuthSyncPrisma";
 
 // Check if Clerk authentication is configured
 const isAuthEnabled = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
@@ -22,6 +22,7 @@ function GuidedIntakeContent() {
   const planId = searchParams.get("planId");
 
   const [isStarting, setIsStarting] = useState(false);
+  const { isLoaded, isSignedIn } = useUser();
 
   // Check for existing guided progress using SWR hook
   const { data: existingProgress, isLoading } = useGuidedIntakeProgress(planId);
