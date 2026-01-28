@@ -425,11 +425,13 @@ export async function POST(req: NextRequest) {
 
     // Use direct Anthropic API call for document generation
     const anthropicApiKey = process.env.ANTHROPIC_API_KEY;
+    console.log("API Key check - exists:", !!anthropicApiKey, "length:", anthropicApiKey?.length, "starts with sk-ant:", anthropicApiKey?.startsWith("sk-ant"));
+
     if (!anthropicApiKey) {
       return NextResponse.json({ error: "Anthropic API key not configured" }, { status: 500 });
     }
 
-    const anthropic = new Anthropic({ apiKey: anthropicApiKey });
+    const anthropic = new Anthropic({ apiKey: anthropicApiKey.trim() });
 
     // Call Claude API directly
     const message = await anthropic.messages.create({
