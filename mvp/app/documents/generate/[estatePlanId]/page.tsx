@@ -6,6 +6,7 @@ import {
   useDocuments,
   useLatestGapAnalysis,
   useIntakeProgress,
+  useGuidedIntakeProgress,
 } from "../../../hooks/usePrismaQueries";
 import Link from "next/link";
 import { useState, useCallback, useRef } from "react";
@@ -133,8 +134,9 @@ export default function DocumentGeneratePage() {
   // Fetch gap analysis for recommendations
   const { data: gapAnalysis } = useLatestGapAnalysis(estatePlanId);
 
-  // Fetch intake progress
+  // Fetch intake progress (both flows)
   const { data: intakeProgress } = useIntakeProgress(estatePlanId);
+  const { data: guidedProgress } = useGuidedIntakeProgress(estatePlanId);
 
   // Parse missing documents from gap analysis
   const missingDocTypes = new Set<string>();
@@ -311,7 +313,12 @@ export default function DocumentGeneratePage() {
     );
   }
 
-  const hasEnoughData = intakeProgress && intakeProgress.percentComplete >= 40;
+  // Calculate progress from either flow
+  const guidedPercentComplete = guidedProgress?.completedSteps?.length
+    ? Math.round((guidedProgress.completedSteps.length / 8) * 100)
+    : 0;
+  const percentComplete = Math.max(intakeProgress?.percentComplete || 0, guidedPercentComplete);
+  const hasEnoughData = percentComplete >= 40;
 
   return (
     <div className="min-h-screen bg-[var(--cream)]">
@@ -354,7 +361,7 @@ export default function DocumentGeneratePage() {
               <div>
                 <h3 className="font-medium text-amber-800 dark:text-amber-200">More Information Needed</h3>
                 <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
-                  Your intake questionnaire is only {intakeProgress?.percentComplete || 0}% complete.
+                  Your intake questionnaire is only {percentComplete}% complete.
                   Documents generated with incomplete information will have placeholder values.{" "}
                   <Link href={`/intake/${estatePlanId}`} className="underline hover:no-underline">
                     Complete the questionnaire
