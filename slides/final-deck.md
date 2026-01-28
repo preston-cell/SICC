@@ -1,260 +1,134 @@
-# EstateAI: Final Pitch Deck Outline
+# EstatePrep Demo Deck
 
-## Slide Structure
+**SICC | January 2026**
 
----
-
-### Slide 1: Title
-
-**EstateAI**
-*AI-Powered Estate Plan Analysis for High-Net-Worth Individuals*
-
-"Know what's wrong before you walk into a lawyer's office."
+[View Presentation](https://docs.google.com/presentation/d/1NKxNhwQUgt3ZEWps_gc_aCjcYLyja66O5zKN67iCDJs/edit?usp=sharing)
 
 ---
 
-### Slide 2: The Problem
+## Slide 1: Title
 
-**$2M–$50M households face a frustrating dilemma:**
+# EstatePrep
 
-- **Too complex for DIY** — Multiple assets, trusts, beneficiaries
-- **Too expensive for full legal review** — $5,000–$15,000+ for comprehensive review
-- **Existing plans go stale** — Life changes create hidden gaps
-
-**The result:** 75% of estate plans haven't been reviewed in 5+ years
+*"Know what's wrong before you walk into a lawyer's office."*
 
 ---
 
-### Slide 3: The Market Gap
+## Slide 2: The Problem
 
-| Segment | Current Solution | Problem |
-|---------|------------------|---------|
-| <$2M | DIY tools (LegalZoom) | Works adequately |
-| **$2M–$50M** | **?** | **Underserved** |
-| >$50M | Family offices, white-glove | Well-served |
-
-**8.3 million US households** in the underserved sweet spot
+- Estate documents are complex, fragmented, and outdated
+- Probate is slow and costly
+- Lawyers spend hours reviewing documents
 
 ---
 
-### Slide 4: Our Solution
+## Slide 3: Why Does This Matter?
 
-**AI-powered gap analysis for existing estate plans**
-
-1. **Upload** — Will, trust, POA, healthcare docs
-2. **Analyze** — AI extracts elements, checks rules, detects gaps
-3. **Report** — Prioritized findings with plain-English explanations
-4. **Connect** — Optional attorney referral for fixes
-
-**Key Insights:**
-- "There is no single estate plan — there is a document ecosystem"
-- "Most estate failures occur not because documents are missing, but because they conflict"
-- "If the state default result is unacceptable, a document is required"
-
-**Value:** Know exactly what needs fixing before engaging a lawyer
+*[Transition slide]*
 
 ---
 
-### Slide 5: How It Works
+## Slide 4: Our Solution
 
-[Visual: Document upload → AI processing → Gap report]
-
-**Technology Stack:**
-- Next.js 16 + React 19 frontend
-- PostgreSQL via Prisma ORM
-- E2B sandboxed execution
-- Claude API (Anthropic) for AI analysis
-
-**Process:**
-- Extract key elements (beneficiaries, executors, assets)
-- Check against state-specific rules (Massachusetts first)
-- Compare to best practices checklist
-- Generate risk-scored gap report
-- Provide actionable recommendations
+- AI analyzes current estate documents
+  - Aids firms AND clients
+- Flags risks and missing elements in plain language
 
 ---
 
-### Slide 6: Key Differentiator
+## Slide 5: How Does It Work?
 
-**Analysis-first, not creation-first**
+### Step 1
+- Users upload documents / fill out information questionnaire
 
-| Competitor | Primary Offering | Gap Analysis |
-|------------|------------------|--------------|
-| LegalZoom | Document creation | None |
-| Trust & Will | Document creation | None |
-| Traditional attorney | Full service | Expensive |
-| **EstateAI** | **Gap analysis** | **Core product** |
+### Step 2
+- AI extracts and summarizes key information
 
----
-
-### Slide 7: Demo / Screenshots
-
-[To be added: Product screenshots showing:]
-- Document upload interface
-- Analysis in progress
-- Gap report with findings
-- Risk score and prioritization
-- Recommendation detail
+### Step 3
+- Users get a score as well as actionable insights
 
 ---
 
-### Slide 8: Market Opportunity
+## Slide 6: Target Audience
 
-**TAM:** $2.9B — All HNW ($2M–$50M) estate plan analysis
-**SAM:** $750M — Digitally comfortable, aware of need
-**SOM Y3:** $7.5M — 15,000 customers @ $500
+### Primary Users
+- Estate planning attorneys
+- Small-Mid sized law firms
 
-**Why now:**
-- AI capabilities now enable sophisticated document analysis
-- HNW digital adoption accelerated post-COVID
-- $84T wealth transfer creating urgency
-
----
-
-### Slide 9: Business Model
-
-**Core Revenue: Gap Analysis Reports**
-
-| Product | Price | Target |
-|---------|-------|--------|
-| Single Document | $149–$249 | Entry point |
-| Estate Package | $399–$599 | Core offering |
-| Premium + Consult | $799–$999 | High-touch |
-
-**Future Revenue:**
-- Annual review subscription ($199/year)
-- Attorney referral fees (15–25%)
-
-**Unit Economics:**
-- AOV: $450
-- Gross Margin: 80%+
-- Target CAC: <$100
-- LTV:CAC: >5:1
+### Secondary Users
+- Executors
+- Families navigating probate
 
 ---
 
-### Slide 10: Go-to-Market
+## Slide 7: Demo Takeaways
 
-**Phase 1: Massachusetts Launch**
-- Direct digital acquisition (SEO, Google Ads, LinkedIn)
-- Content marketing (estate planning guides, checklists)
-- Target: 750 customers, $375K revenue
+*[Demo section - to be filled in with specific takeaways after demo]*
 
-**Phase 2: Expansion**
-- Add NY, CA, FL (large HNW populations)
-- Financial advisor partnerships
-- Target: 15,000 customers, $7.5M revenue
-
-**Phase 3: Scale**
-- All 50 states
-- B2B2C (RIAs, banks, employers)
-- Attorney network integration
+- Takeaway 1
+- Takeaway 2
+- Takeaway 3
 
 ---
 
-### Slide 11: Competitive Landscape
+## Slide 8: Benefits at Hand
 
-[Visual: 2x2 matrix]
-
-- **X-axis:** Target segment (Mass market → HNW)
-- **Y-axis:** Primary offering (Creation → Analysis)
-
-**Competitors:**
-- LegalZoom: Mass market / Creation
-- Trust & Will: Mass market / Creation
-- Wealth.com: HNW / Creation (advisor-focused)
-- Traditional attorneys: All / Full service
-
-**EstateAI: HNW / Analysis** — White space
+| Benefit | Description |
+|---------|-------------|
+| **Time Savings** | Reduces hours of manual reading |
+| **Higher Accuracy** | Human error is reduced |
+| **Lower Costs** | Cuts repetitive legal labor, less hires |
+| **Less Confusion** | No legal jargon, more confidence |
 
 ---
 
-### Slide 12: Traction / Roadmap
+## Slide 9: Trust and Safety
 
-**Current Status:**
-- [x] Architecture designed (Next.js + Prisma/PostgreSQL + E2B + Claude API)
-- [x] Initial documentation complete
-- [x] Technical spike framework ready
-- [x] MVP built and deployed
-- [ ] Massachusetts rules research
-
-**Tech Stack Validated:**
-- Next.js 16 + React 19 (App Router)
-- PostgreSQL via Prisma ORM (19 models, REST API)
-- E2B SDK (sandboxed code execution)
-- Claude API / Anthropic SDK (AI analysis engine)
-
-**Milestones:**
-- Month 1–2: MVP development
-- Month 3: Private beta (50 users)
-- Month 4: Massachusetts launch
-- Month 6: New York expansion
+- AI supports but doesn't replace legal judgement
+- Privacy document handling with secure data storage
+- Transparent outputs that attorneys verify
 
 ---
 
-### Slide 13: Team
+## Slide 10: Business Model
 
-| Name | Role | Background |
-|------|------|------------|
-| [Founder 1] | CEO | [Relevant experience] |
-| [Founder 2] | CTO | [Relevant experience] |
-| [Advisor] | Legal | Estate planning attorney |
+### Distribution Model
+- Law firms provide the platform directly to their clients as part of estate planning and probate services
 
-**What we're looking for:**
-- Technical co-founder with AI/ML experience
-- Legal advisor with estate planning expertise
+### Pricing Strategy
+- Lower cost, usage based pricing
 
----
-
-### Slide 14: The Ask
-
-**Seeking: [$ Amount]**
-
-**Use of Funds:**
-- Product development (60%)
-- Go-to-market (25%)
-- Legal/compliance (10%)
-- Operations (5%)
-
-**Milestones this funding enables:**
-- MVP launch in California
-- 750+ paying customers
-- Expansion to 4 states
-- Path to profitability
+### Expansion
+- Expand to firms in other states
+- Move up market to larger firms
 
 ---
 
-### Slide 15: Why Now, Why Us
+## Slide 11: Additional Features
 
-**Why Now:**
-- AI/LLM capabilities finally enable sophisticated document analysis
-- Claude API provides agentic AI for complex legal analysis
-- E2B sandboxing enables secure, isolated document processing
-- HNW demographic entering peak estate planning years
-- Digital adoption accelerating across all segments
+### Reminders
+- Opt-out reminder system based on severity
 
-**Why Us:**
-- Deep understanding of HNW segment needs
-- Analysis-first approach is defensible differentiation
-- Modern tech stack (Next.js + Prisma/PostgreSQL + E2B + Claude API)
-- Technical capability to execute
+### Document Generation
+- PDF generation system with personalized information
+
+### State Compliance
+- Legal advice is tailored upon state of residence
 
 ---
 
-### Slide 16: Contact
+## Slide 12: Current Status
 
-**EstateAI**
-
-[Contact information]
-[Website]
-[Email]
-
-"Know what's wrong before you walk into a lawyer's office."
+- Functional MVP completed
+- Business plan finalized
+- Active discussions with law firms
+  - Feasibility validation
+  - Pricing exploration
 
 ---
 
-## Notes
+## Slide 13: Closing
 
-- Final deck will be created in PowerPoint/Google Slides/Figma
-- PDF export will be placed at `/slides/final-deck.pdf`
-- This markdown serves as the content outline and speaking notes
+*Clearer estates. Faster workflows. Better outcomes.*
+
+---
