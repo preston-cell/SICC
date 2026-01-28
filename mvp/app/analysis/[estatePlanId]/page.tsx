@@ -207,27 +207,108 @@ export default function AnalysisPage() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const beneficiaries = rawIntakeData?.beneficiaryDesignations || [];
 
-      // Get state from estate plan or from personal data (guided flow stores it there)
+      // Get state from estate plan, guided intake, or personal data
       const personalSection = intakeArray?.find((i: { section: string }) => i.section === "personal");
       let stateOfResidence = estatePlan?.stateOfResidence;
+
+      // Check guided intake progress (stepData) for state
+      if (!stateOfResidence && rawIntakeData?.guidedIntakeProgress?.stepData) {
+        const stepData = rawIntakeData.guidedIntakeProgress.stepData;
+        // stepData is keyed by step number - search all steps for stateOfResidence
+        for (const stepKey of Object.keys(stepData)) {
+          const stepValues = stepData[stepKey];
+          if (stepValues?.stateOfResidence) {
+            stateOfResidence = stepValues.stateOfResidence;
+            break;
+          }
+        }
+      }
+
+      // Fallback to personal section from comprehensive intake
       if (!stateOfResidence && personalSection?.data) {
         try {
           const personalData = JSON.parse(personalSection.data);
-          stateOfResidence = personalData.stateOfResidence;
+          stateOfResidence = personalData.stateOfResidence || personalData.state;
         } catch {
           // Ignore parse errors
         }
       }
 
-      const apiIntakeData = {
-        estatePlan: { stateOfResidence },
-        personal: personalSection,
-        family: intakeArray?.find((i: { section: string }) => i.section === "family"),
-        assets: intakeArray?.find((i: { section: string }) => i.section === "assets"),
-        existingDocuments: intakeArray?.find((i: { section: string }) => i.section === "existing_documents"),
-        goals: intakeArray?.find((i: { section: string }) => i.section === "goals"),
-        beneficiaryDesignations: beneficiaries,
-      };
+      // Build apiIntakeData - prefer guided intake data if available
+      let apiIntakeData;
+      const guidedProgress = rawIntakeData?.guidedIntakeProgress;
+
+      if (guidedProgress?.stepData && Object.keys(guidedProgress.stepData).length > 0) {
+        // Use guided intake data - flatten step data and map to expected sections
+        const stepData = guidedProgress.stepData;
+        const flatData: Record<string, unknown> = {};
+        for (const stepKey of Object.keys(stepData)) {
+          Object.assign(flatData, stepData[stepKey]);
+        }
+
+        // Map guided fields to section format expected by gap-analysis API
+        const personalData = {
+          firstName: flatData.firstName,
+          middleName: flatData.middleName,
+          lastName: flatData.lastName,
+          dateOfBirth: flatData.dateOfBirth,
+          stateOfResidence: flatData.stateOfResidence,
+          state: flatData.stateOfResidence, // Alias
+        };
+        const familyData = {
+          maritalStatus: flatData.maritalStatus,
+          spouseFirstName: flatData.spouseFirstName,
+          spouseLastName: flatData.spouseLastName,
+          spouseDateOfBirth: flatData.spouseDateOfBirth,
+          hasChildren: flatData.hasChildren,
+          numberOfChildren: flatData.numberOfChildren,
+          hasMinorChildren: flatData.hasMinorChildren,
+        };
+        const assetsData = {
+          hasRealEstate: flatData.hasRealEstate,
+          realEstateValue: flatData.realEstateValue,
+          hasRetirementAccounts: flatData.hasRetirementAccounts,
+          retirementAccountsValue: flatData.retirementAccountsValue,
+          hasBankAccounts: flatData.hasBankAccounts,
+          bankAccountsValue: flatData.bankAccountsValue,
+          hasInvestments: flatData.hasInvestments,
+          investmentsValue: flatData.investmentsValue,
+          hasBusinessInterests: flatData.hasBusinessInterests,
+          businessValue: flatData.businessValue,
+          totalEstateEstimate: flatData.totalEstateEstimate,
+        };
+        const existingDocsData = {
+          hasWill: flatData.hasWill,
+          hasTrust: flatData.hasTrust,
+          hasPowerOfAttorney: flatData.hasPowerOfAttorney,
+          hasHealthcareDirective: flatData.hasHealthcareDirective,
+        };
+        const goalsData = {
+          primaryGoals: flatData.primaryGoals,
+          specificConcerns: flatData.specificConcerns,
+        };
+
+        apiIntakeData = {
+          estatePlan: { stateOfResidence },
+          personal: { data: JSON.stringify(personalData) },
+          family: { data: JSON.stringify(familyData) },
+          assets: { data: JSON.stringify(assetsData) },
+          existingDocuments: { data: JSON.stringify(existingDocsData) },
+          goals: { data: JSON.stringify(goalsData) },
+          beneficiaryDesignations: beneficiaries,
+        };
+      } else {
+        // Fall back to comprehensive intake data
+        apiIntakeData = {
+          estatePlan: { stateOfResidence },
+          personal: personalSection,
+          family: intakeArray?.find((i: { section: string }) => i.section === "family"),
+          assets: intakeArray?.find((i: { section: string }) => i.section === "assets"),
+          existingDocuments: intakeArray?.find((i: { section: string }) => i.section === "existing_documents"),
+          goals: intakeArray?.find((i: { section: string }) => i.section === "goals"),
+          beneficiaryDesignations: beneficiaries,
+        };
+      }
 
       // Call different endpoints based on mode
       // Comprehensive mode calls orchestrate directly to avoid nested fetch timeout

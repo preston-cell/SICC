@@ -37,6 +37,7 @@ export async function GET(
         where: { id },
         include: {
           intakeData: true,
+          guidedIntakeProgress: true,
           documents: true,
           gapAnalyses: {
             orderBy: { createdAt: 'desc' },
