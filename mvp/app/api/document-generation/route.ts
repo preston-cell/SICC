@@ -330,15 +330,92 @@ export async function POST(req: NextRequest) {
       });
 
       if (guidedProgress?.stepData) {
-        try {
-          const guidedData = JSON.parse(guidedProgress.stepData);
-          // Merge guided data - it may have different structure
-          if (guidedData.personal) intakeData.personal = { ...intakeData.personal, ...guidedData.personal };
-          if (guidedData.family) intakeData.family = { ...intakeData.family, ...guidedData.family };
-          if (guidedData.assets) intakeData.assets = { ...intakeData.assets, ...guidedData.assets };
-          if (guidedData.goals) intakeData.goals = { ...intakeData.goals, ...guidedData.goals };
-        } catch {
-          // Skip if not parseable
+        // stepData is already a JSON object from Prisma, structured as { "1": {...}, "2": {...} }
+        const stepDataObj = guidedProgress.stepData as Record<string, Record<string, unknown>>;
+
+        // Combine all step data into a flat object
+        const flatData: Record<string, unknown> = {};
+        for (const stepData of Object.values(stepDataObj)) {
+          if (stepData && typeof stepData === 'object') {
+            Object.assign(flatData, stepData);
+          }
+        }
+
+        // Map flat guided data to IntakeData structure
+        if (Object.keys(flatData).length > 0) {
+          // Personal info
+          intakeData.personal = {
+            ...intakeData.personal,
+            firstName: flatData.firstName as string,
+            lastName: flatData.lastName as string,
+            middleName: flatData.middleName as string,
+            dateOfBirth: flatData.dateOfBirth as string,
+            address: flatData.address as string,
+            city: flatData.city as string,
+            state: flatData.state as string,
+            zipCode: flatData.zipCode as string,
+            county: flatData.county as string,
+            maritalStatus: flatData.maritalStatus as string,
+            spouseName: flatData.spouseName as string,
+          };
+
+          // Family info
+          intakeData.family = {
+            ...intakeData.family,
+            hasSpouse: flatData.maritalStatus === 'married',
+            spouseFirstName: flatData.spouseFirstName as string,
+            spouseLastName: flatData.spouseLastName as string,
+            hasChildren: flatData.hasChildren as boolean,
+            children: flatData.children as Array<{
+              firstName?: string;
+              lastName?: string;
+              name?: string;
+              dateOfBirth?: string;
+              relationship?: string;
+              isMinor?: boolean;
+              hasSpecialNeeds?: boolean;
+              specialNeedsDetails?: string;
+            }>,
+            guardianName: flatData.guardianName as string,
+            guardianRelationship: flatData.guardianRelationship as string,
+            alternateGuardianName: flatData.alternateGuardianName as string,
+            primaryBeneficiary: flatData.primaryBeneficiary as string,
+            primaryBeneficiaryRelationship: flatData.primaryBeneficiaryRelationship as string,
+            alternateBeneficiary: flatData.alternateBeneficiary as string,
+            executor: flatData.executor as string,
+            executorRelationship: flatData.executorRelationship as string,
+            alternateExecutor: flatData.alternateExecutor as string,
+            healthcareAgent: flatData.healthcareAgent as string,
+            financialAgent: flatData.financialAgent as string,
+          };
+
+          // Assets info
+          if (flatData.realEstate || flatData.bankAccounts || flatData.investments ||
+              flatData.retirementAccounts || flatData.estimatedTotalValue) {
+            intakeData.assets = {
+              ...intakeData.assets,
+              realEstate: flatData.realEstate as Array<{ name?: string; address?: string; value?: number; estimatedValue?: number }>,
+              bankAccounts: flatData.bankAccounts as Array<{ name?: string; institution?: string; accountType?: string }>,
+              investments: flatData.investments as Array<{ name?: string; institution?: string; accountType?: string }>,
+              retirementAccounts: flatData.retirementAccounts as Array<{ name?: string; institution?: string; accountType?: string }>,
+              lifeInsurance: flatData.lifeInsurance as Array<{ name?: string; company?: string; policyType?: string; deathBenefit?: number }>,
+              businessInterests: flatData.businessInterests as Array<{ name?: string; businessName?: string; ownershipPercentage?: number }>,
+              estimatedTotalValue: flatData.estimatedTotalValue as number,
+            };
+          }
+
+          // Goals info
+          if (flatData.primaryGoal || flatData.distributionPreference || flatData.specialInstructions) {
+            intakeData.goals = {
+              ...intakeData.goals,
+              primaryGoal: flatData.primaryGoal as string,
+              distributionPreference: flatData.distributionPreference as string,
+              charitableGiving: flatData.charitableGiving as boolean,
+              specialInstructions: flatData.specialInstructions as string,
+              endOfLifeWishes: flatData.endOfLifeWishes as string,
+              organDonation: flatData.organDonation as string,
+            };
+          }
         }
       }
     }
