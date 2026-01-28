@@ -70,10 +70,11 @@
 
 *[Demo section - to be filled in with specific takeaways after demo]*
 
-- Takeaway 1
-- Takeaway 2
-- Takeaway 3
+- In Susan’s case, the analysis shows that while her core estate documents are in place, some are outdated and her beneficiary information isn’t fully aligned.
 
+- That puts her in a middle-range score, with clear areas that need attention but no major red flags.
+
+- This gives the attorney a clear, focused starting point for next steps.
 ---
 
 ## Slide 8: Benefits at Hand
