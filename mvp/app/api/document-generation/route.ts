@@ -326,12 +326,12 @@ export async function POST(req: NextRequest) {
       // Also fetch guided intake data if available
       const guidedProgress = await prisma.guidedIntakeProgress.findFirst({
         where: { estatePlanId },
-        select: { intakeData: true }
+        select: { stepData: true }
       });
 
-      if (guidedProgress?.intakeData) {
+      if (guidedProgress?.stepData) {
         try {
-          const guidedData = JSON.parse(guidedProgress.intakeData);
+          const guidedData = JSON.parse(guidedProgress.stepData);
           // Merge guided data - it may have different structure
           if (guidedData.personal) intakeData.personal = { ...intakeData.personal, ...guidedData.personal };
           if (guidedData.family) intakeData.family = { ...intakeData.family, ...guidedData.family };
