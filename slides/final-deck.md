@@ -59,7 +59,7 @@
 - Executors
 - Families navigating probate
 
-## Sample Client
+### Sample Client
 - Susan Chen
 - Has a basic will, but is outdated
 - Beneficiaries are listed, but not fully aligned
