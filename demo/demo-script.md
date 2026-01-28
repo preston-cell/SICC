@@ -1,197 +1,141 @@
-# EstateAI: Demo Script
+# EstatePrep: Demo Script
 
-## Demo Overview
-
-**Duration:** 5–7 minutes
-**Audience:** Investors / Partners / Potential customers
-**Goal:** Demonstrate the gap analysis value proposition for HNW individuals
-
-**Key Message:** "Know exactly what's wrong with your estate plan before you engage a lawyer."
+## Presentation Script
 
 ---
 
-## Pre-Demo Setup
+### Slide 1 (Zeke)
 
-### Environment
-- [ ] Demo environment URL: [TBD]
-- [ ] Test user account (HNW persona)
-- [ ] Sample estate documents uploaded:
-  - Revocable Living Trust (2016)
-  - Pour-over Will
-  - Durable Power of Attorney
-  - (Missing: Healthcare Proxy — deliberate gap)
-- [ ] Pre-run analysis ready to show
-
-### Backup Plan
-- Pre-recorded video walkthrough
-- Static screenshots with narration
-- PDF sample report
+Good afternoon. My name is Zeke, and this is Preston, Keegan, and Colton. We have developed a product that runs gap analysis on documents by estate planning lawyers and their clients.
 
 ---
 
-## Demo Flow
+### Slide 2 (Zeke)
 
-### Part 1: Introduction & Problem Setup (45 seconds)
+Experts recommend updating wills and trusts roughly every three to five years, however a lot can happen during this time.
 
-**Narrator Script:**
-> "Meet Robert Chen — a successful professional with about $8 million in assets. Like many high-net-worth individuals, Robert has an estate plan. His attorney set it up back in 2016. But here's the problem..."
+Lawyers and clients will spend hours talking about what has changed in the clients life, and what documents need to be updated.
 
-**Show:** Persona card or slide with Robert's profile
-
-> "Robert knows his plan is probably outdated. His brother — who was named as successor trustee — passed away two years ago. He's acquired new properties. And he has no idea what else might be wrong.
-
-> "But to find out, he'd have to engage an attorney for a comprehensive review — typically $5,000 to $15,000 — without knowing if anything actually needs fixing.
-
-> "That's where EstateAI comes in."
-
-### Part 2: Document Upload (1 minute)
-
-**Action:** Show document upload interface
-
-**Narrator Script:**
-> "EstateAI lets Robert upload his existing estate planning documents — his trust, his will, his power of attorney — directly into our secure platform."
-
-**Show:**
-- Drag-and-drop upload
-- Document type identification
-- Encryption/security indicators
-
-> "We support PDF and Word documents, including scanned copies. Everything is encrypted and handled with bank-level security — critical when dealing with sensitive estate documents."
-
-**Show:** Documents uploaded:
-- Chen Family Trust (2016) ✓
-- Pour-over Will ✓
-- Durable Power of Attorney ✓
-
-> "Notice that Robert's uploaded his trust, will, and POA. We'll see in a moment that something important is missing."
-
-### Part 3: Analysis Processing (30 seconds)
-
-**Action:** Show analysis in progress (or skip if showing pre-completed)
-
-**Narrator Script:**
-> "Once uploaded, our AI gets to work. We're extracting key elements — beneficiaries, executors, trustees, assets mentioned. We're checking against California's specific legal requirements. And we're comparing to best practices to identify gaps."
-
-**Show:** Progress indicator with steps:
-- Extracting document structure...
-- Identifying key elements...
-- Checking state compliance...
-- Detecting gaps...
-- Generating report...
-
-> "This typically takes 2–3 minutes. Let me show you what the finished analysis looks like."
-
-### Part 4: Gap Report Walkthrough (2.5–3 minutes)
-
-**Action:** Show completed gap report
-
-**Narrator Script:**
-> "Here's Robert's estate plan analysis report. Let's start with the executive summary."
-
-**Show:** Executive summary
-- Risk Score: 68/100
-- Critical Issues: 1
-- High Priority: 2
-- Medium Priority: 3
-- Advisory: 2
-
-> "Robert's overall risk score is 68 out of 100 — meaning there are some significant issues to address. Let's look at what we found."
-
-**Key Insight to Mention:**
-> "Remember: there is no single estate plan — there is a document ecosystem. What we're looking for is not just missing documents, but conflicts between documents."
+This leads to increased costs for clients, and decreased efficiency for firms.
 
 ---
 
-**Section: Critical Issues**
+### Slide 3 (Zeke)
 
-**Show:** Critical finding card
+Probate takes time, leading to a long time after death for beneficiaries not being able to access money, and probate costs money, ranging from three to seven percent of total estate value.
 
-> "First, the critical issue. Remember how Robert mentioned his brother passed away? Well, his brother was named as successor trustee in his trust. If something happens to Robert and his wife, there's now a gap in who would manage the trust for their children. This needs immediate attention."
+This also matters because many clients logically don't like planning for death, as it is an uncomfortable task.
 
-**Key Points:**
-- What we found: Successor trustee (brother) appears to be deceased
-- Why it matters: No valid successor if primary trustees incapacitated
-- Recommended action: Amend trust to name new successor trustee
+The more time clients spend with a lawyer managing their documents, the more emotionally draining the process is.
 
 ---
 
-**Section: High Priority Issues**
+### Slide 4 (Keegan)
 
-**Show:** High priority finding cards
+At a high level, our solution uses AI to analyze existing estate planning documents like wills and trusts.
 
-> "Next, we found two high-priority issues. First, Robert's trust was created in 2016 — before digital assets were commonly addressed in estate plans. There's no provision for his cryptocurrency holdings, his online accounts, or digital property. In today's world, that's a significant oversight."
+The goal is not to replace attorneys, but to support them by quickly flagging potential risks, missing elements, or inconsistencies.
 
-> "Second — and this is something Robert didn't even realize — there's no healthcare proxy or advance directive in his document set. If Robert becomes incapacitated, there's no legal document authorizing anyone to make medical decisions for him. His family would have to go to court."
-
-**Key Points:**
-- Missing digital asset provisions
-- Missing healthcare directive
+What makes this useful is that everything is explained in plain language — so attorneys can review faster, and clients can actually understand what their documents say.
 
 ---
 
-**Section: Recommendations**
+### Slide 5 (Preston / Colton)
 
-**Show:** Prioritized recommendations
+In Step 1, users upload relevant documents and answer a short questionnaire. This gives the system both structured inputs and real documents to work with.
 
-> "Finally, we provide Robert with prioritized next steps. Address the critical successor trustee issue first. Then tackle the healthcare directive gap. Then update the trust for digital assets. We explain each in plain English — no legal jargon."
+In Step 2, this is where the AI comes in. The AI analyzes the uploaded documents, extracts key legal and financial information, and summarizes what actually matters — things like ownership, beneficiaries, risks, and missing pieces.
 
-### Part 5: Attorney Connection (30 seconds)
+Then in Step 3, users receive a clear score along with actionable insights. Instead of reading dense documents, they immediately understand their situation and what steps to take next.
 
-**Action:** Show attorney referral option
-
-**Narrator Script:**
-> "Now Robert knows exactly what needs fixing. He's not walking into a lawyer's office blind. He can have a focused conversation about these specific issues."
-
-> "If Robert wants help finding an attorney, we can connect him with vetted estate planning attorneys in his area who specialize in these types of updates. He's in control."
-
-**Show:** "Find an Attorney" CTA
-
-### Part 6: Wrap-up (30 seconds)
-
-**Narrator Script:**
-> "That's EstateAI. Professional-grade estate plan analysis, powered by AI, at a fraction of traditional legal review costs.
-
-> "For high-net-worth individuals like Robert — people with real estate planning complexity but who can't justify $15,000 for a comprehensive attorney review — we provide clarity, priority, and peace of mind.
-
-> "Know what's wrong before you walk into a lawyer's office."
+So overall, the AI acts as the engine that turns complex documents into clear, usable guidance.
 
 ---
 
-## Handling Q&A
+### Slide 6 (Keegan)
 
-### Expected Questions & Answers
+This product is designed primarily for estate planning attorneys and small to mid-sized law firms, where a large portion of work involves reviewing, explaining, and updating estate documents.
 
-**Q: How accurate is the AI analysis?**
-> "Our AI is trained specifically for estate planning document analysis. We combine large language model capabilities with a rules engine that encodes state-specific legal requirements. For critical issues like the ones we showed, accuracy is very high. We also provide confidence scores and always recommend attorney consultation for any changes."
+These firms often deal with high document volume and clients who don't fully understand what their documents contain.
 
-**Q: Is this legal advice?**
-> "No — and that's an important distinction. EstateAI is a document analysis and education tool. We identify potential gaps and explain what we found in plain English. We're not providing legal advice or telling you what to do. For that, you should consult with an attorney — and we make it easy to connect with one."
+To show how this works in practice, we'll walk through a short demo using a hypothetical client named Susan.
 
-**Q: What states do you support?**
-> "We're launching with Massachusetts — a state with strong legal infrastructure and concentrated HNW population. We'll be adding New York, California, and Florida shortly as we expand to cover the largest HNW markets."
-
-**Q: How is this different from just asking ChatGPT to review my documents?**
-> "Three key differences. First, we have a purpose-built rules engine with state-specific legal requirements — something a general-purpose AI doesn't have. Second, we have a structured gap taxonomy based on what estate planning attorneys actually look for. Third, security — we're built for handling sensitive legal documents with encryption, access controls, and compliance measures. You shouldn't be uploading your trust to a general chatbot."
-
-**Q: What's the pricing?**
-> "Our comprehensive estate package analysis is $399–$599, depending on complexity. Compare that to $5,000–$15,000 for an attorney to do a full review. We're providing clarity at a fraction of the cost."
+Susan has the core estate documents in place, but some are outdated and her beneficiary information isn't fully aligned.
 
 ---
 
-## Demo Troubleshooting
+### Slide 7 (Preston)
 
-| Issue | Solution |
-|-------|----------|
-| Analysis taking too long | Skip to pre-completed analysis |
-| Unexpected findings | Acknowledge AI variability; focus on known demo gaps |
-| Upload fails | Use pre-uploaded documents |
-| Report not rendering | Show PDF backup |
+In Susan's case, the analysis shows that while her core estate documents are in place, some are outdated and her beneficiary information isn't fully aligned.
+
+That puts her in a middle-range score, with clear areas that need attention but no major red flags.
+
+This gives the attorney a clear, focused starting point for next steps.
 
 ---
 
-## Post-Demo
+### Slide 8 (Keegan)
 
-- [ ] Save demo session details
-- [ ] Note audience questions
-- [ ] Collect feedback
-- [ ] Update script based on learnings
+The benefits break down into four main areas.
+
+First, time savings – attorneys spend less time manually reading documents.
+
+Second, higher accuracy – potential issues are flagged automatically, reducing human oversight.
+
+Third, lower costs – firms can handle more work without scaling repetitive labor.
+
+And finally, less confusion for clients, since everything is explained without legal jargon, leading to more confidence and fewer follow-ups.
+
+---
+
+### Slide 9 (Colton)
+
+From a trust and safety perspective, the system is designed with clear guardrails.
+
+The AI assists with analysis but does not make legal decisions — attorneys review and control all final outputs.
+
+Documents are handled privately and stored using secure data practices.
+
+The system also provides transparent outputs, so attorneys can easily verify how conclusions are reached.
+
+This allows firms to gain efficiency while maintaining professional oversight and data security.
+
+---
+
+### Slide 10 (Colton)
+
+We sell the platform directly to law firms, and they offer it to clients as part of estate planning and probate services. We don't sell to consumers — firms are the primary customer.
+
+Pricing is usage-based, so firms only pay for what they actually use, which keeps costs low and adoption friction minimal.
+
+Over time, we expand to firms in additional states and then move up-market to larger practices.
+
+---
+
+### Slide 11 (Colton)
+
+Beyond the core product, there are a few additional features.
+
+The reminder system flags issues based on severity and allows users to opt out, so alerts are helpful without being intrusive.
+
+The platform also generates personalized PDFs using the user's information, which firms can share directly with clients.
+
+Finally, all guidance is adjusted for state-specific requirements, so recommendations align with the user's state of residence.
+
+---
+
+### Slide 12 (Preston)
+
+At this point, the MVP is fully built and functional, and the business plan has been finalized.
+
+We're in active discussions with law firms, and early feedback has been positive — firms have expressed interest and confirmed the product is feasible within their existing workflows.
+
+We're now using those conversations to refine pricing and prepare for broader rollout.
+
+---
+
+### Slide 13 (Zeke)
+
+*Clearer estates. Faster workflows. Better outcomes.*
+
+---
