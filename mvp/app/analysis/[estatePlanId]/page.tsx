@@ -613,8 +613,8 @@ export default function AnalysisPage() {
             {/* Progress Log - Terminal-like output */}
             <div className="bg-gray-900 rounded-lg p-4 max-h-64 overflow-y-auto font-mono text-sm">
               <div className="text-gray-400 mb-2">$ claude-code --analyze estate-plan</div>
-              {progressLog.map((log, idx) => (
-                <div key={`log-${idx}-${log.slice(0, 20)}`} className="text-green-400 flex items-center gap-2">
+              {progressLog.filter(Boolean).map((log, idx) => (
+                <div key={`log-${idx}-${String(log).slice(0, 20)}`} className="text-green-400 flex items-center gap-2">
                   <span className="text-gray-500">[{String(idx + 1).padStart(2, "0")}]</span>
                   <span>✓ {log}</span>
                 </div>
