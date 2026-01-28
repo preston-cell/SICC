@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthContext } from "@/lib/auth-helper";
 import { prisma } from "@/lib/db";
+import Anthropic from "@anthropic-ai/sdk";
 
 // Extend Vercel function timeout
 export const maxDuration = 300;
-
-const E2B_API_URL = "/api/e2b/execute";
 
 interface IntakeData {
   personal?: {
@@ -196,9 +195,7 @@ Requirements:
 - Signature block`,
   };
 
-  return `IMPORTANT: First, read the skill file at /home/user/.claude/skills/estate-document-analyzer/SKILL.md to understand document generation best practices.
-
-You are an expert estate planning attorney assistant. Generate a high-quality legal document.
+  return `You are an expert estate planning attorney assistant. Generate a high-quality legal document.
 
 === CLIENT INFORMATION ===
 
@@ -260,7 +257,6 @@ ${documentTypePrompts[documentType] || documentTypePrompts.will}
 3. Use proper legal language appropriate for ${state}
 4. Include all necessary signature blocks, witness lines, and notary acknowledgments
 5. Fill in all available information from above; use [PLACEHOLDER] for missing required info
-6. CRITICAL: Use the Write tool to save the document to: /home/user/generated/${documentType}.md
 
 === FORMATTING REQUIREMENTS ===
 
@@ -284,7 +280,7 @@ Date: ________________________________________
 - Always have TWO blank lines before major section headings
 - Keep the document clean and professional with no decorative lines
 
-Generate the document now and save it using the Write tool.`;
+Generate the complete document now.`;
 }
 
 export async function POST(req: NextRequest) {
@@ -427,56 +423,31 @@ export async function POST(req: NextRequest) {
     // Build the prompt
     const prompt = buildDocumentGenerationPrompt(documentType, intakeData);
 
-    // Get the base URL for the E2B API
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL ||
-                    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
+    // Use direct Anthropic API call for document generation
+    const anthropicApiKey = process.env.ANTHROPIC_API_KEY;
+    if (!anthropicApiKey) {
+      return NextResponse.json({ error: "Anthropic API key not configured" }, { status: 500 });
+    }
 
-    // Call the E2B execute endpoint with extended timeout
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 600000); // 10 minutes
+    const anthropic = new Anthropic({ apiKey: anthropicApiKey });
 
-    let response;
-    try {
-      response = await fetch(`${baseUrl}${E2B_API_URL}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+    // Call Claude API directly
+    const message = await anthropic.messages.create({
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 8192,
+      messages: [
+        {
+          role: "user",
+          content: prompt,
         },
-        body: JSON.stringify({
-          prompt,
-          outputFile: `${documentType}.md`,
-          timeoutMs: 0, // Disable E2B command timeout
-        }),
-        signal: controller.signal,
-      });
-      clearTimeout(timeoutId);
-    } catch (fetchError) {
-      clearTimeout(timeoutId);
-      throw fetchError;
-    }
+      ],
+    });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`E2B API call failed: ${response.status} ${errorText}`);
-    }
-
-    const result = await response.json();
-
-    if (!result.success) {
-      throw new Error(result.error || "E2B execution failed");
-    }
-
-    // Get the document content from fileContent or stdout
-    let content = result.fileContent || "";
-
-    // If no fileContent, try to extract from stdout
-    if (!content && result.stdout) {
-      // Look for markdown content in stdout
-      const mdMatch = result.stdout.match(/```markdown\n([\s\S]*?)\n```/) ||
-                      result.stdout.match(/```md\n([\s\S]*?)\n```/) ||
-                      result.stdout.match(/# DRAFT[\s\S]*/);
-      if (mdMatch) {
-        content = mdMatch[1] || mdMatch[0];
+    // Extract text content from the response
+    let content = "";
+    for (const block of message.content) {
+      if (block.type === "text") {
+        content += block.text;
       }
     }
 
@@ -487,7 +458,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       content,
-      stdout: result.stdout,
     });
 
   } catch (error) {
