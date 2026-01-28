@@ -1,27 +1,12 @@
-# SICC MVP - Local Development Setup Guide
+# Estate Planning Assistant - Local Development Setup Guide
 
-This guide will help you set up the SICC MVP application on your local machine.
-
-## What Changed
-
-The database has been migrated from Convex to PostgreSQL:
-
-| Before | After |
-|--------|-------|
-| Convex (cloud database) | PostgreSQL (local) / AWS RDS (production) |
-| Convex SDK | Prisma 7 ORM |
-| Convex hooks | SWR for data fetching |
-| Real-time updates | Polling |
-
-**Key benefit:** You can now run everything locally without cloud database dependencies.
-
----
+This guide will help you set up the Estate Planning Assistant on your local machine.
 
 ## Prerequisites Checklist
 
 | Requirement | How to Check | Minimum Version |
 |-------------|--------------|-----------------|
-| Node.js | `node --version` | 18.0.0+ |
+| Node.js | `node --version` | 20.0.0+ |
 | npm | `npm --version` | 9.0.0+ |
 | PostgreSQL | `psql --version` | 15.0+ |
 | Git | `git --version` | Any |
@@ -37,7 +22,7 @@ node --version
 
 ### Windows
 1. Go to https://nodejs.org
-2. Download LTS version (18+)
+2. Download LTS version (20+)
 3. Run installer, accept defaults
 4. Restart your terminal
 
@@ -105,18 +90,13 @@ sudo -u postgres psql -c "ALTER USER postgres PASSWORD 'your_password';"
 ```bash
 # Clone the repo (skip if already cloned)
 git clone https://github.com/preston-cell/SICC.git
-cd SICC
+cd SICC/mvp
 
-# Make sure you're on the main branch
-git checkout main
-git pull origin main
-
-# Navigate to the mvp folder
-cd mvp
-
-# Install dependencies
+# Install dependencies (this also runs prisma generate via postinstall)
 npm install
 ```
+
+**Note:** This project uses Tailwind CSS v4 which is installed via npm. There is no `tailwind.config.js` file - configuration is done via CSS in `app/globals.css`.
 
 ---
 
@@ -130,7 +110,7 @@ psql -U postgres
 # Enter your postgres password when prompted
 
 # Create the database
-CREATE DATABASE sicc_dev;
+CREATE DATABASE estate_planning;
 
 # Verify it was created
 \l
@@ -141,13 +121,13 @@ CREATE DATABASE sicc_dev;
 
 ### Option B: Using createdb
 ```bash
-createdb -U postgres sicc_dev
+createdb -U postgres estate_planning
 ```
 
 ### Mac Users - If "role postgres does not exist"
 ```bash
 createuser -s postgres
-createdb sicc_dev
+createdb estate_planning
 ```
 
 ---
@@ -162,8 +142,8 @@ cp .env.example .env
 Edit `.env` with your actual values:
 
 ```env
-# Your local PostgreSQL password
-DATABASE_URL="postgresql://postgres:YOUR_PASSWORD@localhost:5432/sicc_dev"
+# Database - use your PostgreSQL password
+DATABASE_URL="postgresql://postgres:YOUR_PASSWORD@localhost:5432/estate_planning"
 
 # Get from https://console.anthropic.com
 ANTHROPIC_API_KEY="sk-ant-your-key-here"
@@ -198,9 +178,12 @@ npx prisma migrate dev
 **Expected output:**
 ```
 Applying migration `20260114054453_init`
+...
 Database is now in sync with the schema.
 ✔ Generated Prisma Client
 ```
+
+**Note:** This project uses Prisma 7 which requires a `prisma.config.ts` file (already included in the repo).
 
 ---
 
@@ -223,12 +206,9 @@ npm run dev
 ## Step 8: Test the Application
 
 1. Open http://localhost:3000
-2. Enter a prompt: "Create a hello world HTML file"
-3. Click "Run Agent"
-4. Verify:
-   - Run appears in the UI
-   - Status: pending → running → completed
-   - Generated files appear
+2. Click "Start Planning" or navigate to the intake wizard
+3. Complete a few steps of the guided intake
+4. Navigate to the Analysis page to test AI features
 
 ### View Database (Optional)
 ```bash
@@ -244,13 +224,24 @@ Opens a browser GUI at http://localhost:5555 to view your data.
 |---------|-------------|
 | `npm run dev` | Start development server |
 | `npm run build` | Build for production |
+| `npm run setup` | Generate Prisma client + run migrations |
 | `npx prisma studio` | Open database GUI |
-| `npx prisma migrate dev` | Run migrations |
+| `npx prisma migrate dev` | Create/apply migrations |
 | `npx prisma migrate reset` | Reset database (deletes all data) |
+| `npx prisma generate` | Regenerate Prisma client |
 
 ---
 
 ## Troubleshooting
+
+### "Can't resolve 'tailwindcss'" or CSS Errors
+
+This project uses Tailwind CSS v4. Ensure dependencies are installed:
+```bash
+rm -rf node_modules .next
+npm install
+npm run dev
+```
 
 ### PostgreSQL Connection Errors
 
@@ -269,11 +260,28 @@ Wrong password in `.env`. Check your DATABASE_URL.
 
 ---
 
-**Error:** `database "sicc_dev" does not exist`
+**Error:** `database "estate_planning" does not exist`
 
 Create the database:
 ```bash
-createdb -U postgres sicc_dev
+createdb -U postgres estate_planning
+```
+
+---
+
+### Prisma Errors
+
+**Error:** `datasource.url property required`
+
+This happens with Prisma 7. Make sure `prisma.config.ts` exists in the project root (it should already be there).
+
+---
+
+**Error:** `relation "EstatePlan" does not exist`
+
+Migrations haven't been run:
+```bash
+npx prisma migrate dev
 ```
 
 ---
@@ -285,15 +293,6 @@ createdb -U postgres sicc_dev
 Your `.env` file is missing or the key isn't set. Check:
 1. `.env` file exists in `mvp/` folder
 2. `ANTHROPIC_API_KEY` has a valid key
-
----
-
-**Error:** `relation "AgentRun" does not exist`
-
-Migrations haven't been run:
-```bash
-npx prisma migrate dev
-```
 
 ---
 
@@ -322,12 +321,12 @@ npm run dev
 ## Setup Checklist
 
 ```
-□ Node.js 18+ installed
+□ Node.js 20+ installed
 □ PostgreSQL 15+ installed and running
 □ Repository cloned
 □ In the mvp/ directory
-□ npm install completed
-□ Database sicc_dev created
+□ npm install completed (no errors)
+□ Database estate_planning created
 □ .env file configured with:
   □ DATABASE_URL (with correct password)
   □ ANTHROPIC_API_KEY
@@ -335,7 +334,7 @@ npm run dev
 □ npx prisma migrate dev completed
 □ npm run dev works
 □ http://localhost:3000 loads
-□ Can create and run an agent task
+□ Can navigate through the intake wizard
 ```
 
 ---
@@ -345,17 +344,26 @@ npm run dev
 ```
 mvp/
 ├── app/
-│   ├── api/
-│   │   ├── agent/          # AI agent endpoint
-│   │   └── runs/           # CRUD for agent runs
-│   ├── components/         # React components
-│   ├── page.tsx            # Main page
-│   └── layout.tsx          # Root layout
+│   ├── api/                # REST API routes
+│   │   ├── estate-plans/   # Estate plan CRUD
+│   │   ├── gap-analysis/   # AI analysis
+│   │   └── document-generation/ # Document generation
+│   ├── analysis/           # Gap analysis page
+│   ├── documents/          # Document management
+│   ├── intake/             # Intake wizard (guided + comprehensive)
+│   │   ├── guided/         # Step-by-step wizard
+│   │   └── comprehensive/  # Full form
+│   ├── hooks/              # SWR data fetching hooks
+│   └── components/         # React components
 ├── lib/
-│   └── db.ts               # Database connection
+│   ├── db.ts               # Prisma client
+│   ├── auth-helper.ts      # Authentication
+│   └── documentTemplates/  # Legal document templates
 ├── prisma/
 │   ├── schema.prisma       # Database schema
 │   └── migrations/         # Database migrations
+├── prisma.config.ts        # Prisma 7 config
+├── postcss.config.mjs      # PostCSS config (Tailwind v4)
 ├── .env.example            # Environment template
 └── README.md               # Full documentation
 ```
