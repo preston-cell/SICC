@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthContext } from "@/lib/auth-helper";
+import { prisma } from "@/lib/db";
 
 // Extend Vercel function timeout
 export const maxDuration = 300;
@@ -297,14 +298,53 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { documentType, intakeData } = await req.json();
+    const { documentType, intakeData: providedIntakeData, estatePlanId } = await req.json();
 
     if (!documentType) {
       return NextResponse.json({ error: "Document type is required" }, { status: 400 });
     }
 
-    if (!intakeData) {
-      return NextResponse.json({ error: "Intake data is required" }, { status: 400 });
+    // Get intake data - either from request or fetch from database
+    let intakeData: IntakeData = providedIntakeData || {};
+
+    if (!providedIntakeData && estatePlanId) {
+      // Fetch intake data from database
+      const sections = await prisma.intakeData.findMany({
+        where: { estatePlanId },
+        select: { section: true, data: true }
+      });
+
+      for (const section of sections) {
+        try {
+          const parsed = JSON.parse(section.data);
+          intakeData[section.section as keyof IntakeData] = parsed;
+        } catch {
+          // Skip unparseable sections
+        }
+      }
+
+      // Also fetch guided intake data if available
+      const guidedProgress = await prisma.guidedIntakeProgress.findFirst({
+        where: { estatePlanId },
+        select: { intakeData: true }
+      });
+
+      if (guidedProgress?.intakeData) {
+        try {
+          const guidedData = JSON.parse(guidedProgress.intakeData);
+          // Merge guided data - it may have different structure
+          if (guidedData.personal) intakeData.personal = { ...intakeData.personal, ...guidedData.personal };
+          if (guidedData.family) intakeData.family = { ...intakeData.family, ...guidedData.family };
+          if (guidedData.assets) intakeData.assets = { ...intakeData.assets, ...guidedData.assets };
+          if (guidedData.goals) intakeData.goals = { ...intakeData.goals, ...guidedData.goals };
+        } catch {
+          // Skip if not parseable
+        }
+      }
+    }
+
+    if (!intakeData || Object.keys(intakeData).length === 0) {
+      return NextResponse.json({ error: "Intake data is required. Please complete the intake questionnaire first." }, { status: 400 });
     }
 
     // Build the prompt

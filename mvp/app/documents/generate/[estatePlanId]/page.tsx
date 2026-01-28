@@ -158,7 +158,16 @@ export default function DocumentGeneratePage() {
     });
 
     try {
-      const response = await fetch('/api/document-generation', {
+      // Get sessionId from localStorage for authentication
+      const sessionId = typeof window !== 'undefined'
+        ? localStorage.getItem('estatePlanSessionId')
+        : null;
+
+      const url = sessionId
+        ? `/api/document-generation?sessionId=${encodeURIComponent(sessionId)}`
+        : '/api/document-generation';
+
+      const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
