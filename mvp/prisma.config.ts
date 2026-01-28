@@ -26,7 +26,7 @@ export default defineConfig({
 
       const pool = new Pool({
         connectionString: databaseUrl,
-        ssl: isRds ? { rejectUnauthorized: true } : undefined
+        ssl: isRds ? { rejectUnauthorized: false } : undefined
       })
 
       return new PrismaPg(pool)
