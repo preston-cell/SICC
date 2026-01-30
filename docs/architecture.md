@@ -38,7 +38,7 @@ EstateAI is built on a modern full-stack architecture using **Next.js 16** for t
 |-------------------------------------------------------------------------|
 |                                                                          |
 |  +-------------------------------------------------------------------+  |
-|  |                  27 REST API Routes (app/api/)                     |  |
+|  |                  30 REST API Routes (app/api/)                     |  |
 |  |                                                                    |  |
 |  |  +----------------+  +----------------+  +----------------+        |  |
 |  |  |  Estate Plans  |  |  Gap Analysis  |  |  Documents     |        |  |
@@ -115,7 +115,7 @@ EstateAI is built on a modern full-stack architecture using **Next.js 16** for t
 | **Frontend** | Next.js 16 (App Router), React 19, TypeScript | User interface, server-side rendering |
 | **Styling** | Tailwind CSS 4, Framer Motion | Responsive design, animations |
 | **Data Fetching** | SWR | Client-side caching, revalidation |
-| **API** | Next.js Route Handlers | 27 REST API endpoints |
+| **API** | Next.js Route Handlers | 30 REST API endpoints |
 | **Database** | PostgreSQL via Prisma ORM 7.3 | Relational data, 19 models |
 | **Auth** | Clerk (optional) + session-based | Authentication with anonymous fallback |
 | **AI** | Claude API (Anthropic SDK) + Claude Code CLI | Document analysis and generation |
@@ -173,18 +173,23 @@ await authFetch(`/api/estate-plans/${id}/intake/personal`, {
 
 **Location:** `mvp/app/api/`
 
-27 REST endpoints organized by resource:
+30 REST endpoints organized by resource:
 
 ```
 api/
 ├── estate-plans/               # GET, POST
 │   └── [id]/                   # GET, PATCH, DELETE
-│       ├── intake/             # GET, PUT (by section)
+│       ├── intake/             # GET
+│       │   ├── [section]/      # GET, PUT (by section)
+│       │   └── progress/       # GET (completion status)
 │       ├── guided-intake/      # GET, POST, PUT
 │       ├── gap-analysis/       # GET, POST
 │       ├── gap-analysis-runs/  # GET, POST, PUT
 │       ├── documents/          # GET, POST
 │       ├── uploaded-documents/ # GET, POST, DELETE, PATCH
+│       │   ├── analyze/        # POST (AI analysis)
+│       │   └── summary/        # GET (summary view)
+│       ├── extracted-data/     # GET, POST
 │       ├── beneficiaries/      # GET, POST, PUT
 │       ├── reminders/          # GET, POST
 │       ├── life-events/        # GET, POST, PATCH
@@ -196,7 +201,13 @@ api/
 ├── document-generation/        # POST
 ├── upload/                     # POST (PDF upload)
 ├── users/                      # GET, POST, PATCH
-└── reminders/[id]/             # PATCH, DELETE
+├── reminders/[id]/             # PATCH, DELETE
+├── e2b/execute/                # POST (sandbox execution)
+├── run/                        # POST (agent runs)
+├── notifications/
+│   ├── process/                # POST
+│   └── test/                   # POST
+└── push/send/                  # POST (push notifications)
 ```
 
 **Auth Pattern:**

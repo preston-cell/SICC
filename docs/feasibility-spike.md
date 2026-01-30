@@ -1,12 +1,15 @@
 # EstateAI: Feasibility Spike
 
+> **Note:** This is a historical document from the initial feasibility validation phase. The architecture has since evolved to use PostgreSQL/Prisma instead of Convex. All spikes were successfully validated and the features are now implemented. See ROADMAP.md for current implementation status.
+
 ## Overview
 
 This document outlines the feasibility validation approach for the core EstateAI gap analysis capabilities. The spike focuses on proving technical viability before full MVP development.
 
 **Target Segment Reminder:** High-net-worth individuals with $2M–$50M in assets who have existing estate plans that need review.
 
-**Architecture:** Next.js + Convex + E2B with Claude Code CLI
+**Current Architecture:** Next.js 16 + PostgreSQL/Prisma 7 + E2B with Claude API
+**Original Spike Architecture:** Next.js + Convex + E2B with Claude Code CLI
 
 ---
 

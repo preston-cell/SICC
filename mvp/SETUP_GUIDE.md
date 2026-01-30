@@ -344,23 +344,34 @@ npm run dev
 ```
 mvp/
 ├── app/
-│   ├── api/                # REST API routes
-│   │   ├── estate-plans/   # Estate plan CRUD
-│   │   ├── gap-analysis/   # AI analysis
-│   │   └── document-generation/ # Document generation
+│   ├── api/                # 30 REST API routes
+│   │   ├── estate-plans/   # Estate plan CRUD + nested resources
+│   │   ├── gap-analysis/   # AI analysis (quick + orchestration)
+│   │   ├── document-generation/ # AI document generation
+│   │   ├── upload/         # File upload handling
+│   │   └── users/          # User management
 │   ├── analysis/           # Gap analysis page
-│   ├── documents/          # Document management
-│   ├── intake/             # Intake wizard (guided + comprehensive)
-│   │   ├── guided/         # Step-by-step wizard
-│   │   └── comprehensive/  # Full form
+│   │   └── [estatePlanId]/ # Results, visualization, reminders, prepare
+│   ├── documents/          # Document upload & generation
+│   ├── intake/             # Intake wizard
+│   │   ├── guided/         # 8-step conversational wizard
+│   │   ├── personal/       # Personal info form
+│   │   ├── family/         # Family structure form
+│   │   ├── assets/         # Assets form
+│   │   ├── existing/       # Existing documents form
+│   │   ├── goals/          # Estate planning goals
+│   │   └── upload/         # Document upload
 │   ├── hooks/              # SWR data fetching hooks
-│   └── components/         # React components
+│   └── components/         # Page-specific components
+├── components/             # Shared React components
 ├── lib/
 │   ├── db.ts               # Prisma client
 │   ├── auth-helper.ts      # Authentication
-│   └── documentTemplates/  # Legal document templates
+│   ├── documentTemplates/  # Legal document templates (50-state)
+│   ├── gap-analysis/       # Multi-phase orchestration
+│   └── intake/             # Guided flow configuration
 ├── prisma/
-│   ├── schema.prisma       # Database schema
+│   ├── schema.prisma       # Database schema (19 models)
 │   └── migrations/         # Database migrations
 ├── prisma.config.ts        # Prisma 7 config
 ├── postcss.config.mjs      # PostCSS config (Tailwind v4)

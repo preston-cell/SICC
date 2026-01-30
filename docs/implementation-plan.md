@@ -1,5 +1,7 @@
 # Implementation Plan: Phase 2 - Lawyer Feedback & UX Improvements
 
+> **Note:** This is a historical planning document from earlier development phases. The implementation has since been completed using PostgreSQL/Prisma architecture instead of Convex. References to `convex/` files should be understood as `app/api/` routes and `prisma/schema.prisma` in the current codebase. All features described here have been implemented - see ROADMAP.md for current status.
+
 Based on Q&A with estate lawyer and UI/UX research from Nielsen Norman Group.
 
 ## Research Summary

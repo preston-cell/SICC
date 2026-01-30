@@ -83,16 +83,23 @@ DATABASE_URL="postgresql://user:password@your-instance.region.rds.amazonaws.com:
 
 ```
 mvp/
-├── app/                    # Next.js app router
-│   ├── api/               # REST API routes
+├── app/                    # Next.js 16 app router
+│   ├── api/               # 30 REST API routes
 │   │   ├── estate-plans/  # Estate plan CRUD + nested resources
-│   │   ├── gap-analysis/  # AI analysis orchestration
+│   │   ├── gap-analysis/  # AI analysis (quick + orchestration)
 │   │   ├── document-generation/ # AI document generation
 │   │   ├── upload/        # File upload handling
+│   │   ├── reminders/     # Reminder management
 │   │   └── users/         # User management
 │   ├── analysis/          # Gap analysis UI
+│   │   └── [estatePlanId]/ # Analysis results, visualization, reminders
+│   │       └── prepare/   # Preparation phase (contacts, docs, questions)
 │   ├── documents/         # Document upload & generation
-│   ├── intake/            # Intake wizard (guided + comprehensive)
+│   ├── intake/            # Intake wizard
+│   │   ├── guided/        # 8-step conversational flow
+│   │   ├── personal/      # Comprehensive form sections
+│   │   ├── family/, assets/, goals/, existing/
+│   │   └── upload/        # Document upload during intake
 │   ├── hooks/             # SWR data fetching hooks
 │   └── components/        # Page-specific components
 ├── components/            # Shared React components
@@ -100,7 +107,8 @@ mvp/
 │   ├── auth-helper.ts     # Authentication & ownership verification
 │   ├── db.ts              # Prisma client configuration
 │   ├── documentTemplates/ # Legal document templates (50-state)
-│   └── intake/            # Guided intake flow configuration
+│   ├── gap-analysis/      # Multi-phase orchestration & prompts
+│   └── intake/            # Guided flow configuration
 ├── prisma/
 │   ├── schema.prisma      # Database schema (19 models)
 │   └── migrations/        # Database migrations
@@ -121,22 +129,62 @@ mvp/
 
 ## API Routes
 
-All API routes include authentication (Clerk or session-based) and ownership verification.
+All API routes include authentication (Clerk or session-based) and ownership verification. 30 endpoints total.
+
+### Core Estate Plan Routes
 
 | Route | Methods | Description |
 |-------|---------|-------------|
 | `/api/estate-plans` | GET, POST | List & create estate plans |
 | `/api/estate-plans/[id]` | GET, PATCH, DELETE | Get, update & delete estate plan |
+
+### Intake Routes
+
+| Route | Methods | Description |
+|-------|---------|-------------|
 | `/api/estate-plans/[id]/intake` | GET | Get all intake data |
 | `/api/estate-plans/[id]/intake/[section]` | GET, PUT | Section-specific intake |
+| `/api/estate-plans/[id]/intake/progress` | GET | Get completion status |
 | `/api/estate-plans/[id]/guided-intake` | GET, POST, PUT | Guided flow progress |
+
+### Analysis Routes
+
+| Route | Methods | Description |
+|-------|---------|-------------|
 | `/api/estate-plans/[id]/gap-analysis` | GET, POST | Gap analysis results |
+| `/api/estate-plans/[id]/gap-analysis-runs` | GET, POST, PUT | Multi-phase run tracking |
+| `/api/gap-analysis` | POST | Quick analysis mode |
+| `/api/gap-analysis/orchestrate` | POST | Comprehensive 3-phase analysis |
+
+### Document Routes
+
+| Route | Methods | Description |
+|-------|---------|-------------|
 | `/api/estate-plans/[id]/documents` | GET, POST | Generated documents |
-| `/api/estate-plans/[id]/uploaded-documents` | GET, POST, DELETE | Uploaded documents |
+| `/api/estate-plans/[id]/uploaded-documents` | GET, POST, DELETE, PATCH | Uploaded documents |
+| `/api/estate-plans/[id]/uploaded-documents/analyze` | POST | AI document analysis |
+| `/api/estate-plans/[id]/uploaded-documents/summary` | GET | Document summary |
+| `/api/estate-plans/[id]/extracted-data` | GET, POST | AI-extracted intake data |
+| `/api/document-generation` | POST | AI document generation |
+| `/api/upload` | POST | File upload handling |
+
+### Preparation Phase Routes
+
+| Route | Methods | Description |
+|-------|---------|-------------|
+| `/api/estate-plans/[id]/family-contacts` | GET, POST, PUT, DELETE | Contact management |
+| `/api/estate-plans/[id]/attorney-questions` | GET, POST, PUT, DELETE | Questions tracker |
+| `/api/estate-plans/[id]/document-checklist` | GET, POST, PUT, DELETE | Document gathering |
+
+### Other Routes
+
+| Route | Methods | Description |
+|-------|---------|-------------|
 | `/api/estate-plans/[id]/beneficiaries` | GET, POST, PUT | Beneficiary designations |
 | `/api/estate-plans/[id]/reminders` | GET, POST | Reminder management |
-| `/api/gap-analysis/orchestrate` | POST | Multi-phase AI analysis |
-| `/api/document-generation` | POST | AI document generation |
+| `/api/estate-plans/[id]/life-events` | GET, POST, PATCH | Life event tracking |
+| `/api/reminders/[id]` | PATCH, DELETE | Individual reminder ops |
+| `/api/users` | GET, POST, PATCH | User management |
 
 ## Troubleshooting
 

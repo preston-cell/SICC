@@ -89,15 +89,22 @@ DATABASE_URL="postgresql://user:password@your-instance.region.rds.amazonaws.com:
 ```
 SICC/
 ├── mvp/                    # Main application
-│   ├── app/               # Next.js app router
-│   │   ├── api/           # REST API routes
-│   │   ├── analysis/      # Gap analysis UI
-│   │   ├── documents/     # Document management
-│   │   ├── intake/        # Intake wizard
-│   │   └── hooks/         # SWR data fetching
-│   ├── lib/               # Utilities & templates
-│   ├── prisma/            # Database schema & migrations
+│   ├── app/               # Next.js 16 app router
+│   │   ├── api/           # 30 REST API routes
+│   │   ├── analysis/      # Gap analysis UI & visualization
+│   │   ├── documents/     # Document generation & upload
+│   │   ├── intake/        # Intake wizard (guided + comprehensive)
+│   │   ├── hooks/         # SWR data fetching hooks
+│   │   └── components/    # Page-specific components
+│   ├── components/        # Shared React components
+│   ├── lib/               # Utilities
+│   │   ├── documentTemplates/  # Legal document templates (50-state)
+│   │   ├── gap-analysis/       # Multi-phase analysis orchestration
+│   │   └── intake/             # Guided flow configuration
+│   ├── prisma/            # Database schema (19 models) & migrations
 │   └── prisma.config.ts   # Prisma 7 configuration
+├── docs/                  # Architecture & business documentation
+├── demo/                  # Demo scripts & setup instructions
 └── slides/                # Presentation materials
 ```
 

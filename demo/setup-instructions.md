@@ -2,17 +2,15 @@
 
 ## Prerequisites
 
-*Note: Technical setup will be detailed once MVP development begins.*
-
 ### For Presenters
 
-1. **Account Access**
-   - Demo account credentials: [TBD]
-   - Admin dashboard access: [TBD]
+1. **Environment Setup**
+   - Local development environment configured (see below)
+   - OR access to deployed staging environment
 
-2. **Sample Documents**
+2. **Sample Documents** (To Be Created)
    - Location: `/data/sample-data/`
-   - Files needed:
+   - Suggested files:
      - `chen-family-trust-2016.pdf` (Revocable Living Trust)
      - `chen-robert-pour-over-will.pdf`
      - `chen-robert-poa.pdf`
@@ -20,8 +18,8 @@
    - Note: Healthcare proxy intentionally omitted to demonstrate gap detection
 
 3. **Pre-configured Demo State**
-   - Analysis already completed for quick walkthrough
-   - Known gaps seeded in sample documents
+   - Create an estate plan through the intake wizard before demo
+   - Run analysis to have results ready for quick walkthrough
 
 ### Technical Requirements
 
@@ -29,7 +27,7 @@
 - Stable internet connection (for live demo)
 - Screen resolution: 1920x1080 minimum
 - Screen sharing capability
-- Backup: offline PDF report and screenshots
+- Backup: offline PDF report and screenshots (if available)
 
 ---
 
@@ -84,7 +82,7 @@ Use for demos emphasizing blended family complexity:
 ```bash
 # Clone repository
 git clone https://github.com/preston-cell/SICC.git
-cd SICC
+cd SICC/mvp
 
 # Install dependencies
 npm install
@@ -97,7 +95,7 @@ cp .env.example .env
 # - E2B_API_KEY (for sandbox execution)
 
 # Run database migrations
-npx prisma migrate deploy
+npx prisma migrate dev
 
 # Start Next.js development server
 npm run dev
@@ -108,11 +106,11 @@ npm run dev
 ### PostgreSQL / Prisma Setup
 
 1. Install PostgreSQL locally or use an AWS RDS instance
-2. Create a database: `createdb estateai_dev`
+2. Create a database: `createdb estate_planning`
 3. Set `DATABASE_URL` in your `.env` file:
-   - Local: `postgresql://user:password@localhost:5432/estateai_dev`
-   - AWS RDS: `postgresql://user:password@your-instance.region.rds.amazonaws.com:5432/estateai_dev?sslmode=require`
-4. Run migrations: `npx prisma migrate deploy`
+   - Local: `postgresql://postgres:password@localhost:5432/estate_planning`
+   - AWS RDS: `postgresql://user:password@your-instance.region.rds.amazonaws.com:5432/estate_planning?sslmode=require`
+4. Run migrations: `npx prisma migrate dev`
 5. (Optional) Open Prisma Studio: `npx prisma studio`
 
 ### E2B Setup
@@ -121,11 +119,11 @@ npm run dev
 2. Generate an API key from the dashboard
 3. Add `E2B_API_KEY` to your `.env`
 
-### Staging/Demo Environment
+### Production Environment
 
-**Production Configuration:**
+**Configuration:**
 - Frontend: Vercel deployment (Next.js 16)
-- Backend: Next.js API Routes + PostgreSQL via Prisma ORM
+- Backend: Next.js API Routes + PostgreSQL via Prisma 7 ORM
 - Sandboxing: E2B (isolated code execution)
 - AI: Claude API (Anthropic SDK)
 
@@ -136,8 +134,8 @@ npm run dev
 ### 1 Hour Before
 
 - [ ] Verify demo environment is accessible
-- [ ] Login to demo account
-- [ ] Confirm sample documents are uploaded
+- [ ] Login or create a session
+- [ ] Confirm sample documents are uploaded (if using)
 - [ ] Run test analysis to verify pipeline working
 - [ ] Check pre-completed analysis is showing correctly
 - [ ] Test screen sharing
@@ -148,7 +146,7 @@ npm run dev
 - [ ] Close unnecessary browser tabs
 - [ ] Disable notifications (system and browser)
 - [ ] Open demo script for reference
-- [ ] Have backup PDF report ready
+- [ ] Have backup screenshots ready
 - [ ] Test audio/video if presenting remotely
 
 ### Immediately Before
@@ -161,27 +159,25 @@ npm run dev
 
 ## Demo Account Setup
 
-### Creating Demo Account
+### Creating Demo Session
 
-1. Navigate to `/signup`
-2. Use demo email: `demo+[date]@estateai.com`
-3. Complete onboarding:
-   - State: California
-   - Net worth range: $5M–$10M
-   - Has existing estate plan: Yes
-4. Upload sample documents
-5. Run analysis
+1. Navigate to the landing page (`/`)
+2. Click "Start Planning" to create a new estate plan
+3. Complete the guided intake wizard using persona data
+4. Upload sample documents (if available)
+5. Run gap analysis
 6. Verify report generated correctly
 
-### Resetting Demo Account
+### Resetting Demo State
 
-Between demos, reset to clean state:
+Between demos, you can reset by:
 
-1. Login to admin dashboard
-2. Navigate to Demo Accounts
-3. Select account to reset
-4. Click "Reset to Default State"
-5. Verify documents and analysis restored
+1. Clear localStorage in browser (removes sessionId)
+2. Create a fresh estate plan
+3. OR use Prisma Studio to delete test data:
+   ```bash
+   npx prisma studio
+   ```
 
 ---
 
@@ -189,12 +185,10 @@ Between demos, reset to clean state:
 
 ### Chen Family Trust (2016)
 
-**File:** `chen-family-trust-2016.pdf`
-**Pages:** 28
-**Key Elements:**
+**Suggested Content:**
 - Grantors: Robert Chen, Susan Chen
 - Initial Trustees: Robert Chen, Susan Chen
-- Successor Trustee: David Chen (brother — deceased)
+- Successor Trustee: David Chen (brother — mark as deceased for demo)
 - Beneficiaries: Children in equal shares
 - NO digital asset provisions
 - Assets listed: Primary residence, investment accounts (2016 values)
@@ -206,27 +200,21 @@ Between demos, reset to clean state:
 
 ### Pour-Over Will
 
-**File:** `chen-robert-pour-over-will.pdf`
-**Pages:** 6
-**Key Elements:**
+**Suggested Content:**
 - Testator: Robert Chen
 - Executor: Susan Chen
 - Alternate: David Chen (same deceased brother)
 - Pours over to Chen Family Trust
-- 2 witnesses, self-proving affidavit
 
 **Seeded Gaps:**
 - Deceased alternate executor (same as trustee issue)
 
 ### Durable Power of Attorney
 
-**File:** `chen-robert-poa.pdf`
-**Pages:** 5
-**Key Elements:**
+**Suggested Content:**
 - Principal: Robert Chen
 - Agent: Susan Chen
 - Successor Agent: David Chen
-- Broad financial powers granted
 
 **Seeded Gaps:**
 - Deceased successor agent
@@ -246,47 +234,58 @@ This allows demo to show the "missing document" gap detection.
 
 | Issue | Solution |
 |-------|----------|
-| Can't login | Clear cookies, try incognito mode |
-| Upload fails | Check file size (<20MB), try different format |
-| Analysis stuck | Refresh page, check API status |
+| Can't access app | Verify `npm run dev` is running, check localhost:3000 |
+| Upload fails | Check file size (<20MB), ensure PDF format |
+| Analysis stuck | Refresh page, check API keys in .env |
 | Report not loading | Try different browser, check console for errors |
-| Slow performance | Check internet connection, try backup materials |
+| Slow performance | Check internet connection, E2B sandbox may need warmup |
 
-### Emergency Contacts
+### Database Issues
 
-- Technical support: [TBD]
-- Product lead: [TBD]
-- Backup presenter: [TBD]
+```bash
+# Reset database (deletes all data)
+npx prisma migrate reset
+
+# View database contents
+npx prisma studio
+```
 
 ---
 
-## Backup Materials
+## Demo Flow Suggestions
 
-Located in `/demo/backup/`:
+### Quick Demo (5 minutes)
+1. Show landing page and value proposition
+2. Skip to pre-completed analysis results
+3. Walk through gap report highlights
+4. Show document generation preview
 
-- `demo-video-recording.mp4` — Full demo walkthrough
-- `sample-report-chen.pdf` — Static PDF of gap report
-- `demo-screenshots/` — Key screen captures
-- `demo-slides.pdf` — Slides with embedded screenshots
+### Standard Demo (15 minutes)
+1. Show landing page
+2. Quick walkthrough of guided intake (skip most steps)
+3. Show analysis running (or use pre-completed)
+4. Deep dive on gap analysis results
+5. Show beneficiary tracking
+6. Show document generation
 
-### Using Backup Materials
-
-If live demo fails:
-1. Acknowledge technical difficulty professionally
-2. Switch to backup video or slides
-3. Talk through the same narrative
-4. Offer to schedule follow-up live demo
+### Full Demo (30 minutes)
+1. Complete guided intake with persona
+2. Upload sample documents
+3. Run comprehensive analysis
+4. Review all sections of gap report
+5. Show visualization features
+6. Demonstrate document generation
+7. Show reminder system
 
 ---
 
 ## Post-Demo Cleanup
 
-1. Logout of demo account
-2. Clear browser data
-3. Note any issues encountered
-4. Document audience questions for FAQ
-5. Update demo script if needed
-6. Reset demo account for next presentation
+1. Clear browser data
+2. Note any issues encountered
+3. Document audience questions for FAQ
+4. Update demo script if needed
+5. Reset demo data for next presentation
 
 ---
 

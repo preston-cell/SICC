@@ -6,19 +6,37 @@ AI-powered estate planning platform that helps users create legally-compliant do
 
 ---
 
+## Current Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| Frontend | Next.js 16, React 19, TypeScript |
+| Styling | Tailwind CSS 4 (CSS-based config) |
+| Database | PostgreSQL via Prisma 7 ORM |
+| Data Fetching | SWR (React hooks) |
+| Auth | Clerk (optional) + session-based anonymous |
+| AI | Claude API (Anthropic) |
+| Sandbox | E2B for secure AI code execution |
+| Hosting | Vercel (frontend) + AWS RDS (database) |
+
+---
+
 ## Completed Phases
 
 ### Phase 1: Core Infrastructure
 - [x] Next.js 16 + TypeScript setup
-- [x] Convex real-time database integration
+- [x] PostgreSQL + Prisma ORM integration
 - [x] Basic routing and layout structure
-- [x] Tailwind CSS styling system
+- [x] Tailwind CSS 4 styling system
+- [x] SWR data fetching hooks
 
 ### Phase 2: Intake Wizard
 - [x] Multi-step questionnaire (Personal, Family, Assets, Existing Documents, Goals)
 - [x] Progress persistence across sessions
 - [x] Session-based anonymous user flow
 - [x] Form validation and error handling
+- [x] Guided intake flow (8-step conversational wizard)
+- [x] Comprehensive form mode for detailed input
 
 ### Phase 3: Gap Analysis Engine
 - [x] AI-powered analysis using Claude via E2B sandbox
@@ -26,6 +44,7 @@ AI-powered estate planning platform that helps users create legally-compliant do
 - [x] Inconsistency detection
 - [x] State-specific recommendations
 - [x] Beneficiary designation analysis
+- [x] Multi-phase comprehensive orchestration (3 phases, 7 parallel runs)
 
 ### Phase 4: User Experience Enhancements
 - [x] 4.1 - Legal glossary with tooltips
@@ -39,6 +58,7 @@ AI-powered estate planning platform that helps users create legally-compliant do
 - [x] Reminder system for document reviews
 - [x] Life event triggers
 - [x] Due date tracking
+- [x] Auto-generated action items from gap analysis
 
 ### Phase 7: Design & Polish
 - [x] 7.1 - Design system implementation
@@ -52,89 +72,49 @@ AI-powered estate planning platform that helps users create legally-compliant do
 - [x] AI-enhanced generation with Claude
 - [x] Document preview and download functionality
 
----
+### Phase 9: Document Upload & AI Analysis
+- [x] Drag-and-drop PDF upload UI
+- [x] PDF text extraction via Claude's document understanding
+- [x] Provision-by-provision analysis
+- [x] Cross-reference analysis with intake data
+- [x] Hypothetical scenarios ("What if I become incapacitated?")
+- [x] Actionable insights with priority ranking
 
-### Phase 9: Document Upload & AI Analysis (COMPLETED)
-
-**Goal:** Allow users to upload their existing legal documents (PDFs) and receive AI-powered analysis, insights, and hypothetical scenarios.
-
-#### Features
-
-1. **Document Upload System**
-   - [x] Drag-and-drop PDF upload UI
-   - [x] Convex file storage integration
-   - [x] Document type classification (will, trust, POA, etc.)
-   - [x] Secure storage with user association
-
-2. **PDF Text Extraction**
-   - [x] PDF parsing and text extraction via Claude's document understanding
-   - [x] Structured content extraction
-
-3. **AI Document Analysis**
-   - [x] Claude reads and understands legal document content
-   - [x] Provision-by-provision analysis
-   - [x] Plain-English explanations of legal language
-   - [x] Identification of key parties (executor, trustees, beneficiaries)
-
-4. **Cross-Reference Analysis**
-   - [x] Compare uploaded documents against intake questionnaire data
-   - [x] Flag inconsistencies (e.g., "Will names John as executor but intake says John is deceased")
-   - [x] Identify outdated provisions (e.g., ex-spouse still named)
-   - [x] Check for missing beneficiaries (new children/grandchildren)
-
-5. **Hypothetical Scenarios**
-   - [x] "What if I become incapacitated?" analysis
-   - [x] "What if [beneficiary] predeceases me?" scenarios
-   - [x] State-specific considerations
-
-6. **Actionable Insights**
-   - [x] Specific recommendations with priority ranking
-   - [x] Severity indicators (critical/warning/info)
-   - [x] Links to document generation for updates
-
-#### Files Created
-- `convex/uploadedDocuments.ts` - Mutations, queries for document management
-- `convex/documentAnalysis.ts` - AI analysis action with Claude
-- `app/documents/upload/[estatePlanId]/page.tsx` - Upload & analysis UI
-
-#### UI Features
-- Drag-and-drop PDF upload
-- Document library with status indicators
-- Full analysis results view with:
-  - Plain English summary
-  - Key parties identified
-  - Inconsistencies with intake data
-  - Potential issues flagged
-  - Hypothetical scenarios
-  - Prioritized recommendations
+### Phase 10: Preparation Phase Features
+- [x] Document checklist (gathering documents for attorney meeting)
+- [x] Family contacts management (executors, trustees, etc.)
+- [x] Attorney questions tracker
+- [x] Preparation task cards
 
 ---
 
 ## In Progress
 
+*No active development phases*
+
 ---
 
 ## Future Phases
 
-### Phase 10: Polish & Performance
+### Phase 11: Polish & Performance
 - [ ] Loading states and skeleton screens
 - [ ] Error boundaries and fallbacks
 - [ ] Performance optimization
 - [ ] Accessibility audit (WCAG compliance)
 
-### Phase 11: Authentication & Multi-User
+### Phase 12: Authentication & Multi-User
 - [ ] User accounts and authentication
 - [ ] Multiple estate plans per user
 - [ ] Sharing/collaboration features
 - [ ] Role-based access (attorney review)
 
-### Phase 12: Export & Integration
+### Phase 13: Export & Integration
 - [ ] PDF export with proper formatting
 - [ ] Word document export
 - [ ] Print-optimized layouts
 - [ ] E-signature integration (DocuSign/HelloSign)
 
-### Phase 13: Attorney Network
+### Phase 14: Attorney Network
 - [ ] Attorney review request system
 - [ ] Attorney directory by state
 - [ ] Review tracking and communication
@@ -143,43 +123,73 @@ AI-powered estate planning platform that helps users create legally-compliant do
 
 ## Deployment
 
-**Production URLs:**
-- Frontend: https://agent-mvp-ten.vercel.app
-- Backend: https://wooden-rooster-933.convex.cloud
-
 **Local Development:**
 ```bash
-# Start Convex local backend
-npx convex dev
-
-# Start Next.js dev server
+cd mvp
+npm install
+cp .env.example .env
+# Configure DATABASE_URL, ANTHROPIC_API_KEY, E2B_API_KEY
+npx prisma migrate dev
 npm run dev
 ```
 
 **Deploy Commands:**
 ```bash
-# Deploy Convex to production
-npx convex deploy --yes
+# Deploy database migrations to production
+npx prisma migrate deploy
 
 # Deploy to Vercel
-npx vercel --prod --yes
-
-# Take site offline
-npx vercel rm agent-mvp --yes
+npx vercel --prod
 ```
 
 ---
 
-## Tech Stack
+## Database Architecture
 
-| Layer | Technology |
-|-------|------------|
-| Frontend | Next.js 16, React 18, TypeScript |
-| Styling | Tailwind CSS |
-| Database | Convex (real-time) |
-| AI | Claude API (Anthropic) |
-| Sandbox | E2B for secure code execution |
-| Hosting | Vercel (frontend), Convex Cloud (backend) |
+19 Prisma models across 6 categories:
+
+**Core:**
+- User, EstatePlan, AgentRun, GeneratedFile
+
+**Intake:**
+- IntakeData, GuidedIntakeProgress
+
+**Documents:**
+- Document, UploadedDocument, ExtractedIntakeData
+
+**Analysis:**
+- GapAnalysis, GapAnalysisRun, GapAnalysisPhase, GapAnalysisRunResult
+
+**Reminders & Events:**
+- Reminder, LifeEvent, BeneficiaryDesignation
+
+**Preparation:**
+- FamilyContact, AttorneyQuestion, DocumentChecklistItem
+
+---
+
+## API Architecture
+
+30 REST API routes organized by resource:
+
+- `/api/estate-plans` - Estate plan CRUD
+- `/api/estate-plans/[id]/intake` - Intake data by section
+- `/api/estate-plans/[id]/guided-intake` - Guided flow progress
+- `/api/estate-plans/[id]/gap-analysis` - Analysis results
+- `/api/estate-plans/[id]/gap-analysis-runs` - Multi-phase orchestration
+- `/api/estate-plans/[id]/documents` - Generated documents
+- `/api/estate-plans/[id]/uploaded-documents` - User uploads + AI analysis
+- `/api/estate-plans/[id]/beneficiaries` - Beneficiary designations
+- `/api/estate-plans/[id]/reminders` - Reminder management
+- `/api/estate-plans/[id]/life-events` - Life event tracking
+- `/api/estate-plans/[id]/family-contacts` - Contact management
+- `/api/estate-plans/[id]/attorney-questions` - Questions tracker
+- `/api/estate-plans/[id]/document-checklist` - Document gathering
+- `/api/gap-analysis` - Quick analysis mode
+- `/api/gap-analysis/orchestrate` - Comprehensive 3-phase analysis
+- `/api/document-generation` - AI document generation
+- `/api/upload` - File upload handling
+- `/api/users` - User management
 
 ---
 

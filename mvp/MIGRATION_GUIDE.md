@@ -1,6 +1,8 @@
 # Migration Guide: Convex to Prisma/PostgreSQL
 
-This guide documents the architectural differences between the `main` branch (Convex) and the `postgres-migration-estateai` branch (Prisma/PostgreSQL), and provides step-by-step instructions for developers migrating to the new architecture.
+> **Note:** This migration has been completed. The application now runs on PostgreSQL/Prisma. This document is preserved as historical reference for understanding the architectural changes that were made during the migration.
+
+This guide documents the architectural differences between the original Convex architecture and the current Prisma/PostgreSQL architecture, and provides reference for developers to understand the migration that was performed.
 
 ## Table of Contents
 
