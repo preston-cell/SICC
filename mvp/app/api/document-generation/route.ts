@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthContext } from "@/lib/auth-helper";
+import { prisma } from "@/lib/db";
+import Anthropic from "@anthropic-ai/sdk";
 
 // Extend Vercel function timeout
 export const maxDuration = 300;
-
-const E2B_API_URL = "/api/e2b/execute";
 
 interface IntakeData {
   personal?: {
@@ -195,9 +195,7 @@ Requirements:
 - Signature block`,
   };
 
-  return `IMPORTANT: First, read the skill file at /home/user/.claude/skills/estate-document-analyzer/SKILL.md to understand document generation best practices.
-
-You are an expert estate planning attorney assistant. Generate a high-quality legal document.
+  return `You are an expert estate planning attorney assistant. Generate a high-quality legal document.
 
 === CLIENT INFORMATION ===
 
@@ -259,7 +257,6 @@ ${documentTypePrompts[documentType] || documentTypePrompts.will}
 3. Use proper legal language appropriate for ${state}
 4. Include all necessary signature blocks, witness lines, and notary acknowledgments
 5. Fill in all available information from above; use [PLACEHOLDER] for missing required info
-6. CRITICAL: Use the Write tool to save the document to: /home/user/generated/${documentType}.md
 
 === FORMATTING REQUIREMENTS ===
 
@@ -283,7 +280,7 @@ Date: ________________________________________
 - Always have TWO blank lines before major section headings
 - Keep the document clean and professional with no decorative lines
 
-Generate the document now and save it using the Write tool.`;
+Generate the complete document now.`;
 }
 
 export async function POST(req: NextRequest) {
@@ -297,69 +294,162 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { documentType, intakeData } = await req.json();
+    const { documentType, intakeData: providedIntakeData, estatePlanId } = await req.json();
 
     if (!documentType) {
       return NextResponse.json({ error: "Document type is required" }, { status: 400 });
     }
 
-    if (!intakeData) {
-      return NextResponse.json({ error: "Intake data is required" }, { status: 400 });
+    // Get intake data - either from request or fetch from database
+    let intakeData: IntakeData = providedIntakeData || {};
+
+    if (!providedIntakeData && estatePlanId) {
+      // Fetch intake data from database
+      const sections = await prisma.intakeData.findMany({
+        where: { estatePlanId },
+        select: { section: true, data: true }
+      });
+
+      for (const section of sections) {
+        try {
+          const parsed = JSON.parse(section.data);
+          intakeData[section.section as keyof IntakeData] = parsed;
+        } catch {
+          // Skip unparseable sections
+        }
+      }
+
+      // Also fetch guided intake data if available
+      const guidedProgress = await prisma.guidedIntakeProgress.findFirst({
+        where: { estatePlanId },
+        select: { stepData: true }
+      });
+
+      if (guidedProgress?.stepData) {
+        // stepData is already a JSON object from Prisma, structured as { "1": {...}, "2": {...} }
+        const stepDataObj = guidedProgress.stepData as Record<string, Record<string, unknown>>;
+
+        // Combine all step data into a flat object
+        const flatData: Record<string, unknown> = {};
+        for (const stepData of Object.values(stepDataObj)) {
+          if (stepData && typeof stepData === 'object') {
+            Object.assign(flatData, stepData);
+          }
+        }
+
+        // Map flat guided data to IntakeData structure
+        if (Object.keys(flatData).length > 0) {
+          // Personal info
+          intakeData.personal = {
+            ...intakeData.personal,
+            firstName: flatData.firstName as string,
+            lastName: flatData.lastName as string,
+            middleName: flatData.middleName as string,
+            dateOfBirth: flatData.dateOfBirth as string,
+            address: flatData.address as string,
+            city: flatData.city as string,
+            state: flatData.state as string,
+            zipCode: flatData.zipCode as string,
+            county: flatData.county as string,
+            maritalStatus: flatData.maritalStatus as string,
+            spouseName: flatData.spouseName as string,
+          };
+
+          // Family info
+          intakeData.family = {
+            ...intakeData.family,
+            hasSpouse: flatData.maritalStatus === 'married',
+            spouseFirstName: flatData.spouseFirstName as string,
+            spouseLastName: flatData.spouseLastName as string,
+            hasChildren: flatData.hasChildren as boolean,
+            children: flatData.children as Array<{
+              firstName?: string;
+              lastName?: string;
+              name?: string;
+              dateOfBirth?: string;
+              relationship?: string;
+              isMinor?: boolean;
+              hasSpecialNeeds?: boolean;
+              specialNeedsDetails?: string;
+            }>,
+            guardianName: flatData.guardianName as string,
+            guardianRelationship: flatData.guardianRelationship as string,
+            alternateGuardianName: flatData.alternateGuardianName as string,
+            primaryBeneficiary: flatData.primaryBeneficiary as string,
+            primaryBeneficiaryRelationship: flatData.primaryBeneficiaryRelationship as string,
+            alternateBeneficiary: flatData.alternateBeneficiary as string,
+            executor: flatData.executor as string,
+            executorRelationship: flatData.executorRelationship as string,
+            alternateExecutor: flatData.alternateExecutor as string,
+            healthcareAgent: flatData.healthcareAgent as string,
+            financialAgent: flatData.financialAgent as string,
+          };
+
+          // Assets info
+          if (flatData.realEstate || flatData.bankAccounts || flatData.investments ||
+              flatData.retirementAccounts || flatData.estimatedTotalValue) {
+            intakeData.assets = {
+              ...intakeData.assets,
+              realEstate: flatData.realEstate as Array<{ name?: string; address?: string; value?: number; estimatedValue?: number }>,
+              bankAccounts: flatData.bankAccounts as Array<{ name?: string; institution?: string; accountType?: string }>,
+              investments: flatData.investments as Array<{ name?: string; institution?: string; accountType?: string }>,
+              retirementAccounts: flatData.retirementAccounts as Array<{ name?: string; institution?: string; accountType?: string }>,
+              lifeInsurance: flatData.lifeInsurance as Array<{ name?: string; company?: string; policyType?: string; deathBenefit?: number }>,
+              businessInterests: flatData.businessInterests as Array<{ name?: string; businessName?: string; ownershipPercentage?: number }>,
+              estimatedTotalValue: flatData.estimatedTotalValue as number,
+            };
+          }
+
+          // Goals info
+          if (flatData.primaryGoal || flatData.distributionPreference || flatData.specialInstructions) {
+            intakeData.goals = {
+              ...intakeData.goals,
+              primaryGoal: flatData.primaryGoal as string,
+              distributionPreference: flatData.distributionPreference as string,
+              charitableGiving: flatData.charitableGiving as boolean,
+              specialInstructions: flatData.specialInstructions as string,
+              endOfLifeWishes: flatData.endOfLifeWishes as string,
+              organDonation: flatData.organDonation as string,
+            };
+          }
+        }
+      }
+    }
+
+    if (!intakeData || Object.keys(intakeData).length === 0) {
+      return NextResponse.json({ error: "Intake data is required. Please complete the intake questionnaire first." }, { status: 400 });
     }
 
     // Build the prompt
     const prompt = buildDocumentGenerationPrompt(documentType, intakeData);
 
-    // Get the base URL for the E2B API
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL ||
-                    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
+    // Use direct Anthropic API call for document generation
+    const anthropicApiKey = process.env.ANTHROPIC_API_KEY;
+    console.log("API Key check - exists:", !!anthropicApiKey, "length:", anthropicApiKey?.length, "starts with sk-ant:", anthropicApiKey?.startsWith("sk-ant"));
 
-    // Call the E2B execute endpoint with extended timeout
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 600000); // 10 minutes
+    if (!anthropicApiKey) {
+      return NextResponse.json({ error: "Anthropic API key not configured" }, { status: 500 });
+    }
 
-    let response;
-    try {
-      response = await fetch(`${baseUrl}${E2B_API_URL}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+    const anthropic = new Anthropic({ apiKey: anthropicApiKey.trim() });
+
+    // Call Claude API directly
+    const message = await anthropic.messages.create({
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 8192,
+      messages: [
+        {
+          role: "user",
+          content: prompt,
         },
-        body: JSON.stringify({
-          prompt,
-          outputFile: `${documentType}.md`,
-          timeoutMs: 0, // Disable E2B command timeout
-        }),
-        signal: controller.signal,
-      });
-      clearTimeout(timeoutId);
-    } catch (fetchError) {
-      clearTimeout(timeoutId);
-      throw fetchError;
-    }
+      ],
+    });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`E2B API call failed: ${response.status} ${errorText}`);
-    }
-
-    const result = await response.json();
-
-    if (!result.success) {
-      throw new Error(result.error || "E2B execution failed");
-    }
-
-    // Get the document content from fileContent or stdout
-    let content = result.fileContent || "";
-
-    // If no fileContent, try to extract from stdout
-    if (!content && result.stdout) {
-      // Look for markdown content in stdout
-      const mdMatch = result.stdout.match(/```markdown\n([\s\S]*?)\n```/) ||
-                      result.stdout.match(/```md\n([\s\S]*?)\n```/) ||
-                      result.stdout.match(/# DRAFT[\s\S]*/);
-      if (mdMatch) {
-        content = mdMatch[1] || mdMatch[0];
+    // Extract text content from the response
+    let content = "";
+    for (const block of message.content) {
+      if (block.type === "text") {
+        content += block.text;
       }
     }
 
@@ -370,7 +460,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       content,
-      stdout: result.stdout,
     });
 
   } catch (error) {

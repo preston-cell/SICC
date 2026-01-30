@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { executeInE2B } from "@/lib/e2b-executor";
+import { STATE_REQUIREMENTS } from "@/lib/documentTemplates/will";
 
 // Extend Vercel function timeout (comprehensive analysis needs time)
 export const maxDuration = 600;
@@ -850,7 +851,15 @@ function extractJSON(result: { stdout?: string; fileContent?: string }): Record<
     }
   }
 
-  console.error("extractJSON: No valid JSON found in response");
+  console.error("extractJSON: No valid JSON found in response", {
+    hasFileContent: !!result.fileContent,
+    fileContentLength: result.fileContent?.length || 0,
+    fileContentPreview: result.fileContent?.substring(0, 200) || "(empty)",
+    hasStdout: !!result.stdout,
+    stdoutLength: result.stdout?.length || 0,
+    stdoutContainsScore: result.stdout?.includes('"score"') || false,
+    stdoutContainsMissing: result.stdout?.includes('"missingDocuments"') || false,
+  });
   return null;
 }
 
@@ -903,6 +912,401 @@ function calculateScore(parsed: ParsedIntake, analysisResult: Record<string, unk
   }
 
   return Math.max(0, Math.min(100, Math.round(score)));
+}
+
+// ============================================================
+// DETERMINISTIC FALLBACK ANALYSIS
+// Used when E2B/AI fails to produce valid JSON output.
+// Generates rule-based results from intake data alone.
+// ============================================================
+
+const HIGH_PROBATE_STATES = [
+  "California", "CA", "New York", "NY", "Florida", "FL",
+  "Connecticut", "CT", "Oregon", "OR", "Washington", "WA",
+];
+
+const ESTATE_TAX_STATES: Record<string, { exemption: string }> = {
+  "Connecticut": { exemption: "$13.61M (matches federal)" },
+  "CT": { exemption: "$13.61M" },
+  "Hawaii": { exemption: "$5.49M" },
+  "HI": { exemption: "$5.49M" },
+  "Illinois": { exemption: "$4M" },
+  "IL": { exemption: "$4M" },
+  "Maine": { exemption: "$6.8M" },
+  "ME": { exemption: "$6.8M" },
+  "Maryland": { exemption: "$5M" },
+  "MD": { exemption: "$5M" },
+  "Massachusetts": { exemption: "$2M" },
+  "MA": { exemption: "$2M" },
+  "Minnesota": { exemption: "$3M" },
+  "MN": { exemption: "$3M" },
+  "New York": { exemption: "$6.94M" },
+  "NY": { exemption: "$6.94M" },
+  "Oregon": { exemption: "$1M" },
+  "OR": { exemption: "$1M" },
+  "Rhode Island": { exemption: "$1.77M" },
+  "RI": { exemption: "$1.77M" },
+  "Vermont": { exemption: "$5M" },
+  "VT": { exemption: "$5M" },
+  "Washington": { exemption: "$2.193M" },
+  "WA": { exemption: "$2.193M" },
+  "District of Columbia": { exemption: "$4.71M" },
+  "DC": { exemption: "$4.71M" },
+};
+
+const INHERITANCE_TAX_STATES = [
+  "Kentucky", "KY", "Maryland", "MD", "Nebraska", "NE",
+  "New Jersey", "NJ", "Pennsylvania", "PA", "Iowa", "IA",
+];
+
+function generateMissingDocuments(
+  parsed: ParsedIntake,
+  ctx: ReturnType<typeof getClientContext>
+): Array<Record<string, unknown>> {
+  const docs: Array<Record<string, unknown>> = [];
+
+  if (!ctx.hasWill) {
+    docs.push({
+      document: "Last Will & Testament",
+      priority: "critical",
+      reason: ctx.hasMinorChildren
+        ? `Without a will, the court decides who raises your ${ctx.numberOfChildren} child${ctx.numberOfChildren !== 1 ? "ren" : ""} and how assets are distributed under ${parsed.state} intestacy laws.`
+        : ctx.isMarried
+          ? `Without a will, ${parsed.state} intestacy laws determine asset distribution — your spouse may not inherit everything.`
+          : `Without a will, ${parsed.state} intestacy laws determine who inherits your assets, which may not align with your wishes.`,
+      consequences: ctx.hasMinorChildren
+        ? "Court appoints guardian for minor children; assets distributed by state intestacy formula; potential family disputes"
+        : "Assets distributed by state intestacy formula; potential family disputes; no control over distribution",
+    });
+  }
+
+  if (!ctx.hasTrust) {
+    if (ctx.estimatedValue > 1000000) {
+      docs.push({
+        document: "Revocable Living Trust",
+        priority: "critical",
+        reason: `With an estimated estate of $${ctx.estimatedValue.toLocaleString()}, a trust avoids probate (saving time and fees), provides privacy, and enables structured asset distribution.`,
+        consequences: "Estate goes through public probate process; potential probate fees of 2-5% of estate value; delays of 6-18 months for beneficiaries",
+      });
+    } else if (ctx.estimatedValue > 500000) {
+      docs.push({
+        document: "Revocable Living Trust",
+        priority: "high",
+        reason: `With an estate over $500K, a trust can help avoid probate costs and delays in ${parsed.state}.`,
+        consequences: "Estate subject to probate; potential fees and delays for beneficiaries",
+      });
+    }
+  }
+
+  if (!ctx.hasPOAFinancial) {
+    docs.push({
+      document: "Financial Power of Attorney",
+      priority: "critical",
+      reason: "Designates someone to manage your finances if you become incapacitated. Without this, your family must petition the court for conservatorship — a costly and time-consuming process.",
+      consequences: "Court-appointed conservator required if incapacitated; family cannot access accounts, pay bills, or manage investments; average conservatorship costs $5,000-$15,000",
+    });
+  }
+
+  if (!ctx.hasPOAHealthcare) {
+    docs.push({
+      document: "Healthcare Power of Attorney",
+      priority: "critical",
+      reason: "Designates someone to make medical decisions on your behalf if you cannot. Without this, medical providers may not follow your family's wishes.",
+      consequences: "Family members may disagree on care decisions; medical providers follow default protocols; potential court intervention for medical decisions",
+    });
+  }
+
+  if (!ctx.hasHealthcareDirective) {
+    docs.push({
+      document: "Healthcare Directive / Living Will",
+      priority: "high",
+      reason: "Documents your wishes for end-of-life care, life-sustaining treatment, and organ donation — giving your family clarity during difficult moments.",
+      consequences: "Family burdened with difficult decisions without guidance; potential for unwanted life-sustaining treatment; possible family conflict over care preferences",
+    });
+  }
+
+  const familyData = parsed.family as Record<string, unknown>;
+  if (ctx.hasMinorChildren && !familyData?.guardian) {
+    docs.push({
+      document: "Guardian Nomination for Minor Children",
+      priority: "critical",
+      reason: `You have minor children but no guardian has been nominated. Without a designated guardian, the court decides who raises your children.`,
+      consequences: "Court selects guardian based on its own assessment; children may be placed with relatives you wouldn't choose; temporary foster care possible during proceedings",
+    });
+  }
+
+  if (ctx.hasRetirementAccounts && parsed.beneficiaries.length === 0) {
+    docs.push({
+      document: "Beneficiary Designation Review",
+      priority: "high",
+      reason: "You have retirement accounts but no tracked beneficiary designations. Incorrect or missing designations can override your will and send assets to the wrong people.",
+      consequences: "Retirement accounts pass by default beneficiary rules (often estate, triggering accelerated taxes); potential loss of spousal rollover benefits; assets may not go to intended recipients",
+    });
+  }
+
+  if (ctx.hasBusinessInterests && !ctx.hasTrust && !ctx.hasWill) {
+    docs.push({
+      document: "Business Succession Plan",
+      priority: "high",
+      reason: "You have business interests but no will or trust that addresses business succession. Without a plan, your business could face disruption or forced liquidation.",
+      consequences: "Business operations disrupted; co-owners or court may force sale; loss of business value; employees affected",
+    });
+  }
+
+  return docs;
+}
+
+function generateRecommendations(
+  parsed: ParsedIntake,
+  ctx: ReturnType<typeof getClientContext>,
+  missingDocs: Array<Record<string, unknown>>
+): Array<Record<string, unknown>> {
+  const recs: Array<Record<string, unknown>> = [];
+  let rank = 1;
+
+  // Missing documents become recommendations
+  for (const doc of missingDocs) {
+    const isCritical = doc.priority === "critical";
+    recs.push({
+      rank: rank++,
+      action: `Create ${doc.document}`,
+      category: "document_creation",
+      priority: doc.priority,
+      timeline: isCritical ? "Within 30 days" : "Within 90 days",
+      estimatedCost: getDocumentCostEstimate(doc.document as string),
+      reason: doc.reason,
+    });
+  }
+
+  // Situational recommendations
+  if (ctx.hasBusinessInterests && ctx.hasWill) {
+    recs.push({
+      rank: rank++,
+      action: "Review business succession provisions in estate plan",
+      category: "business_planning",
+      priority: "high",
+      timeline: "Within 60 days",
+      estimatedCost: "$1,000 - $5,000",
+      reason: "Business interests require specific succession planning to ensure continuity and protect value.",
+    });
+  }
+
+  if (ctx.isMarried && ctx.estimatedValue > 5000000) {
+    recs.push({
+      rank: rank++,
+      action: "Evaluate estate tax planning strategies",
+      category: "tax_planning",
+      priority: "high",
+      timeline: "Within 90 days",
+      estimatedCost: "$2,000 - $10,000",
+      reason: `With an estate of $${ctx.estimatedValue.toLocaleString()}, strategic tax planning (portability election, credit shelter trust, gifting strategies) could save significant estate taxes.`,
+    });
+  }
+
+  if (ctx.hasRealEstate && !ctx.hasTrust) {
+    recs.push({
+      rank: rank++,
+      action: "Consider trust for real estate holdings",
+      category: "asset_protection",
+      priority: "medium",
+      timeline: "Within 90 days",
+      estimatedCost: "$1,500 - $5,000",
+      reason: "Titling real estate in a trust avoids probate for those properties and can simplify transfer to beneficiaries.",
+    });
+  }
+
+  if (ctx.age >= 60 && ctx.estimatedValue > 100000) {
+    recs.push({
+      rank: rank++,
+      action: "Review long-term care and Medicaid planning options",
+      category: "elder_planning",
+      priority: "medium",
+      timeline: "Within 6 months",
+      estimatedCost: "$500 - $3,000",
+      reason: "Long-term care costs can rapidly deplete an estate. Planning ahead preserves assets and ensures quality care.",
+    });
+  }
+
+  if (ctx.hasRetirementAccounts && parsed.beneficiaries.length > 0) {
+    recs.push({
+      rank: rank++,
+      action: "Audit all beneficiary designations for consistency",
+      category: "beneficiary_review",
+      priority: "medium",
+      timeline: "Within 60 days",
+      estimatedCost: "$0 - $500",
+      reason: "Beneficiary designations on retirement accounts and insurance override your will. Regular audits prevent unintended distributions.",
+    });
+  }
+
+  return recs;
+}
+
+function getDocumentCostEstimate(docName: string): string {
+  const estimates: Record<string, string> = {
+    "Last Will & Testament": "$300 - $1,500",
+    "Revocable Living Trust": "$1,500 - $5,000",
+    "Financial Power of Attorney": "$200 - $500",
+    "Healthcare Power of Attorney": "$200 - $500",
+    "Healthcare Directive / Living Will": "$100 - $300",
+    "Guardian Nomination for Minor Children": "Included in Will ($0 additional)",
+    "Beneficiary Designation Review": "$0 - $500",
+    "Business Succession Plan": "$2,000 - $10,000",
+  };
+  return estimates[docName] || "$300 - $2,000";
+}
+
+function generateStateSpecificNotes(
+  parsed: ParsedIntake,
+  ctx: ReturnType<typeof getClientContext>
+): Array<Record<string, unknown>> {
+  const notes: Array<Record<string, unknown>> = [];
+  const state = parsed.state;
+  const stateReqs = STATE_REQUIREMENTS[state];
+
+  // Community property
+  if (stateReqs?.communityPropertyState) {
+    notes.push({
+      topic: "Community Property State",
+      rule: `${state} is a community property state. Assets acquired during marriage are generally owned 50/50 by both spouses regardless of title.`,
+      impact: ctx.isMarried
+        ? "This affects how your estate is divided. Your will/trust can only control your half of community property. Consider a community property agreement."
+        : "If you marry in the future, this will significantly affect asset ownership.",
+      action: ctx.isMarried ? "Review asset classification with an attorney" : "Be aware of community property rules for future planning",
+    });
+  }
+
+  // High-probate cost state
+  if (HIGH_PROBATE_STATES.includes(state) && !ctx.hasTrust && ctx.estimatedValue > 100000) {
+    notes.push({
+      topic: "High Probate Costs",
+      rule: `${state} has relatively high probate costs and a lengthy probate process. Probate fees can range from 2-5% of estate value.`,
+      impact: `With an estimated estate of $${ctx.estimatedValue.toLocaleString()}, probate could cost $${Math.round(ctx.estimatedValue * 0.03).toLocaleString()} or more.`,
+      action: "A revocable living trust is strongly recommended to avoid probate in this state.",
+    });
+  }
+
+  // State estate tax
+  const estateTaxInfo = ESTATE_TAX_STATES[state];
+  if (estateTaxInfo) {
+    notes.push({
+      topic: "State Estate Tax",
+      rule: `${state} imposes its own estate tax with an exemption of ${estateTaxInfo.exemption}. This is in addition to any federal estate tax.`,
+      impact: ctx.estimatedValue > 1000000
+        ? `Your estate value ($${ctx.estimatedValue.toLocaleString()}) may be subject to state estate tax depending on the exemption threshold.`
+        : "Your current estate value is likely below the threshold, but this should be monitored as assets grow.",
+      action: "Consult with a tax attorney about state estate tax planning strategies.",
+    });
+  }
+
+  // Inheritance tax
+  if (INHERITANCE_TAX_STATES.includes(state)) {
+    notes.push({
+      topic: "State Inheritance Tax",
+      rule: `${state} imposes an inheritance tax on beneficiaries who receive assets. Tax rates and exemptions vary by the beneficiary's relationship to the deceased.`,
+      impact: "Spouses are typically exempt. Children may have reduced rates. Non-relatives face the highest rates.",
+      action: "Consider beneficiary planning strategies to minimize inheritance tax impact.",
+    });
+  }
+
+  // Special witness requirements
+  if (stateReqs && stateReqs.witnessCount > 2) {
+    notes.push({
+      topic: "Special Witness Requirements",
+      rule: `${state} requires ${stateReqs.witnessCount} witnesses for a valid will (most states require only 2).`,
+      impact: "Failing to have the required number of witnesses could invalidate your will.",
+      action: `Ensure all estate planning documents are signed with ${stateReqs.witnessCount} witnesses present.`,
+    });
+  }
+
+  // Notarization requirement (Louisiana)
+  if (stateReqs?.notaryRequired) {
+    notes.push({
+      topic: "Notarization Required",
+      rule: `${state} requires notarization for certain estate planning documents.${stateReqs.specialRequirements ? " " + stateReqs.specialRequirements.join(" ") : ""}`,
+      impact: "Documents without proper notarization may be invalid.",
+      action: "Ensure all documents are properly notarized per state requirements.",
+    });
+  }
+
+  return notes;
+}
+
+function generateExecutiveSummary(
+  ctx: ReturnType<typeof getClientContext>,
+  missingDocs: Array<Record<string, unknown>>,
+  recommendations: Array<Record<string, unknown>>
+): Record<string, unknown> {
+  const criticalDocs = missingDocs.filter(d => d.priority === "critical");
+  const criticalIssues = criticalDocs.map(d => `Missing ${d.document}`);
+
+  const immediateActions = recommendations
+    .filter(r => r.priority === "critical" || r.priority === "high")
+    .slice(0, 3)
+    .map(r => r.action as string);
+
+  let oneLineSummary: string;
+  if (criticalDocs.length === 0 && missingDocs.length === 0) {
+    oneLineSummary = "Your estate plan has the core documents in place. Consider reviewing for updates and optimizations.";
+  } else if (criticalDocs.length > 0) {
+    oneLineSummary = `Your estate plan is missing ${criticalDocs.length} critical document${criticalDocs.length !== 1 ? "s" : ""} that should be addressed promptly to protect your ${ctx.hasMinorChildren ? "family" : "assets"}.`;
+  } else {
+    oneLineSummary = `Your estate plan has ${missingDocs.length} gap${missingDocs.length !== 1 ? "s" : ""} that should be addressed to strengthen your overall protection.`;
+  }
+
+  return {
+    oneLineSummary,
+    criticalIssues,
+    immediateActions,
+    biggestRisks: criticalDocs.slice(0, 3).map(d => d.consequences as string),
+  };
+}
+
+function generateDeterministicAnalysis(
+  parsed: ParsedIntake,
+  ctx: ReturnType<typeof getClientContext>
+): Record<string, unknown> {
+  const missingDocuments = generateMissingDocuments(parsed, ctx);
+  const recommendations = generateRecommendations(parsed, ctx, missingDocuments);
+  const stateSpecificNotes = generateStateSpecificNotes(parsed, ctx);
+  const executiveSummary = generateExecutiveSummary(ctx, missingDocuments, recommendations);
+
+  const score = calculateScore(parsed, {});
+  const grade = score >= 90 ? "A" : score >= 80 ? "B" : score >= 70 ? "C" : score >= 60 ? "D" : "F";
+
+  return {
+    score,
+    overallScore: {
+      score,
+      grade,
+      summary: missingDocuments.length > 0
+        ? `Your estate plan has ${missingDocuments.length} gap${missingDocuments.length !== 1 ? "s" : ""} and ${recommendations.length} recommended action${recommendations.length !== 1 ? "s" : ""}. This analysis was generated from your intake data.`
+        : "Your estate plan covers the essential documents. This analysis was generated from your intake data.",
+    },
+    executiveSummary,
+    missingDocuments,
+    outdatedDocuments: [],
+    inconsistencies: [],
+    taxStrategies: [],
+    stateSpecificNotes,
+    recommendations,
+    scenarioAnalysis: [],
+    preAnalysisInsights: {},
+    uncertaintyLog: {
+      informationGaps: [],
+      assumptionsMade: [
+        { assumption: "Analysis based on intake data only (AI analysis unavailable)", ifWrong: "AI analysis may identify additional findings" },
+      ],
+      confidenceLevels: {
+        overallAnalysis: "medium",
+        scoreAccuracy: "high",
+        costEstimates: "low",
+      },
+    },
+    targetStateSummary: {},
+    _fallbackUsed: true,
+    _fallbackReason: "AI analysis was unavailable; results generated from intake data",
+  };
 }
 
 // Debug endpoint to test intake data parsing without running full analysis
@@ -1029,26 +1433,16 @@ export async function POST(req: Request) {
       }
       analysisResult.score = (analysisResult.overallScore as Record<string, unknown>).score;
     } else {
-      // Fallback if parsing failed
-      analysisResult = {
-        score: calculatedScore,
-        overallScore: {
-          score: calculatedScore,
-          grade: calculatedScore >= 90 ? 'A' : calculatedScore >= 80 ? 'B' : calculatedScore >= 70 ? 'C' : calculatedScore >= 60 ? 'D' : 'F',
-          summary: "Analysis completed. Please review the details below."
-        },
-        missingDocuments: [],
-        outdatedDocuments: [],
-        inconsistencies: [],
-        taxStrategies: [],
-        stateSpecificNotes: [],
-        recommendations: [],
-        scenarioAnalysis: [],
-        preAnalysisInsights: {},
-        uncertaintyLog: {},
-        targetStateSummary: {},
-        executiveSummary: { criticalIssues: [], immediateActions: [], biggestRisks: [] },
-      };
+      // Fallback: generate deterministic analysis from intake data
+      console.warn("extractJSON returned null — using deterministic fallback analysis");
+      console.warn("E2B result details:", {
+        success: result.success,
+        hasFileContent: !!result.fileContent,
+        fileContentLength: result.fileContent?.length || 0,
+        stdoutLength: result.stdout?.length || 0,
+        exitCode: result.exitCode,
+      });
+      analysisResult = generateDeterministicAnalysis(parsed, ctx);
     }
 
     // Ensure all arrays exist
@@ -1059,6 +1453,15 @@ export async function POST(req: Request) {
     analysisResult.stateSpecificNotes = analysisResult.stateSpecificNotes || analysisResult.stateSpecificConsiderations || [];
     analysisResult.recommendations = analysisResult.recommendations || analysisResult.prioritizedRecommendations || [];
     analysisResult.scenarioAnalysis = analysisResult.scenarioAnalysis || [];
+
+    // Encode fallback flag in rawAnalysis for the UI to detect
+    if (analysisResult._fallbackUsed) {
+      analysisResult.rawAnalysis = JSON.stringify({
+        _fallbackUsed: true,
+        _fallbackReason: analysisResult._fallbackReason,
+        _generatedAt: new Date().toISOString(),
+      });
+    }
 
     return NextResponse.json({
       success: true,
