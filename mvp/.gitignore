@@ -15,6 +15,9 @@ node_modules/
 .vercel
 .next
 
+# uploaded files
+uploads/
+
 # misc
 .DS_Store
 *.log

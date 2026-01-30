@@ -11,8 +11,6 @@ import { Button } from "@/app/components/ui";
 import { EmotionalBanner } from "@/components/intake";
 import { GUIDED_STEPS, getTotalSteps } from "@/lib/intake/guided-flow-config";
 import { useUser } from "@/app/components/ClerkComponents";
-import { useAuthSync } from "@/app/hooks/useAuthSync";
-
 // Check if Clerk authentication is configured
 const isAuthEnabled = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
@@ -22,6 +20,9 @@ function GuidedIntakeContent() {
   const planId = searchParams.get("planId");
 
   const [isStarting, setIsStarting] = useState(false);
+
+  // Auth state (only relevant when Clerk is configured)
+  const { isSignedIn, isLoaded } = useUser();
 
   // Check for existing guided progress using SWR hook
   const { data: existingProgress, isLoading } = useGuidedIntakeProgress(planId);
@@ -33,6 +34,16 @@ function GuidedIntakeContent() {
     }
   }, [isLoaded, isSignedIn, router]);
 
+  // Helper to get or create sessionId - REUSE existing to preserve access to all plans
+  const getOrCreateSessionId = () => {
+    let sessionId = localStorage.getItem("estatePlanSessionId");
+    if (!sessionId) {
+      sessionId = `session_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+      localStorage.setItem("estatePlanSessionId", sessionId);
+    }
+    return sessionId;
+  };
+
   const handleStart = async () => {
     setIsStarting(true);
     try {
@@ -40,12 +51,11 @@ function GuidedIntakeContent() {
 
       // Create a new plan if we don't have one
       if (!currentPlanId) {
-        const sessionId = `session_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+        const sessionId = getOrCreateSessionId();
         const newPlan = await createEstatePlan({
           sessionId,
           name: "My Estate Plan",
         });
-        localStorage.setItem("estatePlanSessionId", sessionId);
         localStorage.setItem("estatePlanId", newPlan.id);
         currentPlanId = newPlan.id;
       }

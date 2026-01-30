@@ -5,7 +5,9 @@ import { requireAuthOrSessionAndOwnership } from '@/lib/auth-helper'
 
 // Schema for saving gap analysis
 const SaveGapAnalysisSchema = z.object({
+  analysisType: z.enum(['quick', 'comprehensive']).optional().default('quick'),
   score: z.number().optional(),
+  scoreBreakdown: z.string().optional(),
   estateComplexity: z.string().optional(),
   estimatedEstateTax: z.string().optional(),
   missingDocuments: z.string(),
@@ -15,6 +17,10 @@ const SaveGapAnalysisSchema = z.object({
   medicaidPlanning: z.string().optional(),
   recommendations: z.string(),
   stateSpecificNotes: z.string(),
+  scenarioAnalysis: z.string().optional(),    // Comprehensive only
+  priorityMatrix: z.string().optional(),      // Comprehensive only
+  stateResearch: z.string().optional(),       // Comprehensive only
+  documentInventory: z.string().optional(),   // Comprehensive only
   rawAnalysis: z.string().optional(),
 })
 

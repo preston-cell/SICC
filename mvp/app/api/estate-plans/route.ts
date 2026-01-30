@@ -38,9 +38,27 @@ export async function GET(request: NextRequest) {
       where,
       orderBy: { createdAt: 'desc' },
       take: limit,
+      include: {
+        gapAnalyses: {
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+          select: {
+            analysisType: true,
+            score: true,
+          },
+        },
+      },
     })
 
-    return NextResponse.json(plans)
+    // Flatten the response to include latestAnalysisType
+    const plansWithAnalysis = plans.map(plan => ({
+      ...plan,
+      latestAnalysisType: plan.gapAnalyses[0]?.analysisType || null,
+      latestScore: plan.gapAnalyses[0]?.score || null,
+      gapAnalyses: undefined, // Remove the nested array
+    }))
+
+    return NextResponse.json(plansWithAnalysis)
   } catch (error) {
     console.error('Failed to list estate plans:', error)
     return NextResponse.json(

@@ -204,16 +204,16 @@ export default function VisualizationPage() {
 
         {/* Scenario indicator */}
         {selectedScenario && (
-          <div className="mb-6 p-4 bg-[var(--warning-muted)] border border-[var(--warning)] rounded-lg flex items-center justify-between">
+          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <svg className="w-5 h-5 text-[var(--warning)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <div>
-                <p className="font-medium text-[var(--warning)]">
+                <p className="font-medium text-blue-800">
                   Viewing Scenario: {SCENARIOS.find((s) => s.id === selectedScenario)?.name}
                 </p>
-                <p className="text-sm text-[var(--warning)]">
+                <p className="text-sm text-blue-700">
                   {SCENARIOS.find((s) => s.id === selectedScenario)?.description}
                 </p>
               </div>
@@ -222,7 +222,7 @@ export default function VisualizationPage() {
               variant="ghost"
               size="sm"
               onClick={() => setSelectedScenario(null)}
-              className="text-amber-700 hover:text-amber-900 dark:text-amber-300"
+              className="text-blue-700 hover:text-blue-900 dark:text-blue-300"
             >
               Clear Scenario
             </Button>
@@ -272,14 +272,14 @@ export default function VisualizationPage() {
                     </div>
 
                     {displayData.warnings.length > 0 && (
-                      <div className="p-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
+                      <div className="p-4 bg-amber-100 dark:bg-amber-900/30 rounded-lg border border-amber-300 dark:border-amber-700">
                         <div className="flex items-center gap-2 mb-2">
-                          <svg className="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                           </svg>
-                          <span className="font-medium text-[var(--warning)]">Attention Needed</span>
+                          <span className="font-medium text-amber-800 dark:text-amber-200">Attention Needed</span>
                         </div>
-                        <p className="text-sm text-[var(--warning)]">
+                        <p className="text-sm text-amber-800 dark:text-amber-200">
                           {displayData.warnings.length} issue{displayData.warnings.length === 1 ? "" : "s"} detected that may need your attention
                         </p>
                       </div>
@@ -405,7 +405,7 @@ export default function VisualizationPage() {
                             </div>
                           ))
                         ) : (
-                          <p className="text-sm text-[var(--warning)]">
+                          <p className="text-sm text-amber-700 dark:text-amber-300">
                             No remaining beneficiaries — contingent beneficiaries would receive assets
                           </p>
                         )}

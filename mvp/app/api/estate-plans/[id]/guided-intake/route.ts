@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { requireAuthOrSessionAndOwnership } from '@/lib/auth-helper'
+import { Prisma } from '@prisma/client'
 
 // GET /api/estate-plans/[id]/guided-intake - Get guided intake progress
 export async function GET(
@@ -100,47 +101,50 @@ export async function PUT(
     const body = await request.json()
     const { step, data, complete } = body
 
-    // Get current progress
-    let progress = await prisma.guidedIntakeProgress.findUnique({
-      where: { estatePlanId },
-    })
+    // Use transaction for atomic read-modify-write to prevent race conditions
+    const updated = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+      // Get current progress with transaction isolation
+      let progress = await tx.guidedIntakeProgress.findUnique({
+        where: { estatePlanId },
+      })
 
-    if (!progress) {
-      // Initialize if not exists
-      progress = await prisma.guidedIntakeProgress.create({
+      if (!progress) {
+        // Initialize if not exists
+        progress = await tx.guidedIntakeProgress.create({
+          data: {
+            estatePlanId,
+            currentStep: 1,
+            completedSteps: [],
+            stepData: {},
+            flowMode: 'guided',
+          },
+        })
+      }
+
+      // Update step data atomically
+      const currentStepData = progress.stepData as Record<string, unknown>
+      const updatedStepData = {
+        ...currentStepData,
+        [step]: data,
+      }
+
+      // Calculate completed steps
+      let completedSteps = progress.completedSteps
+      if (complete && !completedSteps.includes(step)) {
+        completedSteps = [...completedSteps, step].sort((a, b) => a - b)
+      }
+
+      // Calculate next step
+      const nextStep = complete ? step + 1 : progress.currentStep
+
+      return tx.guidedIntakeProgress.update({
+        where: { estatePlanId },
         data: {
-          estatePlanId,
-          currentStep: 1,
-          completedSteps: [],
-          stepData: {},
-          flowMode: 'guided',
+          stepData: updatedStepData,
+          completedSteps,
+          currentStep: nextStep,
         },
       })
-    }
-
-    // Update step data
-    const currentStepData = progress.stepData as Record<string, unknown>
-    const updatedStepData = {
-      ...currentStepData,
-      [step]: data,
-    }
-
-    // Calculate completed steps
-    let completedSteps = progress.completedSteps
-    if (complete && !completedSteps.includes(step)) {
-      completedSteps = [...completedSteps, step].sort((a, b) => a - b)
-    }
-
-    // Calculate next step
-    const nextStep = complete ? step + 1 : progress.currentStep
-
-    const updated = await prisma.guidedIntakeProgress.update({
-      where: { estatePlanId },
-      data: {
-        stepData: updatedStepData,
-        completedSteps,
-        currentStep: nextStep,
-      },
     })
 
     return NextResponse.json(updated)

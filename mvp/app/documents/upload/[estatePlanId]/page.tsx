@@ -97,6 +97,9 @@ export default function DocumentUploadPage() {
   const params = useParams();
   const estatePlanId = params.estatePlanId as string;
 
+  // Debug logging
+  console.log("[DocumentUpload] estatePlanId from URL:", estatePlanId);
+
   // State
   const [uploadState, setUploadState] = useState<UploadState>({
     isUploading: false,
@@ -112,6 +115,9 @@ export default function DocumentUploadPage() {
   // Queries - SWR hooks
   const { data: estatePlan, isLoading: estatePlanLoading } = useEstatePlan(estatePlanId);
   const { data: uploadedDocs, mutate: mutateUploadedDocs } = useUploadedDocuments(estatePlanId);
+
+  // Debug logging
+  console.log('[DocumentUpload] uploadedDocs:', uploadedDocs?.map((d: {id: string, fileName: string, estatePlanId: string}) => ({id: d.id, fileName: d.fileName, estatePlanId: d.estatePlanId})));
 
   // Compute analysis summary from uploadedDocs
   const analysisSummary = uploadedDocs ? {
@@ -131,6 +137,8 @@ export default function DocumentUploadPage() {
   // Handle file upload
   const handleFileUpload = useCallback(
     async (file: File) => {
+      console.log("[Upload] Starting upload for file:", file.name, "sessionId:", getSessionId());
+
       if (!file.type.includes("pdf")) {
         setUploadState((prev) => ({ ...prev, error: "Please upload a PDF file" }));
         return;
@@ -148,21 +156,36 @@ export default function DocumentUploadPage() {
         const formData = new FormData();
         formData.append("file", file);
 
-        const uploadResult = await fetch("/api/upload", {
+        const uploadUrl = appendSessionId("/api/upload");
+        console.log("[Upload] Uploading to:", uploadUrl);
+
+        const uploadResult = await fetch(uploadUrl, {
           method: "POST",
           body: formData,
         });
+
+        console.log("[Upload] Response status:", uploadResult.status);
 
         if (!uploadResult.ok) {
           const errorData = await uploadResult.json();
           throw new Error(errorData.error || "Upload failed");
         }
 
-        const { storageId } = await uploadResult.json();
+        const uploadData = await uploadResult.json();
+        console.log("[Upload] Upload response data:", uploadData);
+        const { storageId } = uploadData;
+
+        if (!storageId) {
+          throw new Error("No storageId returned from upload");
+        }
+
         setUploadState((prev) => ({ ...prev, progress: 50 }));
 
         // Save document metadata via API
-        const saveResult = await fetch(appendSessionId(`/api/estate-plans/${estatePlanId}/uploaded-documents`), {
+        const saveUrl = appendSessionId(`/api/estate-plans/${estatePlanId}/uploaded-documents`);
+        console.log("[Upload] Saving metadata to:", saveUrl);
+
+        const saveResult = await fetch(saveUrl, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -175,23 +198,38 @@ export default function DocumentUploadPage() {
           }),
         });
 
+        console.log("[Upload] Save response status:", saveResult.status);
+
         if (!saveResult.ok) {
           const errorData = await saveResult.json();
+          console.log("[Upload] Save error:", errorData);
           throw new Error(errorData.error || "Failed to save document");
         }
 
         const savedDoc = await saveResult.json();
+        console.log("[Upload] Document saved:", savedDoc.id);
         setUploadState((prev) => ({ ...prev, progress: 75 }));
 
-        // Start analysis via API (fire and forget)
-        fetch(appendSessionId(`/api/estate-plans/${estatePlanId}/uploaded-documents/analyze`), {
+        // Start analysis via API (fire and forget with error handling)
+        const analyzeUrl = appendSessionId(`/api/estate-plans/${estatePlanId}/uploaded-documents/analyze`);
+        console.log("[Upload] Starting analysis for document:", savedDoc.id);
+
+        fetch(analyzeUrl, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ documentId: savedDoc.id }),
-        }).then(() => {
-          // Refresh the documents list after analysis starts
-          mutateUploadedDocs();
-        });
+        })
+          .then((res) => {
+            console.log("[Upload] Analysis trigger response:", res.status);
+            if (!res.ok) {
+              console.error("[Upload] Analysis trigger failed:", res.status);
+            }
+            // Refresh the documents list after analysis starts
+            mutateUploadedDocs();
+          })
+          .catch((err) => {
+            console.error("[Upload] Analysis trigger error:", err);
+          });
 
         setUploadState({ isUploading: false, progress: 100, error: null });
 
@@ -549,15 +587,33 @@ export default function DocumentUploadPage() {
                   Select a document to view its analysis
                 </p>
               </div>
-            ) : selectedDoc.analysisStatus === "pending" || selectedDoc.analysisStatus === "extracting" || selectedDoc.analysisStatus === "analyzing" ? (
+            ) : selectedDoc.analysisStatus === "pending" ? (
+              <div className="bg-white rounded-lg shadow p-8 text-center">
+                <svg
+                  className="w-12 h-12 mx-auto mb-4 text-[var(--text-muted)]"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <p className="text-[var(--text-body)] mb-4">
+                  Document uploaded. Ready for analysis.
+                </p>
+                <button
+                  onClick={() => handleReanalyze(selectedDoc.id)}
+                  className="px-6 py-2 bg-[var(--accent-purple)] hover:opacity-90 text-white rounded-lg font-medium transition-colors"
+                >
+                  Start Analysis
+                </button>
+              </div>
+            ) : selectedDoc.analysisStatus === "extracting" || selectedDoc.analysisStatus === "analyzing" ? (
               <div className="bg-white rounded-lg shadow p-8 text-center">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
                 <p className="text-[var(--text-body)]">
-                  {selectedDoc.analysisStatus === "pending"
-                    ? "Waiting to start analysis..."
-                    : selectedDoc.analysisStatus === "extracting"
-                      ? "Extracting text from PDF..."
-                      : "Analyzing document with AI..."}
+                  {selectedDoc.analysisStatus === "extracting"
+                    ? "Extracting text from PDF..."
+                    : "Analyzing document with AI..."}
                 </p>
                 <p className="text-sm text-[var(--text-caption)] mt-2">
                   This may take a minute or two

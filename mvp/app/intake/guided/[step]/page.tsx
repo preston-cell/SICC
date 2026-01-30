@@ -60,6 +60,7 @@ function GuidedStepContent() {
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [isNavigating, setIsNavigating] = useState(false);
   const [allStepsData, setAllStepsData] = useState<Record<string, unknown>>({});
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const formDataRef = useRef<Record<string, unknown>>(formData);
@@ -82,19 +83,17 @@ function GuidedStepContent() {
 
   // Parse all step data into a single object for conditionals
   useEffect(() => {
-    if (allStepDataQuery) {
+    if (guidedProgress?.stepData) {
       const combined: Record<string, unknown> = {};
-      allStepDataQuery.forEach((stepData) => {
-        try {
-          const parsed = JSON.parse(stepData.data);
-          Object.assign(combined, parsed);
-        } catch (e) {
-          console.error("Failed to parse step data:", e);
+      // stepData is an object with step IDs as keys
+      Object.values(guidedProgress.stepData).forEach((stepData) => {
+        if (stepData && typeof stepData === 'object') {
+          Object.assign(combined, stepData);
         }
       });
       setAllStepsData(combined);
     }
-  }, [allStepDataQuery]);
+  }, [guidedProgress?.stepData]);
 
   // Keep ref in sync
   useEffect(() => {
@@ -124,6 +123,7 @@ function GuidedStepContent() {
         await saveGuidedStepData(estatePlanId, step.id, data, false);
         setSaveStatus("saved");
         setLastSaved(new Date());
+        setHasUnsavedChanges(false); // Clear unsaved flag after successful save
       } catch (error) {
         console.error("Failed to save:", error);
         setSaveStatus("error");
@@ -150,6 +150,36 @@ function GuidedStepContent() {
     };
   }, []);
 
+  // Warn user about unsaved changes when leaving page
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue = ""; // Required for Chrome
+        return "You have unsaved changes. Are you sure you want to leave?";
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [hasUnsavedChanges]);
+
+  // Save immediately when tab becomes hidden (user switching tabs)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden" && hasUnsavedChanges) {
+        // Clear any pending auto-save and save immediately
+        if (saveTimeoutRef.current) {
+          clearTimeout(saveTimeoutRef.current);
+        }
+        doSave(formDataRef.current);
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, [hasUnsavedChanges, doSave]);
+
   // Update field handler
   const updateField = useCallback(
     (fieldId: string, value: unknown) => {
@@ -158,6 +188,7 @@ function GuidedStepContent() {
         return updated;
       });
       setSaveStatus("idle");
+      setHasUnsavedChanges(true); // Mark as having unsaved changes
       triggerAutoSave();
     },
     [triggerAutoSave]
@@ -214,6 +245,20 @@ function GuidedStepContent() {
 
   const handleSkip = async () => {
     if (!step) return;
+
+    // Save current progress before skipping (same as handleBack)
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+
+    if (estatePlanId && Object.keys(formData).length > 0) {
+      try {
+        await doSave(formData);
+      } catch (error) {
+        console.error("Failed to save before skip:", error);
+        // Continue navigation even on save failure
+      }
+    }
 
     const nextStep = getNextStep(step.id);
     if (nextStep) {
@@ -305,7 +350,7 @@ function GuidedStepContent() {
                 question={question}
                 value={formData[question.id]}
                 onChange={(value) => updateField(question.id, value)}
-                formData={mergedDataForConditionals}
+                formData={mergedData}
                 allStepsData={allStepsData}
               />
             ))

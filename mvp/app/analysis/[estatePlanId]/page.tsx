@@ -8,6 +8,7 @@ import {
   useEstatePlanFull,
   useIntakeProgress,
   useLatestGapAnalysis,
+  useActiveGapAnalysisRun,
   saveGapAnalysis,
 } from "../../hooks/usePrismaQueries";
 
@@ -157,7 +158,7 @@ export default function AnalysisPage() {
   const { data: intakeProgress } = useIntakeProgress(estatePlanId);
 
   // Check for active comprehensive analysis run
-  const activeRun = useQuery(api.gapAnalysisProgress.getActiveRun, { estatePlanId });
+  const { data: activeRun } = useActiveGapAnalysisRun(estatePlanId);
 
   // Get full intake data for analysis
   const { data: intakeData } = useEstatePlanFull(estatePlanId);
@@ -275,6 +276,7 @@ export default function AnalysisPage() {
 
       // Save results to Prisma via API
       await saveGapAnalysis(estatePlanId, {
+        analysisType: mode === "comprehensive" ? "comprehensive" : "quick",
         score: result.analysisResult.score || 50,
         scoreBreakdown: result.analysisResult.scoreBreakdown
           ? JSON.stringify(result.analysisResult.scoreBreakdown)
@@ -470,8 +472,8 @@ export default function AnalysisPage() {
       </header>
 
       <main className="max-w-5xl mx-auto px-4 py-8">
-        {/* Intake Incomplete Warning */}
-        {!intakeComplete && (
+        {/* Intake Incomplete Warning - only show if no analysis has been completed yet */}
+        {!intakeComplete && !latestAnalysis && (
           <div className="mb-6 bg-[var(--warning-muted)] border border-[var(--warning)] rounded-lg p-4 print:hidden">
             <div className="flex gap-3">
               <svg className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -596,8 +598,8 @@ export default function AnalysisPage() {
             {/* Progress Log - Terminal-like output */}
             <div className="bg-gray-900 rounded-lg p-4 max-h-64 overflow-y-auto font-mono text-sm">
               <div className="text-gray-400 mb-2">$ claude-code --analyze estate-plan</div>
-              {progressLog.map((log, idx) => (
-                <div key={`log-${idx}-${log.slice(0, 20)}`} className="text-green-400 flex items-center gap-2">
+              {progressLog.filter(Boolean).map((log, idx) => (
+                <div key={`log-${idx}`} className="text-green-400 flex items-center gap-2">
                   <span className="text-gray-500">[{String(idx + 1).padStart(2, "0")}]</span>
                   <span>✓ {log}</span>
                 </div>
@@ -660,9 +662,17 @@ export default function AnalysisPage() {
             <div className="bg-white rounded-xl shadow-lg overflow-hidden">
               {/* Score Hero */}
               <div className="bg-gradient-to-br from-[var(--off-white)] to-[var(--light-gray)]/50 px-6 py-10 text-center">
-                <h1 className="text-lg font-medium text-[var(--text-body)] mb-6">
-                  {estatePlan.name || "Your Estate Plan"} Analysis
-                </h1>
+                <div className="flex items-center justify-center gap-3 mb-6">
+                  <h1 className="text-lg font-medium text-[var(--text-body)]">
+                    {estatePlan.name || "Your Estate Plan"} Analysis
+                  </h1>
+                  <Badge
+                    variant={latestAnalysis.analysisType === "comprehensive" ? "success" : "default"}
+                    size="sm"
+                  >
+                    {latestAnalysis.analysisType === "comprehensive" ? "Comprehensive" : "Quick"}
+                  </Badge>
+                </div>
 
                 {/* Large Score Ring */}
                 <div className="mb-6">
@@ -813,7 +823,7 @@ export default function AnalysisPage() {
               {/* Metadata bar */}
               <div className="px-6 py-3 bg-white/50 border-t border-[var(--border)] flex flex-wrap justify-between items-center gap-2 text-sm print:hidden">
                 <span className="text-[var(--text-muted)]">
-                  Analysis from {new Date(latestAnalysis.createdAt).toLocaleString()}
+                  {latestAnalysis.analysisType === "comprehensive" ? "Comprehensive" : "Quick"} analysis from {new Date(latestAnalysis.createdAt).toLocaleString()}
                 </span>
                 <div className="flex items-center gap-2">
                   <button

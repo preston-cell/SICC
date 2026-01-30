@@ -48,8 +48,6 @@ export function BeneficiaryCards({ beneficiaries, assets, totalValue }: Benefici
 
   // Distribute assets to each beneficiary (simplified - equal distribution)
   const getAssetsForBeneficiary = (beneficiary: BeneficiaryDistribution): AssetAllocation[] => {
-    // For now, show all assets divided equally
-    // In a real implementation, this would come from the will/trust data
     return assets.map(asset => ({
       ...asset,
       value: asset.value / beneficiaries.length,
@@ -59,15 +57,15 @@ export function BeneficiaryCards({ beneficiaries, assets, totalValue }: Benefici
   if (beneficiaries.length === 0) {
     return (
       <div className="text-center py-12">
-        <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center">
+        <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
           <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
           </svg>
         </div>
-        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+        <h3 className="text-lg font-medium text-[var(--text-heading)] mb-2">
           No Beneficiaries Found
         </h3>
-        <p className="text-gray-500 dark:text-gray-400 max-w-md mx-auto">
+        <p className="text-[var(--text-muted)] max-w-md mx-auto">
           Add family members in your intake form to see how your estate will be distributed to each person.
         </p>
       </div>
@@ -77,8 +75,8 @@ export function BeneficiaryCards({ beneficiaries, assets, totalValue }: Benefici
   return (
     <div className="space-y-6">
       {/* Summary header */}
-      <div className="text-center pb-4 border-b border-gray-200 dark:border-gray-700">
-        <p className="text-sm text-gray-500 dark:text-gray-400">
+      <div className="text-center pb-4 border-b border-[var(--border)]">
+        <p className="text-sm text-[var(--text-muted)]">
           Estate Distribution Among {beneficiaries.length} Beneficiar{beneficiaries.length === 1 ? "y" : "ies"}
         </p>
       </div>
@@ -95,10 +93,10 @@ export function BeneficiaryCards({ beneficiaries, assets, totalValue }: Benefici
           return (
             <div
               key={beneficiary.name}
-              className={`bg-white dark:bg-gray-800 rounded-xl border-2 transition-all duration-200 overflow-hidden ${
+              className={`bg-white rounded-xl border-2 transition-all duration-200 overflow-hidden ${
                 isExpanded
-                  ? "border-blue-400 dark:border-blue-500 shadow-lg"
-                  : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
+                  ? "border-[var(--accent-purple)] shadow-lg"
+                  : "border-[var(--border)] hover:border-gray-300"
               }`}
             >
               {/* Header with color accent */}
@@ -118,10 +116,10 @@ export function BeneficiaryCards({ beneficiaries, assets, totalValue }: Benefici
                     {beneficiary.name.charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-semibold text-lg text-gray-900 dark:text-white">
+                    <h3 className="font-semibold text-lg text-[var(--text-heading)]">
                       {beneficiary.name}
                     </h3>
-                    <div className="flex items-center gap-1 text-gray-500 dark:text-gray-400">
+                    <div className="flex items-center gap-1 text-[var(--text-muted)]">
                       {icon}
                       <span className="text-sm">{beneficiary.relationship}</span>
                     </div>
@@ -129,15 +127,15 @@ export function BeneficiaryCards({ beneficiaries, assets, totalValue }: Benefici
                 </div>
 
                 {/* Value summary */}
-                <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg">
+                <div className="mt-4 p-4 bg-gray-50 rounded-lg">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600 dark:text-gray-400">Estimated Inheritance</span>
-                    <span className="text-xl font-bold text-gray-900 dark:text-white">
+                    <span className="text-sm text-[var(--text-body)]">Estimated Inheritance</span>
+                    <span className="text-xl font-bold text-[var(--text-heading)]">
                       {formatCurrency(beneficiary.value)}
                     </span>
                   </div>
                   <div className="mt-2 flex items-center gap-2">
-                    <div className="flex-1 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                    <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
                       <div
                         className="h-full rounded-full transition-all duration-500"
                         style={{
@@ -146,7 +144,7 @@ export function BeneficiaryCards({ beneficiaries, assets, totalValue }: Benefici
                         }}
                       ></div>
                     </div>
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <span className="text-sm font-medium text-[var(--text-body)]">
                       {beneficiary.percentage.toFixed(0)}%
                     </span>
                   </div>
@@ -154,15 +152,15 @@ export function BeneficiaryCards({ beneficiaries, assets, totalValue }: Benefici
 
                 {/* Quick stats */}
                 <div className="mt-4 grid grid-cols-2 gap-3">
-                  <div className="text-center p-2 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
-                    <p className="text-xs text-indigo-600 dark:text-indigo-400">Via Probate</p>
-                    <p className="font-semibold text-indigo-700 dark:text-indigo-300">
+                  <div className="text-center p-2 bg-gray-100 rounded-lg">
+                    <p className="text-xs font-medium text-[var(--text-body)]">Via Probate</p>
+                    <p className="font-semibold text-[var(--text-heading)]">
                       {formatCurrency(probateAssets.reduce((sum, a) => sum + a.value, 0))}
                     </p>
                   </div>
-                  <div className="text-center p-2 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                    <p className="text-xs text-green-600 dark:text-green-400">Direct Transfer</p>
-                    <p className="font-semibold text-green-700 dark:text-green-300">
+                  <div className="text-center p-2 bg-green-50 rounded-lg">
+                    <p className="text-xs font-medium text-green-800">Direct Transfer</p>
+                    <p className="font-semibold text-green-900">
                       {formatCurrency(nonProbateAssets.reduce((sum, a) => sum + a.value, 0))}
                     </p>
                   </div>
@@ -171,7 +169,7 @@ export function BeneficiaryCards({ beneficiaries, assets, totalValue }: Benefici
                 {/* Expand/collapse button */}
                 <button
                   onClick={() => setExpandedCard(isExpanded ? null : beneficiary.name)}
-                  className="mt-4 w-full py-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white flex items-center justify-center gap-1 transition-colors"
+                  className="mt-4 w-full py-2 text-sm font-medium text-[var(--text-muted)] hover:text-[var(--text-heading)] flex items-center justify-center gap-1 transition-colors"
                 >
                   {isExpanded ? "Hide Details" : "View Details"}
                   <svg
@@ -186,29 +184,29 @@ export function BeneficiaryCards({ beneficiaries, assets, totalValue }: Benefici
 
                 {/* Expanded details */}
                 {isExpanded && (
-                  <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 space-y-3">
-                    <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                  <div className="mt-4 pt-4 border-t border-[var(--border)] space-y-3">
+                    <h4 className="text-sm font-semibold text-[var(--text-heading)]">
                       Assets Received
                     </h4>
                     {beneficiaryAssets.map((asset) => (
                       <div
                         key={`${asset.name}-${asset.transferMethod}`}
-                        className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-900/30 rounded-lg"
+                        className="flex items-center justify-between p-2 bg-gray-50 rounded-lg"
                       >
                         <div>
-                          <p className="text-sm font-medium text-gray-900 dark:text-white">
+                          <p className="text-sm font-medium text-[var(--text-heading)]">
                             {asset.name}
                           </p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                          <p className="text-xs text-[var(--text-muted)]">
                             {TRANSFER_METHOD_LABELS[asset.transferMethod]}
                           </p>
                         </div>
                         <div className="text-right">
-                          <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                          <p className="text-sm font-semibold text-[var(--text-heading)]">
                             {formatCurrency(asset.value)}
                           </p>
                           {asset.bypassesProbate && (
-                            <span className="text-xs text-green-600 dark:text-green-400">
+                            <span className="text-xs text-green-700 font-medium">
                               Direct
                             </span>
                           )}
@@ -224,16 +222,16 @@ export function BeneficiaryCards({ beneficiaries, assets, totalValue }: Benefici
       </div>
 
       {/* Info callout */}
-      <div className="mt-8 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+      <div className="mt-8 p-4 bg-gray-50 border border-[var(--border)] rounded-lg">
         <div className="flex gap-3">
-          <svg className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-5 h-5 text-[var(--text-muted)] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <div>
-            <p className="text-sm font-medium text-blue-800 dark:text-blue-200">
+            <p className="text-sm font-medium text-[var(--text-heading)]">
               Distribution Note
             </p>
-            <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
+            <p className="text-sm text-[var(--text-body)] mt-1">
               This visualization shows an estimated equal distribution among beneficiaries.
               Your actual distribution may differ based on your will, trust, and beneficiary designations.
               Consult with an estate planning attorney to ensure your wishes are properly documented.

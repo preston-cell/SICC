@@ -11,6 +11,7 @@ interface Phase {
   status: string;
   completedRuns: number;
   totalRuns: number;
+  runResults: Array<{ status: string; runType: string }>;
 }
 
 interface AnalysisFloatingWidgetProps {
@@ -28,7 +29,13 @@ export function AnalysisFloatingWidget({
   const [hasNotified, setHasNotified] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
 
-  const { data: run, mutate } = useGapAnalysisRunProgress(estatePlanId, runId);
+  const { data: run, error: fetchError, mutate } = useGapAnalysisRunProgress(estatePlanId, runId);
+
+  // Debug logging for troubleshooting
+  useEffect(() => {
+    console.log('[FloatingWidget] Props:', { estatePlanId, runId });
+    console.log('[FloatingWidget] Fetch result:', { run, fetchError });
+  }, [estatePlanId, runId, run, fetchError]);
 
   const handleCancel = async () => {
     if (isCancelling) return;
@@ -48,6 +55,7 @@ export function AnalysisFloatingWidget({
     status: run.status,
     overallProgress: run.progressPercent ?? 0,
     currentPhase: run.currentPhase,
+    error: run.error,
   } : null;
 
   // Transform phases data to match expected format
@@ -56,31 +64,22 @@ export function AnalysisFloatingWidget({
     phaseNumber: number;
     name: string;
     status: string;
-    runResults?: Array<{ status: string }>;
+    totalRuns: number;
+    completedRuns: number;
+    runResults?: Array<{ status: string; runType: string }>;
   }) => ({
     id: phase.id,
     phaseNumber: phase.phaseNumber,
     phaseType: phase.name,
     status: phase.status,
-    completedRuns: phase.runResults?.filter((r) => r.status === 'completed').length ?? 0,
-    totalRuns: phase.runResults?.length ?? 0,
+    completedRuns: phase.completedRuns ?? 0,
+    totalRuns: phase.totalRuns ?? 0,
+    runResults: phase.runResults ?? [],
   })) ?? null;
 
   const isComplete = runProgress?.status === "completed" || runProgress?.status === "partial";
   const isFailed = runProgress?.status === "failed";
   const isCancelled = isFailed && runProgress?.error === "Cancelled by user";
-
-  const handleCancel = async () => {
-    if (isCancelling) return;
-    setIsCancelling(true);
-    try {
-      await cancelRun({ runId });
-    } catch (error) {
-      console.error("Failed to cancel analysis:", error);
-    } finally {
-      setIsCancelling(false);
-    }
-  };
 
   // Notify when complete
   useEffect(() => {
@@ -136,8 +135,19 @@ export function AnalysisFloatingWidget({
       <div className="fixed bottom-6 right-6 z-50">
         <div className="bg-white rounded-xl shadow-lg border border-[var(--border)] px-4 py-3">
           <div className="flex items-center gap-3">
-            <div className="w-5 h-5 border-2 border-[var(--accent-purple)] border-t-transparent rounded-full animate-spin" />
-            <span className="text-sm text-[var(--text-muted)]">Starting analysis...</span>
+            {fetchError ? (
+              <>
+                <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <span className="text-sm text-red-600">Failed to load progress</span>
+              </>
+            ) : (
+              <>
+                <div className="w-5 h-5 border-2 border-[var(--accent-purple)] border-t-transparent rounded-full animate-spin" />
+                <span className="text-sm text-[var(--text-muted)]">Starting analysis...</span>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -223,22 +233,28 @@ export function AnalysisFloatingWidget({
 
             {/* Phase status */}
             {phases && (
-              <div className="space-y-2 mb-4">
+              <div className="space-y-3 mb-4">
                 {phases.map((phase: Phase) => (
-                  <div key={phase.id} className="flex items-center gap-2">
-                    {getPhaseIcon(phase.status)}
-                    <span className="text-sm text-[var(--text-body)]">
-                      Phase {phase.phaseNumber}:{" "}
-                      {phase.phaseType === "research"
-                        ? "Research"
-                        : phase.phaseType === "analysis"
-                        ? "Deep Analysis"
-                        : "Synthesis"}
-                    </span>
-                    {phase.status === "running" && (
+                  <div key={phase.id}>
+                    <div className="flex items-center gap-2">
+                      {getPhaseIcon(phase.status)}
+                      <span className="text-sm text-[var(--text-body)]">
+                        Phase {phase.phaseNumber}:{" "}
+                        {phase.phaseType === "research"
+                          ? "Research"
+                          : phase.phaseType === "analysis"
+                          ? "Deep Analysis"
+                          : "Synthesis"}
+                      </span>
                       <span className="text-xs text-[var(--text-muted)]">
                         ({phase.completedRuns}/{phase.totalRuns})
                       </span>
+                    </div>
+                    {/* Show completed runs for running phase */}
+                    {phase.status === "running" && phase.runResults.length > 0 && (
+                      <div className="ml-6 mt-1 text-xs text-[var(--text-muted)]">
+                        Done: {phase.runResults.filter(r => r.status === 'completed').map(r => r.runType.replace(/_/g, ' ')).join(', ') || 'none yet'}
+                      </div>
                     )}
                   </div>
                 ))}

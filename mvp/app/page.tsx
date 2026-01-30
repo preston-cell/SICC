@@ -32,7 +32,6 @@ import Navigation from "./components/ui/Navigation";
 import TrustIndicators from "./components/ui/TrustIndicators";
 import CapabilitiesSection from "./components/ui/CapabilitiesSection";
 import UseCasesSection from "./components/ui/UseCasesSection";
-import SecurityBentoGrid from "./components/ui/SecurityBentoGrid";
 import TestimonialSection from "./components/ui/TestimonialSection";
 
 // Colors - hardcoded for reliability
@@ -331,6 +330,8 @@ function DocumentCard({
 // Estate plan card
 function EstatePlanCard({
   plan,
+  onRename,
+  onDelete,
 }: {
   plan: {
     id: string;
@@ -338,8 +339,16 @@ function EstatePlanCard({
     status: string;
     updatedAt: string | number;
     stateOfResidence?: string;
+    latestAnalysisType?: string | null;
+    latestScore?: number | null;
   };
+  onRename?: (id: string, newName: string) => void;
+  onDelete?: (id: string, name: string) => void;
 }) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editName, setEditName] = useState(plan.name || "My Estate Plan");
+  const inputRef = useRef<HTMLInputElement>(null);
+
   const statusConfig: Record<string, { color: string; bgColor: string; label: string }> = {
     draft: { color: COLORS.mushroomGrey, bgColor: COLORS.cream, label: "Draft" },
     intake_in_progress: { color: "#4A7DC9", bgColor: "rgba(74, 125, 201, 0.12)", label: "In Progress" },
@@ -351,6 +360,125 @@ function EstatePlanCard({
 
   const config = statusConfig[plan.status] || statusConfig.draft;
 
+  useEffect(() => {
+    if (isEditing && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    }
+  }, [isEditing]);
+
+  const handleSave = async () => {
+    if (editName.trim() && editName !== plan.name) {
+      onRename?.(plan.id, editName.trim());
+    }
+    setIsEditing(false);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      handleSave();
+    } else if (e.key === "Escape") {
+      setEditName(plan.name || "My Estate Plan");
+      setIsEditing(false);
+    }
+  };
+
+  const cardContent = (
+    <div className="group p-5 rounded-xl bg-white border border-[rgba(29,29,27,0.08)] hover:border-[#FF7759] hover:shadow-lg transition-all duration-[400ms] ease-[cubic-bezier(0.16,1,0.3,1)]">
+      <div className="flex items-start justify-between mb-3">
+        <div className="flex-1 min-w-0">
+          {isEditing ? (
+            <input
+              ref={inputRef}
+              type="text"
+              value={editName}
+              onChange={(e) => setEditName(e.target.value)}
+              onBlur={handleSave}
+              onKeyDown={handleKeyDown}
+              onClick={(e) => e.preventDefault()}
+              className="font-medium w-full px-2 py-1 -ml-2 border border-[#FF7759] rounded outline-none"
+              style={{ color: COLORS.volcanicBlack }}
+            />
+          ) : (
+            <div className="flex items-center gap-2">
+              <h4 className="font-medium group-hover:text-[#FF7759] transition-colors truncate" style={{ color: COLORS.volcanicBlack }}>
+                {plan.name || "My Estate Plan"}
+              </h4>
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsEditing(true);
+                }}
+                className="opacity-0 group-hover:opacity-100 p-1 hover:bg-gray-100 rounded transition-opacity"
+                title="Rename plan"
+              >
+                <svg className="w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                </svg>
+              </button>
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onDelete?.(plan.id, plan.name || "My Estate Plan");
+                }}
+                className="opacity-0 group-hover:opacity-100 p-1 hover:bg-red-50 rounded transition-opacity"
+                title="Delete plan"
+              >
+                <svg className="w-3.5 h-3.5 text-gray-400 hover:text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </button>
+            </div>
+          )}
+          <div className="flex items-center gap-2 mt-1">
+            {plan.stateOfResidence && (
+              <p className="text-sm" style={{ color: COLORS.mushroomGrey }}>{plan.stateOfResidence}</p>
+            )}
+            {plan.latestAnalysisType && (
+              <>
+                {plan.stateOfResidence && <span className="text-gray-300">•</span>}
+                <span
+                  className="text-xs px-1.5 py-0.5 rounded"
+                  style={{
+                    backgroundColor: plan.latestAnalysisType === "comprehensive" ? "rgba(74, 157, 107, 0.12)" : "rgba(74, 125, 201, 0.12)",
+                    color: plan.latestAnalysisType === "comprehensive" ? "#4A9D6B" : "#4A7DC9",
+                  }}
+                >
+                  {plan.latestAnalysisType === "comprehensive" ? "Comprehensive" : "Quick"}
+                  {plan.latestScore !== null && plan.latestScore !== undefined && ` • ${plan.latestScore}`}
+                </span>
+              </>
+            )}
+          </div>
+        </div>
+        <span
+          className="px-2.5 py-1 rounded-full text-xs font-medium flex-shrink-0 ml-2"
+          style={{
+            backgroundColor: config.bgColor,
+            color: config.color,
+          }}
+        >
+          {config.label}
+        </span>
+      </div>
+      <div className="flex items-center justify-between text-sm">
+        <span style={{ color: COLORS.mushroomGrey }}>
+          Updated {new Date(plan.updatedAt).toLocaleDateString()}
+        </span>
+        <span className="font-medium flex items-center gap-1 group-hover:gap-2 transition-all duration-[250ms]" style={{ color: COLORS.coral }}>
+          Continue
+          <ChevronRight className="w-4 h-4" />
+        </span>
+      </div>
+    </div>
+  );
+
+  if (isEditing) {
+    return <div onClick={(e) => e.stopPropagation()}>{cardContent}</div>;
+  }
+
   return (
     <Link
       href={
@@ -359,36 +487,7 @@ function EstatePlanCard({
           : `/analysis/${plan.id}`
       }
     >
-      <div className="group p-5 rounded-xl bg-white border border-[rgba(29,29,27,0.08)] hover:border-[#FF7759] hover:shadow-lg transition-all duration-[400ms] ease-[cubic-bezier(0.16,1,0.3,1)]">
-        <div className="flex items-start justify-between mb-3">
-          <div>
-            <h4 className="font-medium group-hover:text-[#FF7759] transition-colors" style={{ color: COLORS.volcanicBlack }}>
-              {plan.name || "My Estate Plan"}
-            </h4>
-            {plan.stateOfResidence && (
-              <p className="text-sm" style={{ color: COLORS.mushroomGrey }}>{plan.stateOfResidence}</p>
-            )}
-          </div>
-          <span
-            className="px-2.5 py-1 rounded-full text-xs font-medium"
-            style={{
-              backgroundColor: config.bgColor,
-              color: config.color,
-            }}
-          >
-            {config.label}
-          </span>
-        </div>
-        <div className="flex items-center justify-between text-sm">
-          <span style={{ color: COLORS.mushroomGrey }}>
-            Updated {new Date(plan.updatedAt).toLocaleDateString()}
-          </span>
-          <span className="font-medium flex items-center gap-1 group-hover:gap-2 transition-all duration-[250ms]" style={{ color: COLORS.coral }}>
-            Continue
-            <ChevronRight className="w-4 h-4" />
-          </span>
-        </div>
-      </div>
+      {cardContent}
     </Link>
   );
 }
@@ -412,8 +511,80 @@ export default function Home() {
     if (storedSessionId) setSessionId(storedSessionId);
   }, []);
 
+  // Listen for localStorage changes (from other tabs or console)
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "estatePlanSessionId" && e.newValue) {
+        setSessionId(e.newValue);
+      }
+    };
+
+    const handleFocus = () => {
+      const currentSessionId = localStorage.getItem("estatePlanSessionId");
+      setSessionId((prev) => {
+        if (currentSessionId && currentSessionId !== prev) {
+          return currentSessionId;
+        }
+        return prev;
+      });
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    window.addEventListener("focus", handleFocus);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+      window.removeEventListener("focus", handleFocus);
+    };
+  }, []);
+
   // Use SWR hook for recent plans - handles both authenticated and session-based users
-  const { data: recentPlans } = useRecentEstatePlans(sessionId || undefined, 5);
+  // Increased limit to 50 to show all user plans
+  const { data: recentPlans, mutate: mutateRecentPlans } = useRecentEstatePlans(sessionId || undefined, 50);
+
+  // Handle renaming a plan
+  const handleRenamePlan = async (planId: string, newName: string) => {
+    try {
+      const response = await fetch(`/api/estate-plans/${planId}?sessionId=${sessionId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: newName }),
+      });
+      if (response.ok) {
+        mutateRecentPlans();
+      }
+    } catch (error) {
+      console.error("Failed to rename plan:", error);
+    }
+  };
+
+  // Handle deleting a plan
+  const handleDeletePlan = async (planId: string, planName: string) => {
+    const confirmed = window.confirm(
+      `Are you sure you want to delete "${planName}"?\n\nThis will permanently delete all data associated with this plan including intake data, documents, and analysis results.`
+    );
+    if (!confirmed) return;
+
+    try {
+      const response = await fetch(`/api/estate-plans/${planId}?sessionId=${sessionId}`, {
+        method: "DELETE",
+      });
+      if (response.ok) {
+        mutateRecentPlans();
+        // If this was the current plan in localStorage, clear it
+        const currentPlanId = localStorage.getItem("estatePlanId");
+        if (currentPlanId === planId) {
+          localStorage.removeItem("estatePlanId");
+        }
+      } else {
+        const error = await response.json();
+        alert(`Failed to delete plan: ${error.error || "Unknown error"}`);
+      }
+    } catch (error) {
+      console.error("Failed to delete plan:", error);
+      alert("Failed to delete plan. Please try again.");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-white overflow-x-hidden" style={{ color: COLORS.volcanicBlack }}>
@@ -564,20 +735,29 @@ export default function Home() {
         >
           <div className="container py-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-medium">Your Estate Plans</h3>
-              <Link href="/intake">
-                <span
-                  className="font-medium flex items-center gap-1.5 hover:gap-2 transition-all duration-[250ms]"
-                  style={{ color: COLORS.coral }}
+              <h3 className="text-lg font-medium">Your Estate Plans ({recentPlans.length})</h3>
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={() => mutateRecentPlans()}
+                  className="text-sm font-medium transition-colors duration-[150ms] hover:text-[#1D1D1B]"
+                  style={{ color: COLORS.mushroomGrey }}
                 >
-                  <Plus className="w-4 h-4" />
-                  New Plan
-                </span>
-              </Link>
+                  Refresh
+                </button>
+                <Link href="/intake">
+                  <span
+                    className="font-medium flex items-center gap-1.5 hover:gap-2 transition-all duration-[250ms]"
+                    style={{ color: COLORS.coral }}
+                  >
+                    <Plus className="w-4 h-4" />
+                    New Plan
+                  </span>
+                </Link>
+              </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {recentPlans.map((plan: { id: string; name?: string; status: string; updatedAt: string | number; stateOfResidence?: string }) => (
-                <EstatePlanCard key={plan.id} plan={plan} />
+              {recentPlans.map((plan: { id: string; name?: string; status: string; updatedAt: string | number; stateOfResidence?: string; latestAnalysisType?: string | null; latestScore?: number | null }) => (
+                <EstatePlanCard key={plan.id} plan={plan} onRename={handleRenamePlan} onDelete={handleDeletePlan} />
               ))}
             </div>
           </div>
@@ -955,9 +1135,6 @@ export default function Home() {
 
       {/* Use Cases Section - Scroll-triggered animations */}
       <UseCasesSection />
-
-      {/* Security Bento Grid */}
-      <SecurityBentoGrid />
 
       {/* Testimonials */}
       <TestimonialSection />

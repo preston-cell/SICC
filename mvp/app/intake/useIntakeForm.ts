@@ -42,6 +42,242 @@ interface ExtractedDataRecord {
   status: string;
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Field Transformation Layer
+// Maps extracted JSON field names to form field names
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Helper to split "EMILY CHEN" into {firstName: "Emily", lastName: "Chen"}
+function splitName(fullName: string | undefined): { firstName: string; lastName: string } {
+  if (!fullName) return { firstName: "", lastName: "" };
+  const parts = fullName.trim().split(/\s+/);
+  const titleCase = (s: string) => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+  if (parts.length === 1) return { firstName: titleCase(parts[0]), lastName: "" };
+  return {
+    firstName: titleCase(parts[0]),
+    lastName: parts.slice(1).map(titleCase).join(" "),
+  };
+}
+
+// Map relationship strings to form dropdown values
+function mapRelationship(rel: string | undefined): string {
+  if (!rel) return "";
+  const lower = rel.toLowerCase();
+  if (lower.includes("sister") || lower.includes("brother")) return "sibling";
+  if (lower.includes("friend")) return "friend";
+  if (lower.includes("aunt") || lower.includes("uncle")) return "aunt_uncle";
+  if (lower.includes("parent") || lower.includes("mother") || lower.includes("father")) return "parent";
+  if (lower.includes("cousin")) return "cousin";
+  return "other";
+}
+
+// Extract year from date string like "March 15, 2016"
+function extractYear(dateStr: string | undefined): string {
+  if (!dateStr) return "";
+  const match = dateStr.match(/\d{4}/);
+  return match ? match[0] : "";
+}
+
+// Extract state abbreviation from governing law string
+function extractState(governingLaw: string | undefined): string {
+  if (!governingLaw) return "";
+  const stateMap: Record<string, string> = {
+    "massachusetts": "MA", "california": "CA", "new york": "NY", "texas": "TX",
+    "florida": "FL", "illinois": "IL", "pennsylvania": "PA", "ohio": "OH",
+    "georgia": "GA", "north carolina": "NC", "michigan": "MI", "new jersey": "NJ",
+    "virginia": "VA", "washington": "WA", "arizona": "AZ", "tennessee": "TN",
+    "colorado": "CO", "maryland": "MD", "minnesota": "MN", "wisconsin": "WI",
+    "alabama": "AL", "south carolina": "SC", "louisiana": "LA", "kentucky": "KY",
+    "oregon": "OR", "oklahoma": "OK", "connecticut": "CT", "utah": "UT",
+    "iowa": "IA", "nevada": "NV", "arkansas": "AR", "mississippi": "MS",
+    "kansas": "KS", "new mexico": "NM", "nebraska": "NE", "west virginia": "WV",
+    "idaho": "ID", "hawaii": "HI", "new hampshire": "NH", "maine": "ME",
+    "montana": "MT", "rhode island": "RI", "delaware": "DE", "south dakota": "SD",
+    "north dakota": "ND", "alaska": "AK", "vermont": "VT", "wyoming": "WY",
+    "district of columbia": "DC", "commonwealth of massachusetts": "MA",
+  };
+  const lower = governingLaw.toLowerCase();
+  for (const [name, abbrev] of Object.entries(stateMap)) {
+    if (lower.includes(name)) return abbrev;
+  }
+  return "";
+}
+
+// Map trust type to form dropdown value
+function mapTrustType(trustType: string | undefined): string {
+  if (!trustType) return "";
+  const lower = trustType.toLowerCase();
+  if (lower.includes("revocable") && lower.includes("living")) return "revocable_living";
+  if (lower.includes("irrevocable")) return "irrevocable";
+  if (lower.includes("special needs")) return "special_needs";
+  return "other";
+}
+
+// Transform personal section extracted data to form fields
+function transformPersonalData(data: Record<string, unknown>): Record<string, unknown> {
+  return {
+    firstName: data.firstName,
+    middleName: data.middleName,
+    lastName: data.lastName,
+    dateOfBirth: data.dateOfBirth,
+    email: data.email,
+    phone: data.phone,
+    // Rename: address → streetAddress, zip → zipCode
+    streetAddress: data.address,
+    city: data.city,
+    state: extractState(data.state as string) || data.state,
+    zipCode: data.zip,
+    maritalStatus: data.maritalStatus,
+  };
+}
+
+// Transform family section extracted data to form fields
+function transformFamilyData(data: Record<string, unknown>): Record<string, unknown> {
+  const children = (data.children as Array<{
+    fullName: string;
+    dateOfBirth: string;
+    isMinor: boolean;
+    relationship: string;
+  }>) || [];
+
+  const guardian = data.guardianForMinors as {
+    primaryGuardian?: string;
+    primaryGuardianRelationship?: string;
+    successorGuardian?: string;
+    successorGuardianRelationship?: string;
+  } | undefined;
+
+  // Check if spouse data exists (may be in personal extraction)
+  const hasSpouseData = !!(data.spouseFirstName || data.spouseFullName);
+  const spouseName = data.spouseFullName
+    ? splitName(data.spouseFullName as string)
+    : { firstName: data.spouseFirstName as string || "", lastName: data.spouseLastName as string || "" };
+
+  return {
+    // Infer boolean flags
+    hasSpouse: hasSpouseData,
+    spouseFirstName: spouseName.firstName,
+    spouseLastName: spouseName.lastName,
+    spouseDateOfBirth: data.spouseDateOfBirth || "",
+    spouseIsUSCitizen: true, // default
+
+    // Transform children array
+    hasChildren: children.length > 0,
+    children: children.map((child, idx) => {
+      const names = splitName(child.fullName);
+      const rel = child.relationship?.toLowerCase() || "";
+      return {
+        id: `extracted_${idx}_${Date.now()}`,
+        firstName: names.firstName,
+        lastName: names.lastName,
+        dateOfBirth: child.dateOfBirth || "",
+        relationship: (rel === "son" || rel === "daughter" || rel === "child") ? "biological" : rel || "biological",
+        isMinor: child.isMinor ?? false,
+        hasSpecialNeeds: false,
+        specialNeedsDetails: "",
+      };
+    }),
+
+    // Flatten guardian structure
+    guardianName: guardian?.primaryGuardian ? splitName(guardian.primaryGuardian).firstName + " " + splitName(guardian.primaryGuardian).lastName : "",
+    guardianRelationship: mapRelationship(guardian?.primaryGuardianRelationship),
+    alternateGuardianName: guardian?.successorGuardian ? splitName(guardian.successorGuardian).firstName + " " + splitName(guardian.successorGuardian).lastName : "",
+    alternateGuardianRelationship: mapRelationship(guardian?.successorGuardianRelationship),
+  };
+}
+
+// Transform existing documents section extracted data to form fields
+function transformExistingDocsData(data: Record<string, unknown>): Record<string, unknown> {
+  const executor = data.executor as { name?: string; relationship?: string } | undefined;
+  const successorExecutor = data.successorExecutor as { name?: string; relationship?: string } | undefined;
+
+  return {
+    // Convert boolean to yes/no string
+    hasWill: data.hasWill === true ? "yes" : data.hasWill === false ? "no" : "unsure",
+    willYear: extractYear(data.willDate as string),
+    willState: extractState(data.governingLaw as string),
+    willConcerns: "",
+
+    hasTrust: !!data.hasTrust,
+    trustType: mapTrustType(data.trustType as string),
+    trustYear: extractYear(data.trustDate as string),
+    trustConcerns: "",
+
+    hasPOAFinancial: data.hasPoaFinancial === true ? "yes" : data.hasPoaFinancial === false ? "no" : "unsure",
+    poaFinancialYear: "",
+    poaFinancialAgent: data.financialPoa || "",
+
+    hasPOAHealthcare: data.hasPoaHealthcare === true ? "yes" : data.hasPoaHealthcare === false ? "no" : "unsure",
+    poaHealthcareYear: "",
+    poaHealthcareAgent: data.healthcareProxy || "",
+
+    hasHealthcareDirective: data.hasHealthcareDirective === true ? "yes" : data.hasHealthcareDirective === false ? "no" : "unsure",
+    healthcareDirectiveYear: "",
+
+    hasHIPAA: false,
+
+    // Flatten executor info
+    executorName: executor?.name || "",
+    executorRelationship: executor?.relationship || "",
+    successorExecutorName: successorExecutor?.name || "",
+  };
+}
+
+// Transform goals section extracted data to form fields
+function transformGoalsData(data: Record<string, unknown>): Record<string, unknown> {
+  const primaryGoals = Array.isArray(data.primaryGoals) ? data.primaryGoals as string[] : [];
+  const concerns = Array.isArray(data.concerns) ? data.concerns as string[] : [];
+
+  // Split executor name if it's a full name
+  const executorFullName = data.executorName as string | undefined;
+  const executorNames = executorFullName ? splitName(executorFullName) : { firstName: "", lastName: "" };
+
+  // Split guardian name if it's a full name
+  const guardianFullName = data.guardianName as string | undefined;
+  const guardianNames = guardianFullName ? splitName(guardianFullName) : { firstName: "", lastName: "" };
+
+  return {
+    topPriorities: primaryGoals.join("\n"),
+    additionalGoals: concerns.join("\n"),
+    funeralDetails: data.specialInstructions || "",
+    // Distribution plan could map to primaryBeneficiaryDetails
+    primaryBeneficiaryDetails: data.distributionPlan || "",
+    // Executor fields
+    executorName: executorFullName ? `${executorNames.firstName} ${executorNames.lastName}`.trim() : "",
+    executorRelationship: data.executorRelationship || "",
+    alternateExecutorName: data.alternateExecutorName || "",
+    // Guardian fields
+    hasMinorChildren: !!data.hasMinorChildren,
+    guardianName: guardianFullName ? `${guardianNames.firstName} ${guardianNames.lastName}`.trim() : "",
+    guardianRelationship: mapRelationship(data.guardianRelationship as string),
+    alternateGuardianName: data.alternateGuardianName || "",
+  };
+}
+
+// Main transformer function
+function transformExtractedData(
+  section: Section,
+  extractedData: Record<string, unknown>
+): Record<string, unknown> {
+  switch (section) {
+    case "personal":
+      return transformPersonalData(extractedData);
+    case "family":
+      return transformFamilyData(extractedData);
+    case "existing_documents":
+      return transformExistingDocsData(extractedData);
+    case "goals":
+      return transformGoalsData(extractedData);
+    case "assets":
+      // Assets section doesn't need much transformation
+      return extractedData;
+    default:
+      return extractedData;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 // Helper to get current year for dynamic placeholders
 export function getCurrentYear(): number {
   return new Date().getFullYear();
@@ -122,9 +358,13 @@ export function useIntakeForm<T extends object>(
       }
     }
 
-    // Parse extracted data if available
+    // Parse extracted data if available and transform to match form fields
     if (extractedData?.parsedData) {
-      extractedValues = extractedData.parsedData as Partial<T>;
+      // Transform extracted field names to match form fields
+      extractedValues = transformExtractedData(
+        STEP_TO_SECTION[step],
+        extractedData.parsedData as Record<string, unknown>
+      ) as Partial<T>;
     }
 
     // Merge: default -> extracted -> manual

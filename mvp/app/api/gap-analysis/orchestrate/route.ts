@@ -1,18 +1,63 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireAuthOrSessionAndOwnership } from "@/lib/auth-helper";
+import {
+  parseIntakeData,
+  getClientContext,
+  executePhase1,
+  executePhase2,
+  executePhase3,
+  getApplicableRuns,
+  calculatePhaseProgress,
+  aggregatePhase2Results,
+  RunType,
+  ParsedIntake,
+  ClientContext,
+  BeneficiaryDesignation,
+} from "@/lib/gap-analysis";
 
-// Extend Vercel function timeout
-export const maxDuration = 600;
+// Extend Vercel function timeout (comprehensive analysis needs time)
+export const maxDuration = 900; // 15 minutes
+
+/**
+ * Safely stringify data - handles cases where data is already a string
+ * to prevent double-stringification issues
+ */
+function safeStringify(data: unknown): string {
+  if (typeof data === "string") {
+    // Check if it's already a valid JSON string
+    try {
+      JSON.parse(data);
+      return data; // Already a valid JSON string
+    } catch {
+      // Not valid JSON, wrap it
+      return JSON.stringify(data);
+    }
+  }
+  return JSON.stringify(data ?? []);
+}
+
+interface OrchestrationRequest {
+  estatePlanId: string;
+  intakeData: {
+    estatePlan: { stateOfResidence?: string };
+    personal?: { data: string };
+    family?: { data: string };
+    assets?: { data: string };
+    existingDocuments?: { data: string };
+    goals?: { data: string };
+    beneficiaryDesignations?: BeneficiaryDesignation[];
+  };
+}
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { estatePlanId, intakeData } = body;
+    const { estatePlanId, intakeData }: OrchestrationRequest = body;
 
-    if (!estatePlanId) {
+    if (!estatePlanId || !intakeData) {
       return NextResponse.json(
-        { error: "estatePlanId is required" },
+        { error: "estatePlanId and intakeData are required" },
         { status: 400 }
       );
     }
@@ -36,20 +81,53 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Create a new gap analysis run
+    // Parse intake data and get client context
+    const parsed = parseIntakeData(intakeData);
+    const clientContext = getClientContext(parsed);
+
+    // Determine applicable runs for each phase
+    const phase1Runs = getApplicableRuns(1, clientContext, parsed);
+    const phase2Runs = getApplicableRuns(2, clientContext, parsed);
+    const phase3Runs = getApplicableRuns(3, clientContext, parsed);
+
+    console.log("[ORCHESTRATE] Starting comprehensive analysis:", {
+      estatePlanId,
+      state: parsed.state,
+      phase1Runs,
+      phase2Runs,
+      phase3Runs,
+    });
+
+    // Create a new gap analysis run with phases
     const run = await prisma.gapAnalysisRun.create({
       data: {
         estatePlanId,
-        status: "pending",
+        status: "running",
         analysisType: "comprehensive",
         currentPhase: 1,
         totalPhases: 3,
         progressPercent: 0,
+        startedAt: new Date(),
         phases: {
           create: [
-            { phaseNumber: 1, name: "research", status: "pending" },
-            { phaseNumber: 2, name: "analysis", status: "pending" },
-            { phaseNumber: 3, name: "synthesis", status: "pending" },
+            {
+              phaseNumber: 1,
+              name: "research",
+              status: "pending",
+              totalRuns: phase1Runs.length,
+            },
+            {
+              phaseNumber: 2,
+              name: "analysis",
+              status: "pending",
+              totalRuns: phase2Runs.length,
+            },
+            {
+              phaseNumber: 3,
+              name: "synthesis",
+              status: "pending",
+              totalRuns: phase3Runs.length,
+            },
           ],
         },
       },
@@ -58,30 +136,27 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Update run to running status
-    await prisma.gapAnalysisRun.update({
-      where: { id: run.id },
-      data: {
-        status: "running",
-        startedAt: new Date(),
-      },
+    // Start background execution (fire-and-forget with proper error handling)
+    executeComprehensiveAnalysis(
+      run.id,
+      estatePlanId,
+      parsed,
+      clientContext,
+      phase1Runs,
+      phase2Runs,
+      phase3Runs,
+      run.phases
+    ).catch(async (error) => {
+      console.error("[ORCHESTRATE] Background analysis failed:", error);
+      await prisma.gapAnalysisRun.update({
+        where: { id: run.id },
+        data: {
+          status: "failed",
+          error: error instanceof Error ? error.message : "Unknown error",
+          completedAt: new Date(),
+        },
+      }).catch(console.error);
     });
-
-    // Start the analysis asynchronously (in the background)
-    // Note: In production, this would be a proper background job
-    executeComprehensiveAnalysis(run.id, estatePlanId, intakeData).catch(
-      (error) => {
-        console.error("Comprehensive analysis failed:", error);
-        prisma.gapAnalysisRun.update({
-          where: { id: run.id },
-          data: {
-            status: "failed",
-            error: error.message,
-            completedAt: new Date(),
-          },
-        });
-      }
-    );
 
     return NextResponse.json({
       success: true,
@@ -89,7 +164,7 @@ export async function POST(req: NextRequest) {
       message: "Comprehensive analysis started",
     });
   } catch (error) {
-    console.error("Orchestrate error:", error);
+    console.error("[ORCHESTRATE] Error:", error);
     return NextResponse.json(
       {
         success: false,
@@ -100,83 +175,208 @@ export async function POST(req: NextRequest) {
   }
 }
 
+interface PhaseRecord {
+  id: string;
+  phaseNumber: number;
+  name: string;
+}
+
 async function executeComprehensiveAnalysis(
   runId: string,
   estatePlanId: string,
-  intakeData: unknown
+  parsed: ParsedIntake,
+  clientContext: ClientContext,
+  phase1Runs: RunType[],
+  phase2Runs: RunType[],
+  phase3Runs: RunType[],
+  phases: PhaseRecord[]
 ) {
+  const startTime = Date.now();
+  let totalDurationMs = 0;
+  let totalCostUsd = 0;
+
+  const phase1 = phases.find((p) => p.phaseNumber === 1)!;
+  const phase2 = phases.find((p) => p.phaseNumber === 2)!;
+  const phase3 = phases.find((p) => p.phaseNumber === 3)!;
+
   try {
-    // Update progress to 10%
-    await updateRunProgress(runId, 10, 1);
+    // =====================================
+    // PHASE 1: Research & Context (Sequential)
+    // =====================================
+    console.log("[ORCHESTRATE] Starting Phase 1:", phase1Runs);
 
-    // Phase 1: Research
-    await updatePhaseStatus(runId, 1, "running");
+    await updatePhaseStatus(phase1.id, "running");
+    await updateRunProgress(runId, 5, 1);
 
-    // Call the main gap analysis with quick mode for initial research
-    const researchResponse = await fetch(
-      `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/gap-analysis`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          intakeData,
-          mode: "quick",
-        }),
+    let completedPhase1Runs = 0;
+    const phase1Result = await executePhase1(
+      parsed,
+      clientContext,
+      async (runType: RunType, status: "running" | "completed" | "failed") => {
+        if (status === "completed" || status === "failed") {
+          completedPhase1Runs++;
+          await createRunResult(phase1.id, runType, status, null);
+          const progress = calculatePhaseProgress(1, completedPhase1Runs, phase1Runs.length);
+          await updateRunProgress(runId, progress, 1);
+          await updatePhaseProgress(phase1.id, completedPhase1Runs);
+        }
       }
     );
 
-    const researchResult = await researchResponse.json();
+    totalDurationMs += phase1Result.metadata.totalDurationMs;
+    totalCostUsd += phase1Result.metadata.totalCostUsd;
 
-    // Store research results
-    await createRunResult(runId, 1, "state_law_research", researchResult);
-    await updatePhaseStatus(runId, 1, "completed");
-    await updateRunProgress(runId, 40, 2);
+    await updatePhaseStatus(phase1.id, "completed");
+    await updateRunProgress(runId, 30, 2);
 
-    // Phase 2: Analysis
-    await updatePhaseStatus(runId, 2, "running");
-
-    // For comprehensive analysis, we run additional specialized analysis
-    // This is a placeholder - in full implementation, would run multiple specialized prompts
-    await createRunResult(runId, 2, "tax_optimization", {
-      strategies: researchResult.analysisResult?.taxStrategies || [],
+    console.log("[ORCHESTRATE] Phase 1 complete:", {
+      runs: phase1Runs.length,
+      durationMs: phase1Result.metadata.totalDurationMs,
     });
 
-    await updatePhaseStatus(runId, 2, "completed");
+    // =====================================
+    // PHASE 2: Deep Analysis (Parallel)
+    // =====================================
+    console.log("[ORCHESTRATE] Starting Phase 2:", phase2Runs);
+
+    await updatePhaseStatus(phase2.id, "running");
+
+    let completedPhase2Runs = 0;
+    const phase2Result = await executePhase2(
+      parsed,
+      clientContext,
+      phase1Result.results,
+      async (runType: RunType, status: "running" | "completed" | "failed") => {
+        if (status === "completed" || status === "failed") {
+          completedPhase2Runs++;
+          await createRunResult(phase2.id, runType, status, null);
+          const progress = calculatePhaseProgress(2, completedPhase2Runs, phase2Runs.length);
+          await updateRunProgress(runId, progress, 2);
+          await updatePhaseProgress(phase2.id, completedPhase2Runs);
+        }
+      }
+    );
+
+    totalDurationMs += phase2Result.metadata.totalDurationMs;
+    totalCostUsd += phase2Result.metadata.totalCostUsd;
+
+    await updatePhaseStatus(phase2.id, "completed");
     await updateRunProgress(runId, 70, 3);
 
-    // Phase 3: Synthesis
-    await updatePhaseStatus(runId, 3, "running");
+    console.log("[ORCHESTRATE] Phase 2 complete:", {
+      runs: phase2Runs.length,
+      durationMs: phase2Result.metadata.totalDurationMs,
+    });
 
-    // Save final synthesized results to the estate plan
-    if (researchResult.success && researchResult.analysisResult) {
-      const analysisData = researchResult.analysisResult;
-      await prisma.gapAnalysis.create({
-        data: {
-          estatePlanId,
-          score: analysisData.score || 0,
-          missingDocuments: JSON.stringify(analysisData.missingDocuments || []),
-          outdatedDocuments: JSON.stringify(analysisData.outdatedDocuments || []),
-          inconsistencies: JSON.stringify(analysisData.inconsistencies || []),
-          recommendations: JSON.stringify(analysisData.recommendations || []),
-          stateSpecificNotes: JSON.stringify(analysisData.stateSpecificNotes || []),
-          rawAnalysis: JSON.stringify(analysisData),
-        },
-      });
-    }
+    // =====================================
+    // PHASE 3: Synthesis (Sequential)
+    // =====================================
+    console.log("[ORCHESTRATE] Starting Phase 3:", phase3Runs);
 
-    await updatePhaseStatus(runId, 3, "completed");
-    await updateRunProgress(runId, 100, 3);
+    await updatePhaseStatus(phase3.id, "running");
+
+    let completedPhase3Runs = 0;
+    const phase3Result = await executePhase3(
+      parsed,
+      clientContext,
+      phase1Result.results,
+      phase2Result.results,
+      async (runType: RunType, status: "running" | "completed" | "failed") => {
+        if (status === "completed" || status === "failed") {
+          completedPhase3Runs++;
+          await createRunResult(phase3.id, runType, status, null);
+          const progress = calculatePhaseProgress(3, completedPhase3Runs, phase3Runs.length);
+          await updateRunProgress(runId, progress, 3);
+          await updatePhaseProgress(phase3.id, completedPhase3Runs);
+        }
+      }
+    );
+
+    totalDurationMs += phase3Result.metadata.totalDurationMs;
+    totalCostUsd += phase3Result.metadata.totalCostUsd;
+
+    await updatePhaseStatus(phase3.id, "completed");
+
+    console.log("[ORCHESTRATE] Phase 3 complete:", {
+      runs: phase3Runs.length,
+      durationMs: phase3Result.metadata.totalDurationMs,
+    });
+
+    // =====================================
+    // SAVE FINAL ANALYSIS
+    // =====================================
+    const finalReport = phase3Result.results.get("final_report") as Record<string, unknown> || {};
+    const aggregatedPhase2 = aggregatePhase2Results(phase2Result.results);
+
+    // Save to GapAnalysis table
+    await prisma.gapAnalysis.create({
+      data: {
+        estatePlanId,
+        analysisType: "comprehensive",
+        score: (finalReport.score as number) || (finalReport.overallScore as { score: number })?.score || 0,
+        scoreBreakdown: finalReport.scoreBreakdown
+          ? safeStringify(finalReport.scoreBreakdown)
+          : null,
+        missingDocuments: safeStringify(
+          finalReport.missingDocuments || aggregatedPhase2.allMissingDocuments || []
+        ),
+        outdatedDocuments: safeStringify(finalReport.outdatedDocuments || []),
+        inconsistencies: safeStringify(
+          finalReport.inconsistencies || aggregatedPhase2.conflicts || []
+        ),
+        taxOptimization: safeStringify(
+          finalReport.taxStrategies || aggregatedPhase2.taxStrategies || []
+        ),
+        medicaidPlanning: safeStringify(finalReport.medicaidPlanning || {}),
+        recommendations: safeStringify(
+          finalReport.recommendations || aggregatedPhase2.allRecommendations || []
+        ),
+        stateSpecificNotes: safeStringify(finalReport.stateSpecificNotes || []),
+        scenarioAnalysis: safeStringify(
+          phase3Result.results.get("scenario_modeling") || finalReport.scenarioAnalysis || []
+        ),
+        priorityMatrix: safeStringify(
+          phase3Result.results.get("priority_matrix") || finalReport.priorityMatrix || []
+        ),
+        stateResearch: safeStringify(phase1Result.results.stateResearch || {}),
+        documentInventory: safeStringify(phase1Result.results.documentInventory || {}),
+        rawAnalysis: safeStringify({
+          phase1: phase1Result.results,
+          phase2: Object.fromEntries(phase2Result.results),
+          phase3: Object.fromEntries(phase3Result.results),
+          metadata: { totalDurationMs, totalCostUsd },
+        }),
+      },
+    });
 
     // Mark run as completed
     await prisma.gapAnalysisRun.update({
       where: { id: runId },
       data: {
         status: "completed",
+        progressPercent: 100,
         completedAt: new Date(),
       },
     });
+
+    // Update estate plan status
+    await prisma.estatePlan.update({
+      where: { id: estatePlanId },
+      data: { status: "analysis_complete" },
+    });
+
+    const totalTime = Date.now() - startTime;
+    console.log("[ORCHESTRATE] Comprehensive analysis COMPLETE:", {
+      runId,
+      estatePlanId,
+      totalTimeMs: totalTime,
+      totalDurationMs,
+      totalCostUsd,
+      score: finalReport.score || (finalReport.overallScore as { score: number })?.score,
+    });
+
   } catch (error) {
-    console.error("Comprehensive analysis execution error:", error);
+    console.error("[ORCHESTRATE] Analysis execution error:", error);
     throw error;
   }
 }
@@ -195,61 +395,41 @@ async function updateRunProgress(
   });
 }
 
-async function updatePhaseStatus(
-  runId: string,
-  phaseNumber: number,
-  status: string
-) {
-  const phase = await prisma.gapAnalysisPhase.findFirst({
-    where: {
-      runId,
-      phaseNumber,
+async function updatePhaseStatus(phaseId: string, status: string) {
+  const data: { status: string; startedAt?: Date; completedAt?: Date } = { status };
+  if (status === "running") {
+    data.startedAt = new Date();
+  } else if (status === "completed") {
+    data.completedAt = new Date();
+  }
+  await prisma.gapAnalysisPhase.update({
+    where: { id: phaseId },
+    data,
+  });
+}
+
+async function updatePhaseProgress(phaseId: string, completedRuns: number) {
+  await prisma.gapAnalysisPhase.update({
+    where: { id: phaseId },
+    data: {
+      completedRuns,
     },
   });
-
-  if (phase) {
-    await prisma.gapAnalysisPhase.update({
-      where: { id: phase.id },
-      data: {
-        status,
-        startedAt: status === "running" ? new Date() : undefined,
-        completedAt: status === "completed" ? new Date() : undefined,
-      },
-    });
-  }
 }
 
 async function createRunResult(
-  runId: string,
-  phaseNumber: number,
+  phaseId: string,
   runType: string,
+  status: string,
   result: unknown
 ) {
-  const phase = await prisma.gapAnalysisPhase.findFirst({
-    where: {
-      runId,
-      phaseNumber,
+  await prisma.gapAnalysisRunResult.create({
+    data: {
+      phaseId,
+      runType,
+      status: status === "completed" ? "completed" : "failed",
+      result: result as object || {},
+      completedAt: new Date(),
     },
   });
-
-  if (phase) {
-    await prisma.gapAnalysisRunResult.create({
-      data: {
-        phaseId: phase.id,
-        runType,
-        status: "completed",
-        result: result as object,
-        completedAt: new Date(),
-      },
-    });
-
-    // Update phase run counts
-    await prisma.gapAnalysisPhase.update({
-      where: { id: phase.id },
-      data: {
-        totalRuns: { increment: 1 },
-        completedRuns: { increment: 1 },
-      },
-    });
-  }
 }

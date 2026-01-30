@@ -3,22 +3,6 @@
 import { useMemo, ReactNode } from "react";
 import { AssetAllocation, BeneficiaryDistribution, COLORS } from "./EstateVisualization";
 
-interface FlowNode {
-  id: string;
-  label: string;
-  value: number;
-  type: "asset" | "method" | "beneficiary";
-  color: string;
-  bypassesProbate?: boolean;
-}
-
-interface FlowLink {
-  source: string;
-  target: string;
-  value: number;
-  color: string;
-}
-
 interface AssetFlowDiagramProps {
   assets: AssetAllocation[];
   beneficiaries: BeneficiaryDistribution[];
@@ -57,14 +41,6 @@ const ASSET_ICONS: Record<string, ReactNode> = {
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
     </svg>
   ),
-};
-
-// Transfer method colors
-const METHOD_COLORS = {
-  will: "#6366F1", // Indigo
-  trust: "#8B5CF6", // Purple
-  beneficiary_designation: "#10B981", // Green
-  joint_ownership: "#06B6D4", // Cyan
 };
 
 const METHOD_LABELS = {
@@ -108,11 +84,11 @@ export function AssetFlowDiagram({ assets, beneficiaries, totalValue }: AssetFlo
 
   if (assets.length === 0) {
     return (
-      <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+      <div className="text-center py-12 text-[var(--text-muted)]">
         <svg className="w-12 h-12 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
         </svg>
-        <p>No asset data available to visualize</p>
+        <p className="text-[var(--text-body)]">No asset data available to visualize</p>
         <p className="text-sm mt-1">Complete the assets section of your intake form</p>
       </div>
     );
@@ -123,16 +99,16 @@ export function AssetFlowDiagram({ assets, beneficiaries, totalValue }: AssetFlo
       {/* Legend */}
       <div className="flex flex-wrap gap-4 justify-center text-sm">
         <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-indigo-500"></div>
-          <span className="text-gray-600 dark:text-gray-400">Through Will (Probate)</span>
+          <div className="w-3 h-3 rounded-full bg-[#1D1D1B]"></div>
+          <span className="text-[var(--text-body)]">Through Will (Probate)</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-green-500"></div>
-          <span className="text-gray-600 dark:text-gray-400">Beneficiary Designation (No Probate)</span>
+          <div className="w-3 h-3 rounded-full bg-[#22C55E]"></div>
+          <span className="text-[var(--text-body)]">Beneficiary Designation (No Probate)</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-purple-500"></div>
-          <span className="text-gray-600 dark:text-gray-400">Through Trust</span>
+          <div className="w-3 h-3 rounded-full bg-[#8B5CF6]"></div>
+          <span className="text-[var(--text-body)]">Through Trust</span>
         </div>
       </div>
 
@@ -140,27 +116,27 @@ export function AssetFlowDiagram({ assets, beneficiaries, totalValue }: AssetFlo
       <div className="grid grid-cols-3 gap-4 md:gap-8">
         {/* Column 1: Assets */}
         <div className="space-y-3">
-          <h4 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-center mb-4">
+          <h4 className="text-sm font-semibold text-[var(--text-heading)] uppercase tracking-wider text-center mb-4">
             Your Assets
           </h4>
           {assets.map((asset, index) => (
             <div
               key={index}
-              className="relative p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm"
+              className="relative p-3 bg-white rounded-lg border border-[var(--border)] shadow-sm"
             >
               <div className="flex items-center gap-3">
                 <div className={`p-2 rounded-lg ${
                   asset.bypassesProbate
-                    ? "bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400"
-                    : "bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400"
+                    ? "bg-green-50 text-green-700"
+                    : "bg-gray-100 text-[var(--text-heading)]"
                 }`}>
                   {ASSET_ICONS[asset.type] || ASSET_ICONS.bank}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-gray-900 dark:text-white text-sm truncate">
+                  <p className="font-medium text-[var(--text-heading)] text-sm truncate">
                     {asset.name}
                   </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                  <p className="text-xs text-[var(--text-muted)]">
                     {formatCurrency(asset.value)}
                   </p>
                 </div>
@@ -168,7 +144,7 @@ export function AssetFlowDiagram({ assets, beneficiaries, totalValue }: AssetFlo
               {/* Flow line indicator */}
               <div
                 className={`absolute right-0 top-1/2 w-4 h-0.5 -mr-4 ${
-                  asset.bypassesProbate ? "bg-green-400" : "bg-indigo-400"
+                  asset.bypassesProbate ? "bg-green-500" : "bg-gray-400"
                 }`}
               ></div>
             </div>
@@ -177,7 +153,7 @@ export function AssetFlowDiagram({ assets, beneficiaries, totalValue }: AssetFlo
 
         {/* Column 2: Transfer Methods */}
         <div className="space-y-3">
-          <h4 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-center mb-4">
+          <h4 className="text-sm font-semibold text-[var(--text-heading)] uppercase tracking-wider text-center mb-4">
             How It Transfers
           </h4>
           {Object.entries(assetsByMethod).map(([method, methodAssets]) => {
@@ -190,39 +166,37 @@ export function AssetFlowDiagram({ assets, beneficiaries, totalValue }: AssetFlo
                 key={method}
                 className={`relative p-4 rounded-lg border-2 ${
                   bypassesProbate
-                    ? "border-green-300 bg-green-50 dark:border-green-700 dark:bg-green-900/20"
-                    : "border-indigo-300 bg-indigo-50 dark:border-indigo-700 dark:bg-indigo-900/20"
+                    ? "border-green-500 bg-green-50"
+                    : "border-gray-300 bg-gray-50"
                 }`}
               >
                 {/* Flow line indicators */}
                 <div className={`absolute left-0 top-1/2 w-4 h-0.5 -ml-4 ${
-                  bypassesProbate ? "bg-green-400" : "bg-indigo-400"
+                  bypassesProbate ? "bg-green-500" : "bg-gray-400"
                 }`}></div>
                 <div className={`absolute right-0 top-1/2 w-4 h-0.5 -mr-4 ${
-                  bypassesProbate ? "bg-green-400" : "bg-indigo-400"
+                  bypassesProbate ? "bg-green-500" : "bg-gray-400"
                 }`}></div>
 
                 <div className="text-center">
                   <p className={`font-semibold text-sm ${
-                    bypassesProbate
-                      ? "text-green-700 dark:text-green-300"
-                      : "text-indigo-700 dark:text-indigo-300"
+                    bypassesProbate ? "text-green-800" : "text-[var(--text-heading)]"
                   }`}>
                     {METHOD_LABELS[method as keyof typeof METHOD_LABELS] || method}
                   </p>
-                  <p className="text-lg font-bold text-gray-900 dark:text-white mt-1">
+                  <p className="text-lg font-bold text-[var(--text-heading)] mt-1">
                     {formatCurrency(methodTotal)}
                   </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                  <p className="text-xs text-[var(--text-muted)]">
                     {percentage.toFixed(0)}% of estate
                   </p>
                   {bypassesProbate && (
-                    <span className="inline-block mt-2 px-2 py-0.5 text-xs font-medium bg-green-200 text-green-800 dark:bg-green-800 dark:text-green-200 rounded-full">
+                    <span className="inline-block mt-2 px-2 py-0.5 text-xs font-medium bg-green-600 text-white rounded-full">
                       Skips Probate
                     </span>
                   )}
                   {!bypassesProbate && (
-                    <span className="inline-block mt-2 px-2 py-0.5 text-xs font-medium bg-indigo-200 text-indigo-800 dark:bg-indigo-800 dark:text-indigo-200 rounded-full">
+                    <span className="inline-block mt-2 px-2 py-0.5 text-xs font-medium bg-[var(--text-heading)] text-white rounded-full">
                       Through Probate
                     </span>
                   )}
@@ -234,14 +208,14 @@ export function AssetFlowDiagram({ assets, beneficiaries, totalValue }: AssetFlo
 
         {/* Column 3: Beneficiaries */}
         <div className="space-y-3">
-          <h4 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-center mb-4">
+          <h4 className="text-sm font-semibold text-[var(--text-heading)] uppercase tracking-wider text-center mb-4">
             Who Receives
           </h4>
           {beneficiaries.length > 0 ? (
             beneficiaries.map((beneficiary, index) => (
               <div
                 key={index}
-                className="relative p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm"
+                className="relative p-3 bg-white rounded-lg border border-[var(--border)] shadow-sm"
               >
                 {/* Flow line indicator */}
                 <div
@@ -257,13 +231,13 @@ export function AssetFlowDiagram({ assets, beneficiaries, totalValue }: AssetFlo
                     {beneficiary.name.charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-gray-900 dark:text-white text-sm truncate">
+                    <p className="font-medium text-[var(--text-heading)] text-sm truncate">
                       {beneficiary.name}
                     </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                    <p className="text-xs text-[var(--text-muted)]">
                       {beneficiary.relationship}
                     </p>
-                    <p className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                    <p className="text-xs font-medium text-[var(--text-body)]">
                       {formatCurrency(beneficiary.value)} ({beneficiary.percentage.toFixed(0)}%)
                     </p>
                   </div>
@@ -271,14 +245,14 @@ export function AssetFlowDiagram({ assets, beneficiaries, totalValue }: AssetFlo
               </div>
             ))
           ) : (
-            <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 text-center">
+            <div className="p-4 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 text-center">
               <svg className="w-8 h-8 mx-auto text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-sm text-[var(--text-body)]">
                 No beneficiaries defined
               </p>
-              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+              <p className="text-xs text-[var(--text-muted)] mt-1">
                 Add family members in intake
               </p>
             </div>
@@ -287,30 +261,30 @@ export function AssetFlowDiagram({ assets, beneficiaries, totalValue }: AssetFlo
       </div>
 
       {/* Probate Summary */}
-      <div className="mt-8 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-        <h4 className="font-medium text-gray-900 dark:text-white mb-3">Probate Summary</h4>
+      <div className="mt-8 p-4 bg-white rounded-lg border border-[var(--border)]">
+        <h4 className="font-medium text-[var(--text-heading)] mb-3">Probate Summary</h4>
         <div className="grid grid-cols-2 gap-4">
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-3 h-3 rounded-full bg-indigo-500"></div>
-              <span className="text-sm text-gray-600 dark:text-gray-400">Goes Through Probate</span>
+              <div className="w-3 h-3 rounded-full bg-[var(--text-heading)]"></div>
+              <span className="text-sm font-medium text-[var(--text-body)]">Goes Through Probate</span>
             </div>
-            <p className="text-xl font-bold text-gray-900 dark:text-white">
+            <p className="text-xl font-bold text-[var(--text-heading)]">
               {formatCurrency(assets.filter(a => !a.bypassesProbate).reduce((sum, a) => sum + a.value, 0))}
             </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
+            <p className="text-xs text-[var(--text-muted)]">
               Court-supervised distribution process
             </p>
           </div>
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-3 h-3 rounded-full bg-green-500"></div>
-              <span className="text-sm text-gray-600 dark:text-gray-400">Bypasses Probate</span>
+              <div className="w-3 h-3 rounded-full bg-green-600"></div>
+              <span className="text-sm font-medium text-[var(--text-body)]">Bypasses Probate</span>
             </div>
-            <p className="text-xl font-bold text-gray-900 dark:text-white">
+            <p className="text-xl font-bold text-[var(--text-heading)]">
               {formatCurrency(assets.filter(a => a.bypassesProbate).reduce((sum, a) => sum + a.value, 0))}
             </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
+            <p className="text-xs text-[var(--text-muted)]">
               Transfers directly to beneficiaries
             </p>
           </div>

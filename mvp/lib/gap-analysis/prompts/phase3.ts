@@ -3,6 +3,12 @@ import {
   Phase2Results,
   AggregatedPhase2Results,
 } from "../types";
+import {
+  summarizePhase1Results,
+  summarizePhase2Results,
+  formatSummarizedPhase2ForPrompt,
+  SummarizedPhase1Results,
+} from "../summarize";
 
 const OUTPUT_DIR = "/home/user/generated";
 
@@ -14,6 +20,10 @@ export function buildScenarioModelingPrompt(
   phase1Results: Phase1Results,
   phase2Results: Phase2Results | AggregatedPhase2Results
 ): string {
+  // Summarize Phase 2 results to reduce prompt size from ~200KB to ~10KB
+  const summarizedPhase2 = summarizePhase2Results(phase2Results);
+  const phase2Summary = formatSummarizedPhase2ForPrompt(summarizedPhase2);
+
   return `IMPORTANT: Your task is to create a JSON file. Use your Write tool to create the file ${OUTPUT_DIR}/scenario_modeling.json
 
 You are a scenario planning expert modeling 8 what-if scenarios.
@@ -23,10 +33,9 @@ You are a scenario planning expert modeling 8 what-if scenarios.
 ${JSON.stringify(phase1Results.clientContext, null, 2)}
 
 ### Document Inventory
-${JSON.stringify(phase1Results.documentInventory, null, 2)}
+${JSON.stringify(summarizePhase1Results(phase1Results).documentInventory, null, 2)}
 
-### Phase 2 Analysis Results
-${JSON.stringify(phase2Results, null, 2)}
+${phase2Summary}
 
 ## Required Scenarios (model all 8):
 1. Primary Income Earner Dies Tomorrow
@@ -102,16 +111,20 @@ export function buildPriorityMatrixPrompt(
   phase2Results: Phase2Results | AggregatedPhase2Results,
   scenarioResults: unknown
 ): string {
+  // Summarize Phase 1 and 2 results to reduce prompt size
+  const summarizedPhase1 = summarizePhase1Results(phase1Results);
+  const summarizedPhase2 = summarizePhase2Results(phase2Results);
+  const phase2Summary = formatSummarizedPhase2ForPrompt(summarizedPhase2);
+
   return `IMPORTANT: Your task is to create a JSON file. Use your Write tool to create the file ${OUTPUT_DIR}/priority_matrix.json
 
 You are a prioritization specialist creating an action matrix from all findings.
 
 ## All Analysis Results
 ### Phase 1 - Research & Context
-${JSON.stringify(phase1Results, null, 2)}
+${JSON.stringify(summarizedPhase1, null, 2)}
 
-### Phase 2 - Deep Analysis
-${JSON.stringify(phase2Results, null, 2)}
+${phase2Summary}
 
 ### Scenario Analysis
 ${JSON.stringify(scenarioResults, null, 2)}
@@ -195,16 +208,20 @@ export function buildFinalReportPrompt(
   scenarioResults: unknown,
   priorityMatrix: unknown
 ): string {
+  // Summarize Phase 1 and 2 results to reduce prompt size significantly
+  const summarizedPhase1 = summarizePhase1Results(phase1Results);
+  const summarizedPhase2 = summarizePhase2Results(phase2Results);
+  const phase2Summary = formatSummarizedPhase2ForPrompt(summarizedPhase2);
+
   return `IMPORTANT: Your task is to create a JSON file. Use your Write tool to create the file ${OUTPUT_DIR}/final_analysis.json
 
 You are a senior estate planning attorney generating the final comprehensive analysis report.
 
 ## All Analysis Inputs
 ### Phase 1 - Research & Context
-${JSON.stringify(phase1Results, null, 2)}
+${JSON.stringify(summarizedPhase1, null, 2)}
 
-### Phase 2 - Deep Analysis
-${JSON.stringify(phase2Results, null, 2)}
+${phase2Summary}
 
 ### Scenario Analysis
 ${JSON.stringify(scenarioResults, null, 2)}

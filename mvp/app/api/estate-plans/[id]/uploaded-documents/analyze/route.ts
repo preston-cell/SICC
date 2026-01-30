@@ -325,7 +325,7 @@ Respond ONLY with the JSON object, no additional text.`
         throw new Error('No valid JSON found in response')
       }
     } catch (error) {
-      console.error('Analysis error:', error)
+      console.error('[Analyze] Analysis/parsing error:', error)
 
       // Return a default structure if parsing fails
       analysisResult = {
@@ -355,14 +355,19 @@ Respond ONLY with the JSON object, no additional text.`
     }
 
     // Save analysis result
+    const analysisResultJson = JSON.stringify(analysisResult)
+    console.log('[Analyze] Saving analysis result, length:', analysisResultJson?.length)
+
     await prisma.uploadedDocument.update({
       where: { id: documentId },
       data: {
         analysisStatus: 'completed',
-        analysisResult: JSON.stringify(analysisResult),
+        analysisResult: analysisResultJson,
         analyzedAt: new Date(),
       },
     })
+
+    console.log('[Analyze] Analysis saved successfully for document:', documentId)
 
     return NextResponse.json({ success: true, analysis: analysisResult })
   } catch (error) {

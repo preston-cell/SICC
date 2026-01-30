@@ -237,6 +237,7 @@ export function useGapAnalysisHistory(estatePlanId: string | null) {
 export async function saveGapAnalysis(
   estatePlanId: string,
   data: {
+    analysisType?: 'quick' | 'comprehensive'
     score?: number
     scoreBreakdown?: string
     estateComplexity?: string
@@ -248,6 +249,10 @@ export async function saveGapAnalysis(
     medicaidPlanning?: string
     recommendations: string
     stateSpecificNotes: string
+    scenarioAnalysis?: string    // Comprehensive only
+    priorityMatrix?: string      // Comprehensive only
+    stateResearch?: string       // Comprehensive only
+    documentInventory?: string   // Comprehensive only
     rawAnalysis?: string
   }
 ) {
@@ -681,27 +686,16 @@ export async function linkSessionToUser(sessionId: string) {
 
 /**
  * Get uploaded documents for an estate plan
- * TODO: Implement API route when document upload feature is needed
  */
 export function useUploadedDocuments(estatePlanId: string | null) {
-  // Placeholder - returns empty array until document upload API is implemented
-  return {
-    data: [] as Array<{
-      id: string
-      fileName: string
-      documentType: string
-      analysisStatus: string
-      analysisResult?: string
-      description?: string
-      fileUrl?: string
-      fileSize?: number
-      uploadedAt?: string
-      analysisError?: string
-    }>,
-    isLoading: false,
-    error: null,
-    mutate: () => {},
-  }
+  const key = estatePlanId ? `/api/estate-plans/${estatePlanId}/uploaded-documents` : null
+  console.log('[useUploadedDocuments] Fetching for estatePlanId:', estatePlanId, 'key:', key)
+
+  return useSWR(
+    key,
+    fetcher,
+    { refreshInterval: 5000 } // Poll every 5 seconds to update analysis status
+  )
 }
 
 // ============================================
@@ -970,11 +964,26 @@ export function useGapAnalysisRunProgress(estatePlanId: string | null, runId: st
 }
 
 export function useActiveGapAnalysisRun(estatePlanId: string | null) {
-  return useSWR(
+  const { data, ...rest } = useSWR(
     estatePlanId ? `/api/estate-plans/${estatePlanId}/gap-analysis-runs?active=true` : null,
     fetcher,
-    { refreshInterval: 1000 }
+    {
+      // Only poll every second if there's an active run, otherwise don't poll
+      refreshInterval: (latestData) => (latestData?.id ? 1000 : 0)
+    }
   )
+
+  // Transform API response to expected format
+  const transformedData = data ? {
+    runId: data.id,
+    overallProgress: data.progressPercent ?? 0,
+    currentPhase: data.currentPhase,
+    status: data.status,
+    error: data.error,
+    phases: data.phases,
+  } : null
+
+  return { data: transformedData, ...rest }
 }
 
 export function useGapAnalysisRunHistory(estatePlanId: string | null) {

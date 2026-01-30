@@ -3,6 +3,8 @@ import { prisma } from '@/lib/db'
 import { z } from 'zod'
 import { UploadedDocumentType, AnalysisStatus } from '@prisma/client'
 import { requireAuthOrSessionAndOwnership } from '@/lib/auth-helper'
+import { writeFile, mkdir } from 'fs/promises'
+import { join } from 'path'
 
 // Schema for creating an uploaded document
 const CreateUploadedDocumentSchema = z.object({
@@ -73,18 +75,73 @@ export async function POST(
     const { error } = await requireAuthOrSessionAndOwnership(estatePlanId, request)
     if (error) return error
 
-    const body = await request.json()
-    const validatedData = CreateUploadedDocumentSchema.parse(body)
+    const contentType = request.headers.get('content-type') || ''
+
+    let fileName: string
+    let fileSize: number
+    let mimeType: string
+    let documentType: string
+    let description: string | undefined
+    let storageId: string
+
+    if (contentType.includes('multipart/form-data')) {
+      // Handle FormData file upload from the client
+      const formData = await request.formData()
+      const file = formData.get('file') as File | null
+      const docType = formData.get('documentType') as string | null
+
+      if (!file) {
+        return NextResponse.json(
+          { error: 'No file provided' },
+          { status: 400 }
+        )
+      }
+
+      fileName = file.name
+      fileSize = file.size
+      mimeType = file.type || 'application/pdf'
+      documentType = docType || 'other'
+      storageId = `upload_${Date.now()}_${Math.random().toString(36).substring(7)}`
+
+      // Save the file to disk so the analyze route can read it
+      const uploadsDir = join(process.cwd(), 'uploads')
+      await mkdir(uploadsDir, { recursive: true })
+      const bytes = await file.arrayBuffer()
+      const buffer = Buffer.from(bytes)
+      const destPath = join(uploadsDir, `${storageId}.pdf`)
+      await writeFile(destPath, buffer)
+      console.log(`[UPLOAD] Saved file to: ${destPath} (${buffer.length} bytes, cwd: ${process.cwd()})`)
+    } else {
+      // Handle JSON body (for programmatic uploads with pre-stored files)
+      const body = await request.json()
+      const validatedData = CreateUploadedDocumentSchema.parse(body)
+
+      fileName = validatedData.fileName
+      fileSize = validatedData.fileSize
+      mimeType = validatedData.mimeType
+      documentType = validatedData.documentType
+      description = validatedData.description
+      storageId = validatedData.storageId
+    }
+
+    const validDocTypes = [
+      'will', 'trust', 'poa_financial', 'poa_healthcare',
+      'healthcare_directive', 'deed', 'insurance_policy',
+      'beneficiary_form', 'other',
+    ]
+    if (!validDocTypes.includes(documentType)) {
+      documentType = 'other'
+    }
 
     const document = await prisma.uploadedDocument.create({
       data: {
         estatePlanId,
-        storageId: validatedData.storageId,
-        fileName: validatedData.fileName,
-        fileSize: validatedData.fileSize,
-        mimeType: validatedData.mimeType,
-        documentType: validatedData.documentType as UploadedDocumentType,
-        description: validatedData.description,
+        storageId,
+        fileName,
+        fileSize,
+        mimeType,
+        documentType: documentType as UploadedDocumentType,
+        description,
         analysisStatus: 'pending',
       },
     })
@@ -140,7 +197,24 @@ export async function DELETE(
       where: { id: documentId },
     })
 
-    return NextResponse.json({ success: true })
+    // Check if this was the last document for this estate plan
+    const remainingDocs = await prisma.uploadedDocument.count({
+      where: { estatePlanId },
+    })
+
+    if (remainingDocs === 0) {
+      // Clear all extracted intake data (forces fresh extraction on new upload)
+      await prisma.extractedIntakeData.deleteMany({
+        where: { estatePlanId },
+      })
+
+      // Clear all intake data (resets forms to blank)
+      await prisma.intakeData.deleteMany({
+        where: { estatePlanId },
+      })
+    }
+
+    return NextResponse.json({ success: true, dataCleared: remainingDocs === 0 })
   } catch (error) {
     console.error('Failed to delete uploaded document:', error)
     return NextResponse.json(

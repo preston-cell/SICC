@@ -3,12 +3,10 @@
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import useSWR, { mutate } from "swr";
-import {
-  createEstatePlan,
-} from "../../hooks/usePrismaQueries";
+// No longer auto-creating plans - user must go through /intake to create one
 import Link from "next/link";
 import { useUser } from "@/app/components/ClerkComponents";
-import { useAuthSync } from "@/app/hooks/useAuthSync";
+import { useAuthSyncPrisma } from "@/app/hooks/useAuthSyncPrisma";
 
 // Check if Clerk authentication is configured
 const isAuthEnabled = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
@@ -110,7 +108,7 @@ async function deleteUploadedDocument(
   estatePlanId: string,
   documentId: string
 ): Promise<void> {
-  const res = await fetch(appendSessionId(`/api/estate-plans/${estatePlanId}/uploaded-documents/${documentId}`), {
+  const res = await fetch(appendSessionId(`/api/estate-plans/${estatePlanId}/uploaded-documents?documentId=${documentId}`), {
     method: "DELETE",
   });
 
@@ -151,14 +149,13 @@ function UploadStepContent() {
 
   // Auth state (only relevant when Clerk is configured)
   const { isSignedIn, isLoaded } = useUser();
-  useAuthSync();
+  useAuthSyncPrisma();
 
-  // Get user ID from localStorage (set by useAuthSync) - only used when auth is enabled
+  // Get user ID from localStorage (set by useAuthSyncPrisma) - only used when auth is enabled
   const storedUserId = typeof window !== "undefined" ? localStorage.getItem("estatePlanUserId") : null;
   const userId = isAuthEnabled && isSignedIn && storedUserId ? storedUserId : null;
 
   // State
-  const [isCreatingPlan, setIsCreatingPlan] = useState(false);
   const [currentPlanId, setCurrentPlanId] = useState<string | null>(
     planId || null
   );
@@ -169,6 +166,7 @@ function UploadStepContent() {
   const [isDragging, setIsDragging] = useState(false);
   const [isExtracting, setIsExtracting] = useState(false);
   const [extractionComplete, setExtractionComplete] = useState(false);
+  const [fileInputKey, setFileInputKey] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // SWR Queries
@@ -189,7 +187,7 @@ function UploadStepContent() {
     }
   }, [isLoaded, isSignedIn, router]);
 
-  // Create a new estate plan if needed
+  // Initialize plan from URL or localStorage - NO auto-creation
   useEffect(() => {
     const initializePlan = async () => {
       // Wait for auth check if auth is enabled
@@ -197,7 +195,7 @@ function UploadStepContent() {
         return;
       }
 
-      if (!planId && !currentPlanId && !isCreatingPlan) {
+      if (!planId && !currentPlanId) {
         // Check localStorage for existing plan
         const savedPlanId = localStorage.getItem("estatePlanId");
         if (savedPlanId) {
@@ -206,33 +204,29 @@ function UploadStepContent() {
           return;
         }
 
-        // Create new plan
-        setIsCreatingPlan(true);
-        try {
-          const sessionId = `session_${Date.now()}_${Math.random().toString(36).substring(7)}`;
-          const newPlan = await createEstatePlan({
-            sessionId,
-            name: "My Estate Plan",
-          });
-          localStorage.setItem("estatePlanSessionId", sessionId);
-          localStorage.setItem("estatePlanId", newPlan.id);
-          setCurrentPlanId(newPlan.id);
-          router.replace(`/intake/upload?planId=${newPlan.id}`);
-        } catch (error) {
-          console.error("Failed to create estate plan:", error);
-        } finally {
-          setIsCreatingPlan(false);
-        }
+        // NO AUTO-CREATION: Redirect to intake landing to create plan explicitly
+        // This prevents orphaned plans and ensures user goes through proper flow
+        router.replace("/intake");
+        return;
+      }
+
+      // Set current plan ID from URL if present
+      if (planId && !currentPlanId) {
+        setCurrentPlanId(planId);
       }
     };
 
     initializePlan();
-  }, [planId, currentPlanId, isCreatingPlan, router]);
+  }, [planId, currentPlanId, router, isLoaded]);
 
   // Handle file upload
   const handleFileUpload = useCallback(
     async (file: File) => {
-      if (!currentPlanId) return;
+      if (!currentPlanId) {
+        setUploadError("No estate plan found. Please refresh the page or start a new plan.");
+        console.error("Upload failed: currentPlanId is null");
+        return;
+      }
 
       if (!file.type.includes("pdf")) {
         setUploadError("Please upload a PDF file");
@@ -255,10 +249,8 @@ function UploadStepContent() {
         await uploadDocument(currentPlanId, file, selectedType);
         setUploadProgress(100);
 
-        // Reset
-        if (fileInputRef.current) {
-          fileInputRef.current.value = "";
-        }
+        // Reset file input by remounting it (key change)
+        setFileInputKey((k) => k + 1);
       } catch (error) {
         setUploadError(error instanceof Error ? error.message : "Upload failed");
       } finally {
@@ -340,11 +332,11 @@ function UploadStepContent() {
     }
   };
 
-  // Loading state
-  if (isCreatingPlan) {
+  // Loading state - wait for plan to be determined
+  if (!currentPlanId && !planId) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--accent-purple)]"></div>
       </div>
     );
   }
@@ -356,9 +348,9 @@ function UploadStepContent() {
     <div className="max-w-3xl mx-auto space-y-8">
       {/* Header */}
       <div className="text-center">
-        <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full mb-4">
+        <div className="inline-flex items-center justify-center w-16 h-16 bg-[var(--accent-muted)] rounded-full mb-4">
           <svg
-            className="w-8 h-8 text-blue-600"
+            className="w-8 h-8 text-[var(--accent-purple)]"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -371,24 +363,24 @@ function UploadStepContent() {
             />
           </svg>
         </div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+        <h1 className="text-section text-[var(--text-heading)]">
           Do you have existing estate documents?
         </h1>
-        <p className="text-gray-600 dark:text-gray-400 mt-2 max-w-xl mx-auto">
+        <p className="text-[var(--text-muted)] mt-2 max-w-xl mx-auto">
           Upload your existing wills, trusts, or powers of attorney. We&apos;ll extract information
           to pre-fill your questionnaire and save you time.
         </p>
       </div>
 
       {/* Upload Section */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+      <div className="bg-white border border-[var(--border)] rounded-xl p-6">
+        <h2 className="text-lg font-semibold text-[var(--text-heading)] mb-4">
           Upload Documents
         </h2>
 
         {/* Document Type Selection */}
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <label className="block text-sm font-medium text-[var(--text-heading)] mb-2">
             Document Type
           </label>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -400,15 +392,15 @@ function UploadStepContent() {
                 className={`
                   p-3 rounded-lg border text-left transition-colors text-sm
                   ${selectedType === opt.value
-                    ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
-                    : "border-gray-200 dark:border-gray-700 hover:border-blue-300"
+                    ? "border-[var(--accent-purple)] bg-[var(--accent-muted)]"
+                    : "border-[var(--border)] hover:border-[var(--accent-purple)]"
                   }
                 `}
               >
-                <div className="font-medium text-gray-900 dark:text-white">
+                <div className="font-medium text-[var(--text-heading)]">
                   {opt.label}
                 </div>
-                <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                <div className="text-xs text-[var(--text-muted)] mt-0.5">
                   {opt.description}
                 </div>
               </button>
@@ -423,8 +415,8 @@ function UploadStepContent() {
                 className={`
                   px-3 py-1.5 rounded-lg border text-sm transition-colors
                   ${selectedType === opt.value
-                    ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300"
-                    : "border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-blue-300"
+                    ? "border-[var(--accent-purple)] bg-[var(--accent-muted)] text-[var(--accent-purple)]"
+                    : "border-[var(--border)] text-[var(--text-muted)] hover:border-[var(--accent-purple)]"
                   }
                 `}
               >
@@ -443,13 +435,14 @@ function UploadStepContent() {
           className={`
             border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors
             ${isDragging
-              ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
-              : "border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500"
+              ? "border-[var(--accent-purple)] bg-[var(--accent-muted)]"
+              : "border-[var(--border)] hover:border-[var(--accent-purple)]"
             }
             ${isUploading ? "pointer-events-none opacity-50" : ""}
           `}
         >
           <input
+            key={fileInputKey}
             ref={fileInputRef}
             type="file"
             accept=".pdf"
@@ -459,15 +452,15 @@ function UploadStepContent() {
 
           {isUploading ? (
             <div>
-              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mx-auto mb-3"></div>
-              <p className="text-gray-600 dark:text-gray-400">
+              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[var(--accent-purple)] mx-auto mb-3"></div>
+              <p className="text-[var(--text-muted)]">
                 Uploading... {uploadProgress}%
               </p>
             </div>
           ) : (
             <>
               <svg
-                className="w-10 h-10 mx-auto mb-3 text-gray-400"
+                className="w-10 h-10 mx-auto mb-3 text-[var(--text-muted)]"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -479,13 +472,13 @@ function UploadStepContent() {
                   d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
                 />
               </svg>
-              <p className="text-gray-600 dark:text-gray-400">
-                <span className="font-medium text-blue-600 dark:text-blue-400">
+              <p className="text-[var(--text-muted)]">
+                <span className="font-medium text-[var(--accent-purple)]">
                   Click to upload
                 </span>{" "}
                 or drag and drop
               </p>
-              <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">
+              <p className="text-sm text-[var(--text-caption)] mt-1">
                 PDF files up to 20MB
               </p>
             </>
@@ -494,36 +487,36 @@ function UploadStepContent() {
 
         {/* Error Display */}
         {uploadError && (
-          <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-            <p className="text-sm text-red-700 dark:text-red-300">{uploadError}</p>
+          <div className="mt-4 p-3 bg-[var(--error-muted)] border border-[var(--error)] rounded-lg">
+            <p className="text-sm text-[var(--error)]">{uploadError}</p>
           </div>
         )}
 
         {/* Uploaded Documents List */}
         {hasDocuments && (
           <div className="mt-6">
-            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+            <h3 className="text-sm font-medium text-[var(--text-heading)] mb-3">
               Uploaded ({uploadedDocs.length})
             </h3>
             <div className="space-y-2">
               {uploadedDocs.map((doc) => (
                 <div
                   key={doc.id}
-                  className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-900/30 rounded-lg"
+                  className="flex items-center justify-between p-3 bg-[var(--off-white)] rounded-lg"
                 >
                   <div className="flex items-center gap-3">
                     <svg
-                      className="w-6 h-6 text-red-500 flex-shrink-0"
+                      className="w-6 h-6 text-[var(--error)] flex-shrink-0"
                       fill="currentColor"
                       viewBox="0 0 24 24"
                     >
                       <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" />
                     </svg>
                     <div>
-                      <p className="text-sm font-medium text-gray-900 dark:text-white truncate max-w-[200px]">
+                      <p className="text-sm font-medium text-[var(--text-heading)] truncate max-w-[200px]">
                         {doc.fileName}
                       </p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                      <p className="text-xs text-[var(--text-muted)]">
                         {DOCUMENT_TYPE_OPTIONS.find((o) => o.value === doc.documentType)?.label}
                       </p>
                     </div>
@@ -533,10 +526,10 @@ function UploadStepContent() {
                       className={`
                         text-xs px-2 py-0.5 rounded-full
                         ${doc.analysisStatus === "completed"
-                          ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"
+                          ? "bg-[var(--success-muted)] text-[var(--success)]"
                           : doc.analysisStatus === "failed"
-                            ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300"
-                            : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300"
+                            ? "bg-[var(--error-muted)] text-[var(--error)]"
+                            : "bg-[var(--warning-muted)] text-[var(--warning)]"
                         }
                       `}
                     >
@@ -548,7 +541,7 @@ function UploadStepContent() {
                     </span>
                     <button
                       onClick={() => handleDelete(doc.id)}
-                      className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+                      className="p-1 text-[var(--text-muted)] hover:text-[var(--error)] transition-colors"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -564,35 +557,35 @@ function UploadStepContent() {
 
       {/* Extraction Status */}
       {hasDocuments && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+        <div className="bg-white border border-[var(--border)] rounded-xl p-6">
+          <h2 className="text-lg font-semibold text-[var(--text-heading)] mb-4">
             Extract Information
           </h2>
 
           {isExtracting ? (
             <div className="text-center py-6">
-              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mx-auto mb-3"></div>
-              <p className="text-gray-600 dark:text-gray-400">
+              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[var(--accent-purple)] mx-auto mb-3"></div>
+              <p className="text-[var(--text-muted)]">
                 AI is reading your documents...
               </p>
-              <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">
+              <p className="text-sm text-[var(--text-caption)] mt-1">
                 Extracting names, dates, beneficiaries, and more
               </p>
             </div>
           ) : extractionComplete || hasExtractedData ? (
             <div className="space-y-4">
               {/* Success Header */}
-              <div className="flex items-center gap-3 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                <div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center flex-shrink-0">
-                  <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="flex items-center gap-3 p-4 bg-[var(--success-muted)] rounded-lg">
+                <div className="w-10 h-10 bg-[var(--success-muted)] rounded-full flex items-center justify-center flex-shrink-0">
+                  <svg className="w-5 h-5 text-[var(--success)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
                 <div>
-                  <p className="font-medium text-green-800 dark:text-green-200">
+                  <p className="font-medium text-[var(--success)]">
                     Extraction Complete
                   </p>
-                  <p className="text-sm text-green-700 dark:text-green-300">
+                  <p className="text-sm text-[var(--success)]">
                     We found information to pre-fill your questionnaire
                   </p>
                 </div>
@@ -600,7 +593,7 @@ function UploadStepContent() {
 
               {/* Extraction Summary */}
               <div className="space-y-2">
-                <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                <p className="text-sm font-medium text-[var(--text-heading)]">
                   Data extracted for:
                 </p>
                 <div className="grid grid-cols-2 gap-2">
@@ -616,15 +609,15 @@ function UploadStepContent() {
                     return (
                       <div
                         key={item.section}
-                        className="flex items-center gap-2 p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg"
+                        className="flex items-center gap-2 p-2 bg-[var(--accent-muted)] rounded-lg"
                       >
-                        <svg className="w-4 h-4 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-4 h-4 text-[var(--accent-purple)] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={sectionInfo.icon} />
                         </svg>
-                        <span className="text-sm text-blue-800 dark:text-blue-200 font-medium">
+                        <span className="text-sm text-[var(--accent-purple)] font-medium">
                           {sectionInfo.label}
                         </span>
-                        <svg className="w-4 h-4 text-green-500 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-4 h-4 text-[var(--success)] ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                         </svg>
                       </div>
@@ -634,21 +627,21 @@ function UploadStepContent() {
               </div>
 
               {/* What happens next */}
-              <div className="p-3 bg-gray-50 dark:bg-gray-900/30 rounded-lg">
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  <span className="font-medium text-gray-700 dark:text-gray-300">Next:</span>{" "}
-                  Review the pre-filled forms and make any corrections. Fields from your documents will be marked with a blue badge.
+              <div className="p-3 bg-[var(--off-white)] rounded-lg">
+                <p className="text-sm text-[var(--text-muted)]">
+                  <span className="font-medium text-[var(--text-heading)]">Next:</span>{" "}
+                  Review the pre-filled forms and make any corrections. Fields from your documents will be marked with a badge.
                 </p>
               </div>
             </div>
           ) : (
             <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              <p className="text-sm text-[var(--text-muted)] mb-4">
                 Our AI will read your documents and extract names, addresses, beneficiaries, asset information, and more to pre-fill your questionnaire.
               </p>
               <button
                 onClick={handleExtractData}
-                className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+                className="w-full px-4 py-3 bg-[var(--accent-purple)] text-white rounded-lg font-medium hover:bg-[var(--accent-hover)] transition-colors flex items-center justify-center gap-2"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
@@ -665,7 +658,7 @@ function UploadStepContent() {
         {hasDocuments && (extractionComplete || hasExtractedData) ? (
           <button
             onClick={handleContinue}
-            className="flex-1 px-6 py-4 bg-blue-600 text-white rounded-lg font-medium text-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+            className="flex-1 px-6 py-4 bg-[var(--accent-purple)] text-white rounded-lg font-medium text-lg hover:bg-[var(--accent-hover)] transition-colors flex items-center justify-center gap-2"
           >
             Continue to Questionnaire
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -675,14 +668,14 @@ function UploadStepContent() {
         ) : hasDocuments ? (
           <button
             onClick={handleContinue}
-            className="flex-1 px-6 py-4 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg font-medium text-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+            className="flex-1 px-6 py-4 bg-[var(--off-white)] text-[var(--text-heading)] rounded-lg font-medium text-lg hover:bg-[var(--light-gray)] transition-colors border border-[var(--border)]"
           >
             Continue Without Extraction
           </button>
         ) : (
           <button
             onClick={handleSkip}
-            className="flex-1 px-6 py-4 bg-blue-600 text-white rounded-lg font-medium text-lg hover:bg-blue-700 transition-colors"
+            className="flex-1 px-6 py-4 bg-[var(--accent-purple)] text-white rounded-lg font-medium text-lg hover:bg-[var(--accent-hover)] transition-colors"
           >
             I Don&apos;t Have Documents - Start Fresh
           </button>
@@ -690,10 +683,10 @@ function UploadStepContent() {
       </div>
 
       {/* Info Box */}
-      <div className="bg-gray-50 dark:bg-gray-900/30 rounded-lg p-4">
+      <div className="bg-[var(--off-white)] border border-[var(--border)] rounded-xl p-4">
         <div className="flex gap-3">
           <svg
-            className="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5"
+            className="w-5 h-5 text-[var(--text-muted)] flex-shrink-0 mt-0.5"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -705,8 +698,8 @@ function UploadStepContent() {
               d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
             />
           </svg>
-          <div className="text-sm text-gray-600 dark:text-gray-400">
-            <p className="font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <div className="text-sm text-[var(--text-muted)]">
+            <p className="font-medium text-[var(--text-heading)] mb-1">
               Why upload documents?
             </p>
             <ul className="list-disc list-inside space-y-1">
@@ -723,7 +716,7 @@ function UploadStepContent() {
       <div className="text-center">
         <Link
           href="/intake"
-          className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+          className="text-sm text-[var(--text-muted)] hover:text-[var(--text-heading)]"
         >
           Back to overview
         </Link>
@@ -737,7 +730,7 @@ export default function UploadPage() {
     <Suspense
       fallback={
         <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--accent-purple)]"></div>
         </div>
       }
     >

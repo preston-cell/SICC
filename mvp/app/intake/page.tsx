@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useState, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEstatePlan, useIntakeProgress, createEstatePlan, useUploadedDocuments, useExtractedData, useGuidedIntakeProgress } from "../hooks/usePrismaQueries";
 import Link from "next/link";
@@ -22,8 +22,6 @@ import {
 } from "lucide-react";
 import { Button } from "../components/ui";
 import { useUser, SignInButton, SignUpButton } from "../components/ClerkComponents";
-import { useAuthSync } from "../hooks/useAuthSync";
-
 // Check if Clerk authentication is configured
 const isAuthEnabled = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
@@ -35,6 +33,9 @@ function IntakeLandingContent() {
 
   const [isCreating, setIsCreating] = useState(false);
 
+  // Mutex to prevent double-creation from rapid clicks
+  const creationInProgressRef = useRef(false);
+
 // createEstatePlan is imported from usePrismaQueries
   const { data: existingPlan } = useEstatePlan(planId);
   const { data: intakeProgress } = useIntakeProgress(planId);
@@ -42,64 +43,100 @@ function IntakeLandingContent() {
   const { data: uploadedDocs } = useUploadedDocuments(planId);
   const { data: guidedProgress } = useGuidedIntakeProgress(planId);
 
-  // Check for guided intake progress
-  const guidedProgress = useQuery(
-    api.guidedIntake.getGuidedProgress,
-    planId ? { estatePlanId: planId as Id<"estatePlans"> } : "skip"
-  );
+  // Auth state (only relevant when Clerk is configured)
+  const { isSignedIn, isLoaded } = useUser();
 
   const hasExtractedData = extractedData && extractedData.length > 0;
   const hasUploadedDocs = uploadedDocs && uploadedDocs.length > 0;
 
+  // Helper to get or create sessionId - REUSE existing to preserve access to all plans
+  const getOrCreateSessionId = () => {
+    let sessionId = localStorage.getItem("estatePlanSessionId");
+    if (!sessionId) {
+      sessionId = `session_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+      localStorage.setItem("estatePlanSessionId", sessionId);
+    }
+    return sessionId;
+  };
+
   // Helper to create estate plan with either userId (auth) or sessionId (anonymous)
   const createPlanAndNavigate = async (destination: string) => {
+    // Prevent double-creation from rapid clicks
+    if (isCreating || creationInProgressRef.current) return;
+    creationInProgressRef.current = true;
     setIsCreating(true);
     try {
-      const sessionId = `session_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+      const sessionId = getOrCreateSessionId();
       const newPlan = await createEstatePlan({
         sessionId,
         name: "My Estate Plan",
       });
-      localStorage.setItem("estatePlanSessionId", sessionId);
       localStorage.setItem("estatePlanId", newPlan.id);
       router.push(`/intake/upload?planId=${newPlan.id}`);
     } catch (error) {
       console.error("Failed to create estate plan:", error);
       setIsCreating(false);
+      creationInProgressRef.current = false;
     }
   };
 
   const handleStartNew = async () => {
+    // Prevent double-creation from rapid clicks
+    if (isCreating || creationInProgressRef.current) return;
+    creationInProgressRef.current = true;
     setIsCreating(true);
     try {
-      const sessionId = `session_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+      const sessionId = getOrCreateSessionId();
       const newPlan = await createEstatePlan({
         sessionId,
         name: "My Estate Plan",
       });
-      localStorage.setItem("estatePlanSessionId", sessionId);
       localStorage.setItem("estatePlanId", newPlan.id);
       router.push(`/intake/personal?planId=${newPlan.id}`);
     } catch (error) {
       console.error("Failed to create estate plan:", error);
       setIsCreating(false);
+      creationInProgressRef.current = false;
     }
   };
 
   const handleStartGuided = async () => {
+    // Prevent double-creation from rapid clicks
+    if (isCreating || creationInProgressRef.current) return;
+    creationInProgressRef.current = true;
     setIsCreating(true);
     try {
-      const sessionId = `session_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+      const sessionId = getOrCreateSessionId();
       const newPlan = await createEstatePlan({
         sessionId,
         name: "My Estate Plan",
       });
-      localStorage.setItem("estatePlanSessionId", sessionId);
       localStorage.setItem("estatePlanId", newPlan.id);
       router.push(`/intake/guided?planId=${newPlan.id}`);
     } catch (error) {
       console.error("Failed to create estate plan:", error);
       setIsCreating(false);
+      creationInProgressRef.current = false;
+    }
+  };
+
+  const handleStartWithDocuments = async () => {
+    // Prevent double-creation from rapid clicks
+    if (isCreating || creationInProgressRef.current) return;
+    creationInProgressRef.current = true;
+    setIsCreating(true);
+    try {
+      const sessionId = getOrCreateSessionId();
+      const newPlan = await createEstatePlan({
+        sessionId,
+        name: "My Estate Plan",
+      });
+      localStorage.setItem("estatePlanId", newPlan.id);
+      router.push(`/intake/upload?planId=${newPlan.id}`);
+    } catch (error) {
+      console.error("Failed to create estate plan:", error);
+      setIsCreating(false);
+      creationInProgressRef.current = false;
     }
   };
 
@@ -203,8 +240,14 @@ function IntakeLandingContent() {
           )}
           <button
             onClick={() => {
+              // Confirm before abandoning existing plan
+              const confirmed = window.confirm(
+                "You have an existing estate plan in progress. Starting a new plan will switch away from it. You can always access your old plans from the home page.\n\nContinue with new plan?"
+              );
+              if (!confirmed) return;
+
+              // Only remove planId, keep sessionId so old plans remain accessible
               localStorage.removeItem("estatePlanId");
-              localStorage.removeItem("estatePlanSessionId");
               router.push("/intake");
             }}
             className="px-5 py-2.5 border border-[var(--border)] text-[var(--text-heading)] rounded-lg font-medium text-sm hover:bg-[var(--off-white)] transition-colors"
@@ -397,8 +440,14 @@ function IntakeLandingContent() {
           )}
           <button
             onClick={() => {
+              // Confirm before abandoning existing plan
+              const confirmed = window.confirm(
+                "You have an existing estate plan in progress. Starting a new plan will switch away from it. You can always access your old plans from the home page.\n\nContinue with new plan?"
+              );
+              if (!confirmed) return;
+
+              // Only remove planId, keep sessionId so old plans remain accessible
               localStorage.removeItem("estatePlanId");
-              localStorage.removeItem("estatePlanSessionId");
               router.push("/intake");
             }}
             className="px-5 py-2.5 border border-[var(--border)] text-[var(--text-heading)] rounded-lg font-medium text-sm hover:bg-[var(--off-white)] transition-colors"

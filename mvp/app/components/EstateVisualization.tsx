@@ -157,8 +157,8 @@ export function EstateVisualization({
     <div className="w-full">
       {/* Total Estate Value Header */}
       <div className="text-center mb-6">
-        <p className="text-sm text-gray-500 dark:text-gray-400">Total Estate Value</p>
-        <p className="text-3xl font-bold text-gray-900 dark:text-white">
+        <p className="text-sm text-gray-600 dark:text-gray-400">Total Estate Value</p>
+        <p className="text-3xl font-bold text-[var(--text-heading)]">
           {formatCurrency(data.totalValue)}
         </p>
       </div>
@@ -199,8 +199,8 @@ export function EstateVisualization({
       {/* Warnings */}
       {data.warnings.length > 0 && (
         <div className="mt-6 space-y-3">
-          <h4 className="font-medium text-gray-900 dark:text-white flex items-center gap-2">
-            <svg className="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <h4 className="font-medium text-[var(--text-heading)] flex items-center gap-2">
+            <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
             Attention Needed
@@ -210,27 +210,27 @@ export function EstateVisualization({
               key={index}
               className={`p-3 rounded-lg border ${
                 warning.severity === "high"
-                  ? "bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800"
+                  ? "bg-red-100 border-red-300 dark:bg-red-900/30 dark:border-red-700"
                   : warning.severity === "medium"
-                  ? "bg-amber-50 border-amber-200 dark:bg-amber-900/20 dark:border-amber-800"
-                  : "bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800"
+                  ? "bg-amber-100 border-amber-300 dark:bg-amber-900/30 dark:border-amber-700"
+                  : "bg-blue-100 border-blue-300 dark:bg-blue-900/30 dark:border-blue-700"
               }`}
             >
               <p className={`font-medium text-sm ${
                 warning.severity === "high"
-                  ? "text-red-800 dark:text-red-200"
+                  ? "text-red-900 dark:text-red-100"
                   : warning.severity === "medium"
-                  ? "text-amber-800 dark:text-amber-200"
-                  : "text-blue-800 dark:text-blue-200"
+                  ? "text-amber-900 dark:text-amber-100"
+                  : "text-blue-900 dark:text-blue-100"
               }`}>
                 {warning.title}
               </p>
               <p className={`text-xs mt-1 ${
                 warning.severity === "high"
-                  ? "text-red-600 dark:text-red-300"
+                  ? "text-red-800 dark:text-red-200"
                   : warning.severity === "medium"
-                  ? "text-amber-600 dark:text-amber-300"
-                  : "text-blue-600 dark:text-blue-300"
+                  ? "text-amber-800 dark:text-amber-200"
+                  : "text-blue-800 dark:text-blue-200"
               }`}>
                 {warning.description}
               </p>
@@ -321,17 +321,17 @@ export function EstateStats({ data }: EstateStatsProps) {
         >
           <div className={`mb-2 ${
             stat.variant === "warning"
-              ? "text-amber-600 dark:text-amber-400"
+              ? "text-amber-700 dark:text-amber-400"
               : stat.variant === "success"
-              ? "text-green-600 dark:text-green-400"
-              : "text-gray-400 dark:text-gray-500"
+              ? "text-green-700 dark:text-green-400"
+              : "text-gray-600 dark:text-gray-400"
           }`}>
             {stat.icon}
           </div>
           <p className="text-2xl font-bold text-gray-900 dark:text-white">{stat.value}</p>
-          <p className="text-sm text-gray-500 dark:text-gray-400">{stat.label}</p>
+          <p className="text-sm text-gray-700 dark:text-gray-300">{stat.label}</p>
           {stat.subtext && (
-            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{stat.subtext}</p>
+            <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">{stat.subtext}</p>
           )}
         </div>
       ))}
@@ -391,16 +391,43 @@ export function parseIntakeToEstateData(
     colorIndex++;
   };
 
-  // Add spouse
-  if (familyData.spouseName) {
-    addBeneficiary(familyData.spouseName as string, "Spouse");
+  // Add spouse - handle both combined "spouseName" and separate "spouseFirstName"/"spouseLastName" fields
+  const spouseName = (familyData.spouseFirstName || familyData.spouseLastName)
+    ? `${familyData.spouseFirstName || ""} ${familyData.spouseLastName || ""}`.trim()
+    : familyData.spouseName as string | undefined;
+
+  if (spouseName) {
+    addBeneficiary(spouseName, "Spouse");
   }
 
-  // Add children
+  // Add children - handle both formats:
+  // - Guided form uses: { name: "John Doe" }
+  // - Comprehensive form uses: { firstName: "John", lastName: "Doe" }
   if (Array.isArray(familyData.children)) {
     for (const child of familyData.children) {
-      if (child.name) {
-        addBeneficiary(child.name, "Child");
+      // Try to get name from either format
+      const childName = child.name
+        || ((child.firstName || child.lastName)
+            ? `${child.firstName || ""} ${child.lastName || ""}`.trim()
+            : null);
+
+      if (childName) {
+        addBeneficiary(childName, "Child");
+      }
+    }
+  }
+
+  // Add dependents (other family members from intake)
+  // Handle both name formats like children above
+  if (Array.isArray(familyData.dependents)) {
+    for (const dependent of familyData.dependents) {
+      const dependentName = dependent.name
+        || ((dependent.firstName || dependent.lastName)
+            ? `${dependent.firstName || ""} ${dependent.lastName || ""}`.trim()
+            : null);
+
+      if (dependentName) {
+        addBeneficiary(dependentName, dependent.relationship || "Dependent");
       }
     }
   }
